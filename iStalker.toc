@@ -1,0 +1,8 @@
+## Interface: 70100
+## Title: iStalker
+## Author: TheGenomeWhisperer
+## Version: 1.0.0
+## Notes: Manages and informs upon guild member progression, status, rank changes, level changes, membership changes, and anniversary dates.
+## SavedVariables: GMM_Roster_Save,GMM_ChangeReport_Save
+
+iStalker.lua
