@@ -3,6 +3,6 @@
 ## Author: TheGenomeWhisperer
 ## Version: 1.0.0
 ## Notes: Manages and informs upon guild member progression, status, rank changes, level changes, membership changes, and anniversary dates.
-## SavedVariables: GMM_Roster_Save,GMM_ChangeReport_Save
+## SavedVariables: GMM_Roster_Save,GMM_LogReport_Save,GMM_MemberHistory_Save,GMM_LeftGuildHistory_Save
 
 iStalker.lua
