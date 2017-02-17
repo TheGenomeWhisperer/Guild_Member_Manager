@@ -134,6 +134,7 @@ local function GetTimePassed(oldTimestamp)
             timestamp = string.format(seconds .. " " .. secondsTag);
         end
     end
+    print(timestamp);
     return timestamp;
 end
 
@@ -203,20 +204,21 @@ local function AddMemberRecord(memberInfo,isReturningMember,oldMemberInfo)
     local dateOfLastPromotionMeta = time();
     local birthday = nil;
 
-    --Custom Tracking
-    local privateNotes = nil;
+    --Custom Tracking + private
+    local privateNotes = {};
     local custom = {}; -- special tagline for certain things, like data tracking <date> "" or achievement <achiev> "" etc setCustomTracker()
 
     -- Info nil now, but to be populated on leaving the guild
-    local leftGuildDate = nil;
-    local leftGuildDateMeta = nil;
-    local bannedFromGuild = nil;
-    local reasonBanned = nil;
+    local leftGuildDate = {};
+    local leftGuildDateMeta = {};
+    local bannedFromGuild = false;
+    local reasonBanned = "";
     local oldRank = nil;
-    local oldJoinDate = nil; -- filled upon player leaving the guild.
-    local oldJoinDateMeta = nil;
+    local oldJoinDate = {}; -- filled upon player leaving the guild.
+    local oldJoinDateMeta = {};
 
     if isReturningMember then
+        birthday = oldMemberInfo[10];
         leftGuildDate = oldMemberInfo[11];
         leftGuildDateMeta = oldMemberInfo[12];
         bannedFromGuild = oldMemberInfo[13];
@@ -224,6 +226,8 @@ local function AddMemberRecord(memberInfo,isReturningMember,oldMemberInfo)
         oldRank = oldMemberInfo[15];
         oldJoinDate = oldMemberInfo[16];
         oldJoinDateMeta = oldMemberInfo[17];
+        privateNotes = oldMemberInfo[18];
+        custom = oldMemberInfo[19];
     end
     table.insert(GMM_MemberHistory_Save,{name,joinDate,joinDateMeta,rank,playerLevelOnJoining,isMainToon,listOfAltsInGuild,dateOfLastPromotion,dateOfLastPromotionMeta,birthday,leftGuildDate,leftGuildDateMeta,bannedFromGuild,reasonBanned,oldRank,oldJoinDate,oldJoinDateMeta,privateNotes,custom});
 end
@@ -283,9 +287,9 @@ local function RecordChanges(indexOfInfo,memberInfo,memberOldInfo)
                 else
                     numTimesString = string.format(memberInfo[1] .. " is Returning for the First Time.");
                 end
-                if GMM_LeftGuildHistory_Save[i][10] == true then
+                if GMM_LeftGuildHistory_Save[i][13] == true then
                     -- Player was banned! WARNING!!!
-                    logReport = string.format(GetTimestamp() .. " : ---- WARNING! WARNING! WARNING! ----\n" .. memberInfo[1] .. " has REJOINED the guild but was previously BANNED!\nDate of Ban: " .. GMM_LeftGuildHistory_Save[i][11] .. " (" .. GetTimePassed(GMM_LeftGuildHistory_Save[i][12]) .. " ago)\nReason:      " .. GMM_LeftGuildHistory_Save[i][13] .. "\n" .. numTimesString);
+                    logReport = string.format(GetTimestamp() .. " :\n---- WARNING! WARNING! WARNING! ----\n" .. memberInfo[1] .. " has REJOINED the guild but was previously BANNED!\nDate of Ban: " .. GMM_LeftGuildHistory_Save[i][11][#GMM_LeftGuildHistory_Save[i][11]] .. " (" .. GetTimePassed(GMM_LeftGuildHistory_Save[i][12][#GMM_LeftGuildHistory_Save[i][12]]) .. " ago)\nReason:      " .. GMM_LeftGuildHistory_Save[i][14] .. "\n" .. numTimesString);
                     table.insert(tempLogJoinButPreviousBan,logReport);
                     print(logReport);
                 else
@@ -295,18 +299,43 @@ local function RecordChanges(indexOfInfo,memberInfo,memberOldInfo)
                     print(logReport);
                 end
                 rejoin = true;
+                -- AddPlayerTo MemberHistory
+                AddMemberRecord(memberInfo,true,GMM_LeftGuildHistory_Save[i]);
+                -- Removing Player from LeftGuild History (Yes, they will be re-added upon leaving the guild.)
+                table.remove(GMM_LeftGuildHistory_Save, i);
                 break;
             end
         end
         if rejoin ~= true then
+            -- New Guildie. NOT a rejoin!
             logReport = string.format(memberInfo[1] .. " has Joined the guild!");
             table.insert(tempLogJoin,logReport);
+            AddMemberRecord(memberInfo,false,nil);
             print(logReport);
         end
     -- 11 = Player Left
+    
     elseif indexOfInfo == 11 then
         logReport = string.format(memberInfo[1] .. " has Left the guild");
         table.insert(tempLogLeave,logReport);
+        -- Finding Player's record for updating
+        for i = 1,#GMM_MemberHistory_Save do
+            if memberInfo[1] == GMM_MemberHistory_Save[i][1] then
+                -- Found!
+                table.insert(GMM_MemberHistory_Save[i][11],GetTimestamp());   -- leftGuildDate
+                table.insert(GMM_MemberHistory_Save[i][12],time());           -- leftGuildDateMeta
+                GMM_MemberHistory_Save[i][15] = GMM_MemberHistory_Save[i][4];                -- oldRank on leaving.
+                table.insert(GMM_MemberHistory_Save[i][16],GMM_MemberHistory_Save[i][2]);    -- oldJoinDate
+                table.insert(GMM_MemberHistory_Save[i][17],GMM_MemberHistory_Save[i][3]);    -- oldJoinDateMeta
+                
+                -- Adding to LeftGuild Player history library
+                table.insert(GMM_LeftGuildHistory_Save,GMM_MemberHistory_Save[i]);
+                -- removing from active member library
+                table.remove(GMM_MemberHistory_Save,i);
+                break;
+            end
+        end
+
         print(logReport);
     -- 12 = NameChanged
     elseif indexOfInfo == 12 then
@@ -421,6 +450,7 @@ local function CheckPlayerChanges(metaData)
         end
     elseif #leavingPlayers > 0 then
         for i = 1,#leavingPlayers do
+            -- print("Name Leaving: " leavingPlayers[i][1]);
             RecordChanges(11,leavingPlayers[i],leavingPlayers[i]);
         end
     end
@@ -456,7 +486,11 @@ function BuildNewRoster()
     if GMM_Roster_Save[1] == nil then
         print("Analyzing Guild Roster For the First Time... ");
         GMM_Roster_Save = roster;
-        table.insert(GMM_Roster_Save,GetTimestamp()); -- Timestamp added at end   
+        table.insert(GMM_Roster_Save,GetTimestamp()); -- Timestamp added at end
+        -- Build Player Library for new Roster.
+        for i = 1,#roster do
+            AddMemberRecord(roster[i],false,nil);
+        end
     else
         print("test");
         CheckPlayerChanges(roster); -- Ok, let's process changes!
@@ -530,4 +564,5 @@ GMM_LoadAddon();
     -- GetGuildNewsInfo
     -- check data since last online.
     -- History should include array of join/leave dates... calculate total time in the guild by metaData seconds LeaveDate - JoinDate - keep adding the time in the guild each time they rejoin.
-
+    -- Remove Member Record Method.
+-- GetTimePassed(GMM_LeftGuildHistory_Save[10][12][#GMM_LeftGuildHistory_Save[10][12]])
