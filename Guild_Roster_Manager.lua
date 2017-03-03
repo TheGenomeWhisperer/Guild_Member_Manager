@@ -2,26 +2,28 @@
 
 
 -- Useful Customizations
-local HowOftenToCheck = 10; -- in seconds
-local TimeOfflineToKick = 6; -- In months
+local HowOftenToCheck = 10;             -- in seconds
+local TimeOfflineToKick = 6;            -- In months
+local InactiveMemberReturnsTimer = 1;   -- How many hours need to pass by for the guild leader to be notified of player coming back (2 weeks is default value)
 
 -- Saved Variables Per Character
-GR_LogReport_Save = {}; -- This will be the stored Log of events. It can only be added to, never modified.
-GR_GuildMemberHistory_Save = {} -- Detailed information on each guild player has been a member of w/member info.
-GR_PlayersThatLeftHistory_Save = {}; -- Data storage of all players that left the guild, so metadata is stored if they return. Useful for reasoning as to why banned.
+GR_LogReport_Save = {};                 -- This will be the stored Log of events. It can only be added to, never modified.
+GR_GuildMemberHistory_Save = {}         -- Detailed information on each guild player has been a member of w/member info.
+GR_PlayersThatLeftHistory_Save = {};    -- Data storage of all players that left the guild, so metadata is stored if they return. Useful for reasoning as to why banned.
 
 -- Useful Variables
 local addonName = "Guild Roster Manager";
 local guildStatusChecked = false;
 local PlayerIsCurrentlyInGuild = false;
+local LastOnlineNotReported = true;
 
 -- For Initial and Live tracking
 local Initialization = CreateFrame("Frame");
 local GeneralEventTracking = CreateFrame("Frame");
-local TrackingHappenedLive = false; -- Boolean to also print out to player chat window for live tracking updates w/o needing to open whole log
-                                    -- but also will not push chat updates on initial login or reload scanning. JUST LIVE TRACKING PRINTING!
-local timeDelayValue = 0; -- For time delay tracking. Only update on trigger. To prevent spammyness.
+local timeDelayValue = 0;                            -- For time delay tracking. Only update on trigger. To prevent spammyness.
 
+-- Temp logs for final reporting
+local TempInactiveReturnedLog = {};
 ------------------------
 --- FUNCTIONS ----------
 ------------------------
@@ -61,22 +63,31 @@ local function ModifyCustomNote(newNote,playerName)
     end
 end
 
--- Method:          GetLastOnline(string)
--- What it Does:    Returns the total numbner of hours since the player last logged in.
+-- Method:          GetLastOnline(int)
+-- What it Does:    Returns the total numbner of hours since the player last logged in at given index position of guild roster
 -- Purpose:         For player management to notify addon user of too much time has passed, for recommendation to kick,
-local function GetLastOnline(name)
-    local years, months, days, hours = 0;
-    for i =1,GetNumGuildies() do
-        local rosterName = GetGuildRosterInfo(i);
-        if SlimName(rosterName) == name then
-            years, months, days, hours = GetGuildRosterLastOnline(i);
-        end
-        break;
+local function GetLastOnline(index)
+    local years, months, days, hours = GetGuildRosterLastOnline(index);
+    if years == nil then
+        years = 0;
     end
-    local totalHours = (years * 8736) + (months * 720) + (days * 24) + hours;
+    if months == nil then
+        months = 0;
+    end
+    if days == nil then
+        days = 0;
+    end
+    if hours == nil then
+        hours = 0;
+    end
+    if (years == 0) and (months == 0) and (days == 0) then
+        if hours == 0 then
+            hours = 0.5;    -- This can be any value less than 1, but must be between 0 and 1, to just make the point that total number of hrs since last login is < 1
+        end
+    end
+    local totalHours = (years * 8760) + (months * 730) + (days * 24) + hours;
     return totalHours;
 end
-
 
 -- Method:          GetTimePassed(oldTimestamp)
 -- What it Does:    Reports back the elapsed, in English, since the previous given timestamp, based on the 1970 seconds count.
@@ -207,6 +218,52 @@ local function GetTimestamp()
     return string.format(time);
 end
 
+-- Method:          HoursReport(int)
+-- What it Does:    Reports as a string the time passed since player last logged on.
+-- Purpose:         Cleaner reporting to the log.
+local function HoursReport(hours)
+    local result = "";
+
+    local years = math.floor(hours / 8760);
+    local months = math.floor((hours % 8760) / 730);
+    local days = math.floor(((hours % 8760) % 730) / 24);
+    local hours = math.floor(((hours % 8760) % 730) % 24);
+
+    if (years >= 1) then
+        if years > 1 then
+            result = result .. "" .. years .. " years ";
+        else
+            result = result .. "" .. years .. " year ";
+        end
+    end
+
+    if (months >= 1) then
+        if months > 1 then
+            result = result .. "" .. months .. " months ";
+        else
+            result = result .. "" .. months .. " month ";
+        end
+    end
+
+    if (days >= 1) then
+        if days > 1 then
+            result = result .. "" .. days .. " days ";
+        else
+            result = result .. "" .. days .. " days ";
+        end
+    end
+
+    if (hours >= 1) then
+        if hours > 1 then
+            result = result .. "" .. hours .. " hours.";
+        else
+            result = result .. "" .. hours .. " hour.";
+        end
+    end
+
+    return result;
+end
+
 -- Method:          AddMemberRecord()
 -- What it Does:    Builds Member Record into Guild History with various metadata
 -- Purpose:         For reliable guild data tracking.
@@ -241,6 +298,9 @@ local function AddMemberRecord(memberInfo,isReturningMember,oldMemberInfo,guildN
     local oldJoinDate = {}; -- filled upon player leaving the guild.
     local oldJoinDateMeta = {};
 
+    -- Pieces info that were added on later-- from index 24 of metaData array, so as not to mess with previous code
+    local lastOnline = 0; -- Stores it in number of HOURS since last online.
+
     if isReturningMember then
         birthday = oldMemberInfo[14];
         leftGuildDate = oldMemberInfo[15];
@@ -256,7 +316,7 @@ local function AddMemberRecord(memberInfo,isReturningMember,oldMemberInfo,guildN
 
     for i = 1,#GR_GuildMemberHistory_Save do
         if guildName == GR_GuildMemberHistory_Save[i][1] then
-            table.insert(GR_GuildMemberHistory_Save[i],{name,joinDate,joinDateMeta,rank,rankIndex,playerLevelOnJoining,note,officerNote,class,isMainToon,listOfAltsInGuild,dateOfLastPromotion,dateOfLastPromotionMeta,birthday,leftGuildDate,leftGuildDateMeta,bannedFromGuild,reasonBanned,oldRank,oldJoinDate,oldJoinDateMeta,privateNotes,custom});
+            table.insert(GR_GuildMemberHistory_Save[i],{name,joinDate,joinDateMeta,rank,rankIndex,playerLevelOnJoining,note,officerNote,class,isMainToon,listOfAltsInGuild,dateOfLastPromotion,dateOfLastPromotionMeta,birthday,leftGuildDate,leftGuildDateMeta,bannedFromGuild,reasonBanned,oldRank,oldJoinDate,oldJoinDateMeta,privateNotes,custom,lastOnline});
             break;
         end
     end
@@ -288,7 +348,7 @@ local function PrintLog(index,logReport,LoggingIt) -- 2D array index and logRepo
             -- Add to log
         else
             -- sending it to chatFrame
-            chat:AddMessage(logReport, 0.176, 0.420, 1.0);
+            chat:AddMessage(logReport, 0.0, 0.44, .87);
         end
     elseif (index == 4) then -- Note
         if LoggingIt then
@@ -338,11 +398,17 @@ local function PrintLog(index,logReport,LoggingIt) -- 2D array index and logRepo
         else
             chat:AddMessage(logReport,1.0,1.0,1.0);
         end
-    elseif (index == 13) then
+    elseif (index == 13) then -- Rejoining PLayer Custom Note Report
         if LoggingIt then
 
         else
             chat:AddMessage(logReport,0.4,0.71,0.9)
+        end
+    elseif (index == 14) then -- Player has returned from inactivity
+        if LoggingIt then
+
+        else
+            chat:AddMessage(logReport,0,1.0,0.87);
         end
     elseif (index == 99) then
         -- Addon Name Report Colors!
@@ -448,15 +514,14 @@ local function RecordChanges(indexOfInfo,memberInfo,memberOldInfo,guildName)
         end -- MemberHistory guild search
         if rejoin ~= true then
             -- New Guildie. NOT a rejoin!
-            print("not a rejoin!");
-            logReport = string.format(memberInfo[1] .. " has Joined the guild! (LVL: " .. memberInfo[4] .. ")");
+            logReport = string.format(GetTimestamp() .. " : " .. memberInfo[1] .. " has Joined the guild! (LVL: " .. memberInfo[4] .. ")");
             AddMemberRecord(memberInfo,false,nil,guildName);
             PrintLog(8, logReport, false);
             AddLog(8,logReport);
         end
     -- 11 = Player Left
     elseif indexOfInfo == 11 then
-        logReport = string.format(memberInfo[1] .. " has Left the guild");
+        logReport = string.format(GetTimestamp() .. " : " .. memberInfo[1] .. " has Left the guild");
         PrintLog(10,logReport);
         AddLog(10,logReport);
         -- Finding Player's record for removal of current guild and adding to the Left Guild table.
@@ -492,9 +557,36 @@ local function RecordChanges(indexOfInfo,memberInfo,memberOldInfo,guildName)
         -- PrintLog(10, logReport, false);
     -- 12 = NameChanged
     elseif indexOfInfo == 12 then
-        logReport = string.format(memberOldInfo[1] .. " has Name-Changed to ".. memberInfo[1]);
+        logReport = string.format(GetTimestamp() .. " : " .. memberOldInfo[1] .. " has Name-Changed to ".. memberInfo[1]);
         PrintLog(11, logReport, false);
         AddLog(11,logReport);
+    -- 13 = Inactive Members Return!
+    elseif indexOfInfo == 13 then
+        logReport = string.format(GetTimestamp() .. " : " .. memberInfo .. " has Come ONLINE after being INACTIVE for " ..  HoursReport(memberOldInfo));
+        print(logReport);
+        PrintLog(14,logReport, false);
+        AddLog(14,logReprt);
+    end
+end
+
+-- Method:          ReportLastOnline(array)
+-- What it Does:    Like the "CheckPlayerChanges()", this one does a one time scan on login or reload of notable changes of players who have returned from being offline for an extended period of time.
+-- Purpose:         To inform the guild leader that a guildie who has not logged in in a while has returned!
+local function ReportLastOnline(name,guildName,index)
+    for i = 1,#GR_GuildMemberHistory_Save do                                    -- Scanning saved guilds
+        if GR_GuildMemberHistory_Save[i][1] == guildName then                   -- Saved guild Found!
+            for j = 2,#GR_GuildMemberHistory_Save[1] do                         -- Scanning through roster so can check changes (position 1 is guild name, so no need to rescan)
+                if GR_GuildMemberHistory_Save[i][j][1] == name then             -- Player matched.
+                    local hours = GetLastOnline(index);
+                    if GR_GuildMemberHistory_Save[i][j][24] > InactiveMemberReturnsTimer and GR_GuildMemberHistory_Save[i][j][24] > hours then  -- Player has logged in after having been inactive for greater than 2 weeks!
+                        RecordChanges(13,name,GR_GuildMemberHistory_Save[i][j][24],guildName);      -- Recording the change in hours to log
+                    end
+                    GR_GuildMemberHistory_Save[i][j][24] = hours;                                   -- Set new hours since last login.
+                    break;
+                end
+            end
+        end
+        break;
     end
 end
 
@@ -669,22 +761,6 @@ local function BuildNewRoster()
     local roster = {};
     local guildName = GetGuildInfo("player"); -- Guild Name
 
-    for i = 1,GetNumGuildies() do
-        local name, rank, rankIndex, level, _, _, note, officerNote, _, _, class = GetGuildRosterInfo(i);
-        roster[i] = {};
-        roster[i][1] = SlimName(name);
-        roster[i][2] = rank;
-        roster[i][3] = rankIndex;
-        roster[i][4] = level;
-        roster[i][5] = note;
-        if CanViewOfficerNote() then -- Officer Note permission to view.
-            roster[i][6] = officerNote;
-        else
-            roster[i][6] = i; -- Set Officer note to unique index position of player in array if unable to view.
-        end
-        roster[i][7] = class;
-    end
-
     -- Checking if Guild Found or Not Found, to pre-check for Guild name tag.
     local guildNotFound = true;
     for i = 1,#GR_GuildMemberHistory_Save do
@@ -694,18 +770,53 @@ local function BuildNewRoster()
         end
     end
 
+    for i = 1,GetNumGuildies() do
+        local name, rank, rankIndex, level, _, _, note, officerNote, _, _, class = GetGuildRosterInfo(i);
+        local slim = SlimName(name);
+        roster[i] = {};
+        roster[i][1] = slim
+        roster[i][2] = rank;
+        roster[i][3] = rankIndex;
+        roster[i][4] = level;
+        roster[i][5] = note;
+        if CanViewOfficerNote() then -- Officer Note permission to view.
+            roster[i][6] = officerNote;
+        else
+            roster[i][6] = i; -- Set Officer note to unique index position of player in array if unable to view.
+        end
+
+        roster[i][7] = class;
+        roster[i][8] = GetLastOnline(i); -- Time since they last logged in in hours.
+
+        -- Items to check One time check on login
+        -- Check players who have not been on a long time only on login or addon reload.
+        if guildNotFound ~= true then
+            ReportLastOnline(slim,guildName,i);
+        end
+
+    end
+    
     -- Build Roster for the first time if guild not found.
     if guildNotFound then
         print("Analyzing guild for the first time");
         table.insert(GR_GuildMemberHistory_Save,{guildName}); -- Creating a position in table for Guild Member Data
         table.insert(GR_PlayersThatLeftHistory_Save,{guildName}); -- Creating a position in Left Player Table for Guild Member Data
         for i = 1,#roster do
+            -- Add last time logged in initial timestamp.
             AddMemberRecord(roster[i],false,nil,guildName);
+            for r = 1,#GR_GuildMemberHistory_Save do                                                    -- identifying guild
+                if GR_GuildMemberHistory_Save[r][1] == guildName then                                   -- Guild found!
+                    GR_GuildMemberHistory_Save[r][#GR_GuildMemberHistory_Save[1]][24] = roster[i][8];  -- Setting Timestamp for the first time only.
+                end
+                break;
+            end
         end
+
     else -- Check over changes!
         CheckPlayerChanges(roster,guildName);
-
     end
+
+    
     
 end
 
@@ -715,11 +826,12 @@ end
 local function Tracking()
     if IsInGuild() then
         local timeCallJustOnce = time();
-        if timeDelayValue == 0 or (timeCallJustOnce - timeDelayValue) > 3 then -- Initial scan is zero.
+        if timeDelayValue == 0 or (timeCallJustOnce - timeDelayValue) > 5 then -- Initial scan is zero.
             timeDelayValue = timeCallJustOnce;
-            TrackingHappenedLive = true;
             BuildNewRoster();
-            TrackingHappenedLive = false;
+
+            -- Prevent from re-scanning changes
+            LastOnlineNotReported = false;
         end
         C_Timer.After(HowOftenToCheck,Tracking); -- Recursive check every 10 seconds.
     end
@@ -742,16 +854,16 @@ function ManageGuildStatus(self,event,msg)
     if guildStatusChecked ~= true then
        timeDelayValue = time(); -- Prevents it from doing "IsInGuild()" too soon by resetting timer as server reaction is slow.
     end
-    if timeDelayValue == 0 or (time() - timeDelayValue) > 3 then -- Let's do a recheck on guild status to prevent unnecessary scanning.
+    if timeDelayValue == 0 or (time() - timeDelayValue) > 5 then -- Let's do a recheck on guild status to prevent unnecessary scanning.
         if IsInGuild() then
             local guildName = GetGuildInfo("player");
             print("Player is in guild SUCCESS!");
             print("Reactivating Tracking");
-            PlayerIsCurrentlyInGuild = status;
+            PlayerIsCurrentlyInGuild = true;
             Tracking();
         else
             print("player no longer in guild confirmed!"); -- Store the data.
-            PlayerIsCurrentlyInGuild = status;
+            PlayerIsCurrentlyInGuild = false;
             GR_LoadAddon();
         end
         guildStatusChecked = false;
@@ -775,10 +887,10 @@ function ActivateAddon(self,event,addon)
     elseif event == "PLAYER_ENTERING_WORLD" then
         if IsInGuild() then
             Initialization:UnregisterEvent("PLAYER_ENTERING_WORLD");
-            Initialization:UnregisterEvent("ADDON_LOADED"); -- no need to keep scanning these after full loaded.
-            GuildRoster(); -- Initial queries...
+            Initialization:UnregisterEvent("ADDON_LOADED");     -- no need to keep scanning these after full loaded.
+            GuildRoster();                                      -- Initial queries...
             QueryGuildEventLog();
-            C_Timer.After(5,GR_LoadAddon); -- Queries do not return info immediately, gives server a 5 second delay.
+            C_Timer.After(5,GR_LoadAddon);                      -- Queries do not return info immediately, gives server a 5 second delay.
         else
             ManageGuildStatus();
         end
@@ -822,3 +934,4 @@ Initialization:SetScript("OnEvent",ActivateAddon);
     -- If Banned from guild -- popup box Warning... Option to remove ban RemoveBan(player)
     -- Add Timestamp to Officer Note upon Joining Guild. Or, "Change" option next to custom UI printout on guild member sheet.
     -- Sort guild roster by "Time in guild" - possible in built-in UI?
+    -- Any ranks to ignore if they return from being online after a while? -- Probably won't include, but maybe
