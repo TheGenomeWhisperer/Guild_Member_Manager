@@ -1,10 +1,13 @@
 -- Author: TheGenomeWhisperer
 
+-- Table that will hold all global functions... (As of yet unnecessary as all my functions only need to be LOCAL)
+GR_AddOn = {};
 
 -- Useful Customizations
 local HowOftenToCheck = 10;             -- in seconds
 local TimeOfflineToKick = 6;            -- In months
 local InactiveMemberReturnsTimer = 1;   -- How many hours need to pass by for the guild leader to be notified of player coming back (2 weeks is default value)
+local AddTimestampOnJoin = true;        -- Timestamps the officer note on joining, if Officer Note privileges.
 
 -- Saved Variables Per Character
 GR_LogReport_Save = {};                 -- This will be the stored Log of events. It can only be added to, never modified.
@@ -20,10 +23,23 @@ local LastOnlineNotReported = true;
 -- For Initial and Live tracking
 local Initialization = CreateFrame("Frame");
 local GeneralEventTracking = CreateFrame("Frame");
+local UI_Events = CreateFrame("Frame");
 local timeDelayValue = 0;                            -- For time delay tracking. Only update on trigger. To prevent spammyness.
 
 -- Temp logs for final reporting
+local TempNewMember = {};
 local TempInactiveReturnedLog = {};
+local TempLogPromotion = {};
+local TempLogDemotion = {};
+local TempLogLeveled = {};
+local TempLogNote = {};
+local TempLogONote = {};
+local TempRankRename = {};
+local TempRejoin = {};
+local TempBannedRejoin = {};
+local TempLeftGuild = {};
+local TempNameChanged = {};
+
 ------------------------
 --- FUNCTIONS ----------
 ------------------------
@@ -43,6 +59,21 @@ end
 local function GetNumGuildies()
     local numMembers = GetNumGuildMembers();
     return numMembers;
+end
+
+local function ResetTempLogs()
+    TempNewMember = {};
+    TempInactiveReturnedLog = {};
+    TempLogPromotion = {};
+    TempLogDemotion = {};
+    TempLogLeveled = {};
+    TempLogNote = {};
+    TempLogONote = {};
+    TempRankRename = {};
+    TempRejoin = {};
+    TempBannedRejoin = {};
+    TempLeftGuild = {};
+    TempNameChanged = {};
 end
 
 -- Method:          ModifyCustomNote(string,string)
@@ -249,7 +280,7 @@ local function HoursReport(hours)
         if days > 1 then
             result = result .. "" .. days .. " days ";
         else
-            result = result .. "" .. days .. " days ";
+            result = result .. "" .. days .. " day ";
         end
     end
 
@@ -416,23 +447,128 @@ local function PrintLog(index,logReport,LoggingIt) -- 2D array index and logRepo
     end
 end
 
+-- Method:          FinalReport()
+-- What it Does:    Organizes flow of final report and send it to chat frame and to the logReport.
+-- Purpose:         Clean organization for presentation.
+local function FinalReport()
+    print("Final Report!")
+    if #TempNewMember > 0 then
+        for i = 1,#TempNewMember do
+            PrintLog(TempNewMember[i][1], TempNewMember[i][2], TempNewMember[i][3]);   -- Send to print to chat window
+            AddLog(TempNewMember[i][4],TempNewMember[i][5]);                              -- Adding to the Log of Events
+        end
+    end
+
+    if #TempRejoin > 0 then
+        for i = 1,#TempRejoin do
+            PrintLog(TempRejoin[i][1], TempRejoin[i][2], TempRejoin[i][3]);   -- Same Comments on down
+            PrintLog(TempRejoin[i][4], TempRejoin[i][5], TempRejoin[i][6]);
+            if TempRejoin[i][11] then
+                PrintLog(TempRejoin[i][12],TempRejoin[i][13]);
+            end
+            AddLog(TempRejoin[i][7],TempRejoin[i][8]);
+            AddLog(TempRejoin[i][9],TempRejoin[i][10]);
+            if TempRejoin[i][11] then
+                AddLog(TempRejoin[i][12],TempRejoin[i][13]);
+            end
+        end
+    end
+
+    if #TempBannedRejoin > 0 then
+        for i = 1,#TempBannedRejoin do
+            PrintLog(TempBannedRejoin[i][1], TempBannedRejoin[i][2], TempBannedRejoin[i][3]);
+            PrintLog(TempBannedRejoin[i][4], TempBannedRejoin[i][5], TempBannedRejoin[i][6]);
+            if TempBannedRejoin[i][11] then
+                PrintLog(TempBannedRejoin[i][12],TempBannedRejoin[i][13]);
+            end
+            AddLog(TempBannedRejoin[i][7],TempBannedRejoin[i][8]);
+            AddLog(TempBannedRejoin[i][9],TempBannedRejoin[i][10]);
+            if TempBannedRejoin[i][11] then
+                AddLog(TempBannedRejoin[i][12],TempBannedRejoin[i][13]);
+            end
+        end
+    end
+
+    if #TempLeftGuild > 0 then
+        for i = 1,#TempLeftGuild do
+            PrintLog(TempLeftGuild[i][1], TempLeftGuild[i][2], TempLeftGuild[i][3]); 
+            AddLog(TempLeftGuild[i][4],TempLeftGuild[i][5]);                            
+        end
+    end
+
+    if #TempInactiveReturnedLog > 0 then
+        for i = 1,#TempInactiveReturnedLog do
+            PrintLog(TempInactiveReturnedLog[i][1], TempInactiveReturnedLog[i][2], TempInactiveReturnedLog[i][3]);   
+            AddLog(TempInactiveReturnedLog[i][4],TempInactiveReturnedLog[i][5]);                              
+        end
+    end
+
+    if #TempNameChanged > 0 then
+        for i = 1,#TempNameChanged do
+            PrintLog(TempNameChanged[i][1], TempNameChanged[i][2], TempNameChanged[i][3]);   
+            AddLog(TempNameChanged[i][4],TempNameChanged[i][5]);                              
+        end
+    end
+
+    if #TempLogPromotion > 0 then
+        for i = 1,#TempLogPromotion do
+            PrintLog(TempLogPromotion[i][1], TempLogPromotion[i][2], TempLogPromotion[i][3]);   
+            AddLog(TempLogPromotion[i][4],TempLogPromotion[i][5]);                              
+        end
+    end
+
+    if #TempLogDemotion > 0 then
+        for i = 1,#TempLogDemotion do
+            PrintLog(TempLogDemotion[i][1], TempLogDemotion[i][2], TempLogDemotion[i][3]);
+            AddLog(TempLogDemotion[i][4],TempLogDemotion[i][5]);                           
+        end
+    end
+
+    if #TempLogLeveled > 0 then
+        for i = 1,#TempLogLeveled do
+            PrintLog(TempLogLeveled[i][1], TempLogLeveled[i][2], TempLogLeveled[i][3]);  
+            AddLog(TempLogLeveled[i][4],TempLogLeveled[i][5]);                    
+        end
+    end
+
+    if #TempRankRename > 0 then
+        for i = 1,#TempRankRename do
+            PrintLog(TempRankRename[i][1], TempRankRename[i][2], TempRankRename[i][3]);  
+            AddLog(TempRankRename[i][4],TempRankRename[i][5]);                    
+        end
+    end
+
+    if #TempLogNote > 0 then
+        for i = 1,#TempLogNote do
+            PrintLog(TempLogNote[i][1], TempLogNote[i][2], TempLogNote[i][3]);  
+            AddLog(TempLogNote[i][4],TempLogNote[i][5]);                    
+        end
+    end
+
+    if #TempLogONote > 0 then
+        for i = 1,#TempLogONote do
+            PrintLog(TempLogONote[i][1], TempLogONote[i][2], TempLogONote[i][3]);  
+            AddLog(TempLogONote[i][4],TempLogONote[i][5]);                    
+        end
+    end
+    ResetTempLogs();
+end  
+
 -- Method           RecordChanges()
 -- What it does:    Builds all the changes, sorts them, then adds them to change report
 -- Purpose:         Consolidation of data for final output report.
 local function RecordChanges(indexOfInfo,memberInfo,memberOldInfo,guildName)
-    print("RecordChanges");
     local logReport = "";
+    local tempLog = {};
     local chatframe = DEFAULT_CHAT_FRAME;
     -- 2 = Guild Rank Promotion
     if indexOfInfo == 2 then
         logReport = string.format(GetTimestamp() .. " : " .. memberInfo[1] .. " has been PROMOTED from " .. memberOldInfo[4] .. " to " .. memberInfo[2]);
-        PrintLog(1, logReport, false); -- Send to print to chat window
-        AddLog(indexOfInfo,logReport); -- Adding to the Log of Events
+        table.insert(TempLogPromotion,{1,logReport,false,indexOfInfo,logReport});
     -- 9 = Guild Rank Demotion
     elseif indexOfInfo == 9 then
         logReport = string.format(GetTimestamp() .. " : " .. memberInfo[1] .. " has been DEMOTED from " .. memberOldInfo[4] .. " to " .. memberInfo[2]);
-        PrintLog(2, logReport, false);
-        AddLog(indexOfInfo,logReport); -- Adding to the Log of Events - and so on for the rest...
+        table.insert(TempLogDemotion,{2,logReport,false,indexOfInfo,logReport});
     -- 4 = level
     elseif indexOfInfo == 4 then
         local numGained = memberInfo[4] - memberOldInfo[6];
@@ -441,23 +577,19 @@ local function RecordChanges(indexOfInfo,memberInfo,memberOldInfo,guildName)
         else
             logReport = string.format(GetTimestamp() .. " : " .. memberInfo[1] .. " has Leveled to " .. memberInfo[4] .. " (+ " .. numGained .. " level)");
         end
-        PrintLog(3, logReport, false);
-        AddLog(indexOfInfo,logReport);
+        table.insert(TempLogLeveled,{3,logReport,false,indexOfInfo,logReport});
     -- 5 = note
     elseif indexOfInfo == 5 then
         logReport = string.format(GetTimestamp() .. " : " .. memberInfo[1] .. "'s Note has Changed\nFrom:  " .. memberOldInfo[7] .. "\nTo:       " .. memberInfo[5]);
-        PrintLog(4, logReport, false);
-        AddLog(indexOfInfo,logReport);
+        table.insert(TempLogNote,{4,logReport,false,indexOfInfo,logReport});
     -- 6 = officerNote
     elseif indexOfInfo == 6 then
         logReport = string.format(GetTimestamp() .. " : " .. memberInfo[1] .. "'s OFFICER Note has Changed\nFrom:  " .. memberOldInfo[8] .. "\nTo:       " .. memberInfo[6]);
-        PrintLog(5, logReport, false);
-        AddLog(indexOfInfo,logReport);
+        table.insert(TempLogONote,{5,logReport,false,indexOfInfo,logReport});
     -- 8 = Guild Rank Name Changed to something else
     elseif indexOfInfo == 8 then
         logReport = string.format(GetTimestamp() .. " : Guild Rank Renamed from " .. memberOldInfo[4] .. " to " .. memberInfo[2]);
-        PrintLog(6, logReport, false);
-        AddLog(indexOfInfo,logReport);
+        table.insert(TempRankRename,{6,logReport,false,indexOfInfo,logReport});
     -- 10 = New Player
     elseif indexOfInfo == 10 then
         -- Check against old member list first to see if returning player!
@@ -476,34 +608,46 @@ local function RecordChanges(indexOfInfo,memberInfo,memberOldInfo,guildName)
                             numTimesString = string.format(memberInfo[1] .. " is Returning for the First Time.");
                         end
                         if GR_PlayersThatLeftHistory_Save[i][j][17] == true then
-                            print("player was banned!");
                             -- Player was banned! WARNING!!!
                             local warning = string.format(GetTimestamp() .. " :\n---------- WARNING! WARNING! WARNING! WARNING! ----------\n" .. memberInfo[1] .. " has REJOINED the guild but was previously BANNED!");
                             logReport = string.format("     Date of Ban:                     " .. GR_PlayersThatLeftHistory_Save[i][j][15][#GR_PlayersThatLeftHistory_Save[i][j][15]] .. " (" .. GetTimePassed(GR_PlayersThatLeftHistory_Save[i][j][16][#GR_PlayersThatLeftHistory_Save[i][j][16]]) .. " ago)\nReason:                           " .. GR_PlayersThatLeftHistory_Save[i][j][18] .. "\nDate Originally Joined:    " .. GR_PlayersThatLeftHistory_Save[i][j][20][1] .. "\nOld Guild Rank:               " .. GR_PlayersThatLeftHistory_Save[i][j][19] .. "\n" .. numTimesString);
-                            
-                            PrintLog(9, warning, false);
-                            PrintLog(12, logReport, false);
-                            AddLog(9,warning);
-                            AddLog(12,logReport);
+                            local custom = "";
+                            local toReport = {9,warning,false,12,logReport,false,9,warning,12,logReport,false,13,custom}
                             -- Extra Custom Note added for returning players.
                             if GR_PlayersThatLeftHistory_Save[i][j][23] ~= "" then
-                                local custom = ("Notes:     " .. GR_PlayersThatLeftHistory_Save[i][j][23]);
-                                PrintLog(13,custom);
-                                AddLog(13,custom);
+                                custom = ("Notes:     " .. GR_PlayersThatLeftHistory_Save[i][j][23]);
+                                toReport[11] = true;
+                                toReport[13] = custom;
                             end
+                            table.insert(TempBannedRejoin,toReport);
                         else
                             -- No Ban found, player just returning!
                             logReport = string.format(GetTimestamp() .. " : " .. memberInfo[1] .. " has REJOINED the guild (LVL: " .. memberInfo[4] .. ")");
+                            local custom = "";
                             local details = ("     Date Left:                        " .. GR_PlayersThatLeftHistory_Save[i][j][15][#GR_PlayersThatLeftHistory_Save[i][j][15]] .. " (" .. GetTimePassed(GR_PlayersThatLeftHistory_Save[i][j][16][#GR_PlayersThatLeftHistory_Save[i][j][16]]) .. " ago)\nDate Originally Joined:   " .. GR_PlayersThatLeftHistory_Save[i][j][20][1] .. "\nOld Guild Rank:              " .. GR_PlayersThatLeftHistory_Save[i][j][19] .. "\n" .. numTimesString);
-                            
-                            PrintLog(7, logReport, false);
-                            PrintLog(12, details, false);
-                            AddLog(7,logReport);
-                            AddLog(12,details);
+                            local toReport = {7,logReport,false,12,details,false,7,logReport,12,details,false,13,custom}
+                            -- Extra Custom Note added for returning players.
+                            if GR_PlayersThatLeftHistory_Save[i][j][23] ~= "" then
+                                custom = ("Notes:     " .. GR_PlayersThatLeftHistory_Save[i][j][23]);
+                                toReport[11] = true;
+                                toReport[13] = custom;
+                            end
+                            table.insert(TempRejoin,toReport);
                         end
                         rejoin = true;
                         -- AddPlayerTo MemberHistory
                         AddMemberRecord(memberInfo,true,GR_PlayersThatLeftHistory_Save[i][j],guildName);
+
+                        -- Adding timestamp to new Player.
+                        if AddTimestampOnJoin and CanEditOfficerNote() then
+                            for h = 1,GetNumGuildies() do
+                                local name = GetGuildRosterInfo(h);
+                                if SlimName(name) == memberInfo[1] then
+                                    GuildRosterSetOfficerNote(h,("Rejoined: " .. strsub(GetTimestamp(),1,10)));
+                                    break;
+                                end
+                            end
+                        end
                         -- Removing Player from LeftGuild History (Yes, they will be re-added upon leaving the guild.)
                         table.remove(GR_PlayersThatLeftHistory_Save[i], j);
                         break;
@@ -516,14 +660,22 @@ local function RecordChanges(indexOfInfo,memberInfo,memberOldInfo,guildName)
             -- New Guildie. NOT a rejoin!
             logReport = string.format(GetTimestamp() .. " : " .. memberInfo[1] .. " has Joined the guild! (LVL: " .. memberInfo[4] .. ")");
             AddMemberRecord(memberInfo,false,nil,guildName);
-            PrintLog(8, logReport, false);
-            AddLog(8,logReport);
+            table.insert(TempNewMember,{8,logReport,false,8,logReport});
+            -- Adding timestamp to new Player.
+            if AddTimestampOnJoin and CanEditOfficerNote() then
+                for s = 1,GetNumGuildies() do
+                    local name = GetGuildRosterInfo(s);
+                    if SlimName(name) == memberInfo[1] then
+                        GuildRosterSetOfficerNote(s,("Joined: " .. strsub(GetTimestamp(),1,10)));
+                        break;
+                    end
+                end
+            end
         end
     -- 11 = Player Left
     elseif indexOfInfo == 11 then
         logReport = string.format(GetTimestamp() .. " : " .. memberInfo[1] .. " has Left the guild");
-        PrintLog(10,logReport);
-        AddLog(10,logReport);
+        table.insert(TempLeftGuild,{10,logReport,false,10,logReport});
         -- Finding Player's record for removal of current guild and adding to the Left Guild table.
         for i = 1,#GR_GuildMemberHistory_Save do -- Scanning through guilds
             if guildName == GR_GuildMemberHistory_Save[i][1] then  -- Matching guild to index
@@ -554,18 +706,14 @@ local function RecordChanges(indexOfInfo,memberInfo,memberOldInfo,guildName)
             end
         end
 
-        -- PrintLog(10, logReport, false);
     -- 12 = NameChanged
     elseif indexOfInfo == 12 then
         logReport = string.format(GetTimestamp() .. " : " .. memberOldInfo[1] .. " has Name-Changed to ".. memberInfo[1]);
-        PrintLog(11, logReport, false);
-        AddLog(11,logReport);
+        table.insert(TempNameChanged,{11,logReport,false,11,logReport});
     -- 13 = Inactive Members Return!
     elseif indexOfInfo == 13 then
         logReport = string.format(GetTimestamp() .. " : " .. memberInfo .. " has Come ONLINE after being INACTIVE for " ..  HoursReport(memberOldInfo));
-        print(logReport);
-        PrintLog(14,logReport, false);
-        AddLog(14,logReprt);
+        table.insert(TempInactiveReturnedLog,{14,logReport,false,14,logReport});
     end
 end
 
@@ -710,7 +858,6 @@ local function CheckPlayerChanges(metaData,guildName)
                         end
                     end
                     -- Player not matched! For sure this player has left the guild!
-                    -- table.insert(GR_PlayersThatLeftHistory_Save,GR_GuildMemberHistory_Save[i][r]);
                     if playerNotMatched then
                         RecordChanges(11,leavingPlayers[k],leavingPlayers[k],guildName);
                         for r = 2,#GR_GuildMemberHistory_Save[i] do
@@ -815,9 +962,208 @@ local function BuildNewRoster()
     else -- Check over changes!
         CheckPlayerChanges(roster,guildName);
     end
+end
 
-    
-    
+--- UI FEATURES
+
+local timer = 0;
+local position = 0;
+local pause = false;
+local mouseClick = true;
+function GR_RosterFrame(self,elapsed)
+    timer = timer + elapsed;
+    if timer >= 0.075 then
+        -- control on whether to freeze the scanning.
+        if pause and GuildMemberDetailFrame:IsVisible() == false then
+            pause = false;
+        end
+
+        local NotSameWindow = true;
+        local mouseNotOver = true;
+        if pause == false then
+            if (GuildRosterContainerButton1:IsMouseOver(1,-1,-1,1)) then -- GuildRosterContainerScrollBar   GuildMemberDetailFrame  GuildRosterContainerScrollBarScrollUpButton GuildRosterFrame GuildRosterContainerScrollChild
+                if 1 ~= position then
+                    mouseClick = false;
+                    GuildRosterContainerButton1:Click();
+                    mouseClick = true;
+                    position = 1;
+                    pause = false;
+                else
+                    NotSameWindow = false;
+                end
+                mouseNotOver = false;
+            elseif(GuildRosterContainerButton2:IsVisible() and GuildRosterContainerButton2:IsMouseOver(1,-1,-1,1)) then
+                if 2 ~= position then
+                    mouseClick = false;
+                    GuildRosterContainerButton2:Click();
+                    mouseClick = true;
+                    position = 2;
+                else
+                    NotSameWindow = false;
+                end
+                mouseNotOver = false;
+            elseif (GuildRosterContainerButton3:IsVisible() and GuildRosterContainerButton3:IsMouseOver(1,-1,-1,1)) then
+                if 3 ~= position then
+                    mouseClick = false;
+                    GuildRosterContainerButton3:Click();
+                    mouseClick = true;
+                    position = 3;
+                else
+                    NotSameWindow = false;
+                end
+                mouseNotOver = false;
+            elseif (GuildRosterContainerButton4:IsVisible() and GuildRosterContainerButton4:IsMouseOver(1,-1,-1,1)) then
+                if 4 ~= position then
+                    mouseClick = false;
+                    GuildRosterContainerButton4:Click();
+                    mouseClick = true;
+                    position = 4;
+                else
+                    NotSameWindow = false;
+                end
+                mouseNotOver = false;
+            elseif (GuildRosterContainerButton5:IsVisible() and GuildRosterContainerButton5:IsMouseOver(1,-1,-1,1)) then
+                if 5 ~= position then
+                    mouseClick = false;
+                    GuildRosterContainerButton5:Click();
+                    mouseClick = true;
+                    position = 5;
+                else
+                    NotSameWindow = false;
+                end
+                mouseNotOver = false;
+            elseif (GuildRosterContainerButton6:IsVisible() and GuildRosterContainerButton6:IsMouseOver(1,-1,-1,1)) then
+                if 6 ~= position then
+                    mouseClick = false;
+                    GuildRosterContainerButton6:Click();
+                    mouseClick = true;
+                    position = 6;
+                else
+                    NotSameWindow = false;
+                end
+                mouseNotOver = false;
+            elseif (GuildRosterContainerButton7:IsVisible() and GuildRosterContainerButton7:IsMouseOver(1,-1,-1,1)) then
+                if 7 ~= position then
+                    mouseClick = false;
+                    GuildRosterContainerButton7:Click();
+                    mouseClick = true;
+                    position = 7;
+                else
+                    NotSameWindow = false;
+                end
+                mouseNotOver = false;
+            elseif (GuildRosterContainerButton8:IsVisible() and GuildRosterContainerButton8:IsMouseOver(1,-1,-1,1)) then
+                if 8 ~= position then
+                    mouseClick = false;
+                    GuildRosterContainerButton8:Click();
+                    mouseClick = true;
+                    position = 8;
+                else
+                    NotSameWindow = false;
+                end
+                mouseNotOver = false;
+            elseif (GuildRosterContainerButton9:IsVisible() and GuildRosterContainerButton9:IsMouseOver(1,-1,-1,1)) then
+                if 9 ~= position then
+                    mouseClick = false;
+                    GuildRosterContainerButton9:Click();
+                    mouseClick = true;
+                    position = 9;
+                else
+                    NotSameWindow = false;
+                end
+                mouseNotOver = false;
+            elseif (GuildRosterContainerButton10:IsVisible() and GuildRosterContainerButton10:IsMouseOver(1,-1,-1,1)) then
+                if 10 ~= position then
+                    mouseClick = false;
+                    GuildRosterContainerButton10:Click();
+                    mouseClick = true;
+                    position = 10;
+                else
+                    NotSameWindow = false;
+                end
+                mouseNotOver = false;
+            elseif (GuildRosterContainerButton11:IsVisible() and GuildRosterContainerButton11:IsMouseOver(1,-1,-1,1)) then
+                if 11 ~= position then
+                    mouseClick = false;
+                    GuildRosterContainerButton11:Click();
+                    mouseClick = true;
+                    position = 11;
+                else
+                    NotSameWindow = false;
+                end
+                mouseNotOver = false;
+            elseif (GuildRosterContainerButton12:IsVisible() and GuildRosterContainerButton12:IsMouseOver(1,-1,-1,1)) then
+                if 12 ~= position then
+                    mouseClick = false;
+                    GuildRosterContainerButton12:Click();
+                    mouseClick = true;
+                    position = 12;
+                else
+                    NotSameWindow = false;
+                end
+                mouseNotOver = false;
+            elseif (GuildRosterContainerButton13:IsVisible() and GuildRosterContainerButton13:IsMouseOver(1,-1,-1,1)) then
+                if 13 ~= position then
+                    mouseClick = false;
+                    GuildRosterContainerButton13:Click();
+                    mouseClick = true;
+                    position = 13;
+                else
+                    NotSameWindow = false;
+                end
+                mouseNotOver = false;
+            elseif (GuildRosterContainerButton14:IsVisible() and GuildRosterContainerButton14:IsMouseOver(1,-1,-1,1)) then
+                if 14 ~= position then
+                    mouseClick = false;
+                    GuildRosterContainerButton14:Click();
+                    mouseClick = true;
+                    position = 14;
+                else
+                    NotSameWindow = false;
+                end
+                mouseNotOver = false;
+            end
+            -- Logic on when to make Member Detail,not,rank window disappear.
+            if mouseNotOver and NotSameWindow and pause == false then
+                if GuildRosterFrame:IsMouseOver(2,-2,-2,2) ~= true and GuildMemberDetailFrame:IsMouseOver(2,-2,-2,2) ~= true then  -- If player is moused over side window, it will not hide it!
+                    position = 0;    
+                    GuildMemberDetailFrame:Hide();
+                end
+            end
+        end
+        timer = 0;
+    end
+end
+
+local function GR_Roster_Click(self,button,down)
+    if mouseClick then 
+        GuildMemberDetailFrame:Show();
+        pause = true;
+    end
+end
+
+local function SetRosterTooltip(self,event,msg)
+    -- So when you click the lower Roster Tab
+    if GuildFrame:IsVisible() and GuildRosterFrame:IsVisible() ~= true then
+        -- Do nothing... Query is all it needs to  check.
+    end
+    if GuildRosterFrame:IsVisible() then
+        GuildRosterFrame:HookScript("OnUpdate",GR_RosterFrame);
+        GuildRosterContainerButton1:HookScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton2:HookScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton3:HookScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton4:HookScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton5:HookScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton6:HookScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton7:HookScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton8:HookScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton9:HookScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton10:HookScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton11:HookScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton12:HookScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton13:HookScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton14:HookScript("OnClick",GR_Roster_Click)
+    end
 end
 
 -- Method:          Tracking()
@@ -829,6 +1175,7 @@ local function Tracking()
         if timeDelayValue == 0 or (timeCallJustOnce - timeDelayValue) > 5 then -- Initial scan is zero.
             timeDelayValue = timeCallJustOnce;
             BuildNewRoster();
+            FinalReport();
 
             -- Prevent from re-scanning changes
             LastOnlineNotReported = false;
@@ -843,6 +1190,11 @@ end
 local function GR_LoadAddon()
     GeneralEventTracking:RegisterEvent("PLAYER_GUILD_UPDATE"); -- If player leaves or joins a guild, this should fire.
     GeneralEventTracking:SetScript("OnEvent", ManageGuildStatus);
+    UI_Events:RegisterEvent("GUILD_ROSTER_UPDATE");
+    UI_Events:RegisterEvent("GUILD_RANKS_UPDATE");
+    UI_Events:RegisterEvent("GUILD_NEWS_UPDATE");
+    UI_Events:RegisterEvent("GUILD_TRADESKILL_UPDATE");
+    UI_Events:SetScript("OnEvent",SetRosterTooltip)
     Tracking();
 end
 
@@ -854,8 +1206,10 @@ function ManageGuildStatus(self,event,msg)
     if guildStatusChecked ~= true then
        timeDelayValue = time(); -- Prevents it from doing "IsInGuild()" too soon by resetting timer as server reaction is slow.
     end
-    if timeDelayValue == 0 or (time() - timeDelayValue) > 5 then -- Let's do a recheck on guild status to prevent unnecessary scanning.
+
+    if timeDelayValue == 0 or (time() - timeDelayValue) > 3 then -- Let's do a recheck on guild status to prevent unnecessary scanning.
         if IsInGuild() then
+
             local guildName = GetGuildInfo("player");
             print("Player is in guild SUCCESS!");
             print("Reactivating Tracking");
@@ -901,6 +1255,7 @@ Initialization:RegisterEvent("ADDON_LOADED");
 Initialization:SetScript("OnEvent",ActivateAddon);
 
 
+
 -- Long Term goals
     -- Guild Recognition
     -- Auto-adding guild events like anniversary dates of players
@@ -918,20 +1273,24 @@ Initialization:SetScript("OnEvent",ActivateAddon);
     -- Auto setting officer note or player note for alts
     -- Anniversary and Birthday tracking, or other notable events "Custom data to track for reminder"
     -- Guild Bank log tracking as well -- Maybe, gbank log is SO SLOW!
-    -- GetGuildRosterLastOnline - Check how long since they logged on
     -- GetGuildNewsInfo
     -- >>>>>>>>>>>>>>>>>>>>> NEXT ONE TO CHECK RIGHT HERE!
     -- check data since last online.
     -- Give this update upon login.
     -- >>>>>>>>>>>>>>>>>>>>> REPORTING INFO RIGHT HERE!!!
     -- Professions... if they cap them... notable important recipes learned... If they change them.
-    -- Auto add join date in Officer note for new members
     -- if player is currently in a guild or not in a guild "updateGuildStatusToSaveFile()" at very end tag true/false if in it?
     -- Logentry, if player joins a new guild it breaks a couple of spaces in the entry, reports guild nameChange, with NEW guild name in center, then breaks a few more spaces. #Aesthetics
     -- Popup window on player leaving the guild asking if you wish to leave some notes, with 2 options "Don't Ask Again this Session" or "Don't ask again EVER!" Option to check box if player was banned.
     -- Add Reminders (Promotion Reminders) - Slash command or button to create reminder to promote someone (off schedule).
     -- GUILD REMINDERS!!!!!!!!!!!!!!!!!!!!!!!!! Create in-game reminders for yourself or related to the guild!
     -- If Banned from guild -- popup box Warning... Option to remove ban RemoveBan(player)
-    -- Add Timestamp to Officer Note upon Joining Guild. Or, "Change" option next to custom UI printout on guild member sheet.
+    -- "Change" option next to custom UI printout on guild member sheet.
     -- Sort guild roster by "Time in guild" - possible in built-in UI?
     -- Any ranks to ignore if they return from being online after a while? -- Probably won't include, but maybe
+    -- WorldFrame > GuildMemberDetailFrame
+
+    -- FEATURES ADDED
+
+    -------- UI MODIFICATIONS ----------
+    
