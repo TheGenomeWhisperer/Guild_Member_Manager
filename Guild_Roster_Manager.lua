@@ -1,26 +1,44 @@
 -- Author: TheGenomeWhisperer
 
+-- Table that will hold all global functions... (As of yet unnecessary as all my functions only need to be LOCAL)
+GR_AddOn = {};
 
 -- Useful Customizations
-local HowOftenToCheck = 10; -- in seconds
-local TimeOfflineToKick = 6; -- In months
+local HowOftenToCheck = 10;                     -- in seconds
+local TimeOfflineToKick = 6;                    -- In months
+local InactiveMemberReturnsTimer = 1;           -- How many hours need to pass by for the guild leader to be notified of player coming back (2 weeks is default value)
+local AddTimestampOnJoin = true;                -- Timestamps the officer note on joining, if Officer Note privileges.
 
 -- Saved Variables Per Character
-GR_LogReport_Save = {}; -- This will be the stored Log of events. It can only be added to, never modified.
-GR_GuildMemberHistory_Save = {} -- Detailed information on each guild player has been a member of w/member info.
-GR_PlayersThatLeftHistory_Save = {}; -- Data storage of all players that left the guild, so metadata is stored if they return. Useful for reasoning as to why banned.
+GR_LogReport_Save = {};                 -- This will be the stored Log of events. It can only be added to, never modified.
+GR_GuildMemberHistory_Save = {}         -- Detailed information on each guild player has been a member of w/member info.
+GR_PlayersThatLeftHistory_Save = {};    -- Data storage of all players that left the guild, so metadata is stored if they return. Useful for reasoning as to why banned.
 
 -- Useful Variables
 local addonName = "Guild Roster Manager";
 local guildStatusChecked = false;
 local PlayerIsCurrentlyInGuild = false;
+local LastOnlineNotReported = true;
 
 -- For Initial and Live tracking
 local Initialization = CreateFrame("Frame");
 local GeneralEventTracking = CreateFrame("Frame");
-local TrackingHappenedLive = false; -- Boolean to also print out to player chat window for live tracking updates w/o needing to open whole log
-                                    -- but also will not push chat updates on initial login or reload scanning. JUST LIVE TRACKING PRINTING!
-local timeDelayValue = 0; -- For time delay tracking. Only update on trigger. To prevent spammyness.
+local UI_Events = CreateFrame("Frame");
+local timeDelayValue = 0;                            -- For time delay tracking. Only update on trigger. To prevent spammyness.
+
+-- Temp logs for final reporting
+local TempNewMember = {};
+local TempInactiveReturnedLog = {};
+local TempLogPromotion = {};
+local TempLogDemotion = {};
+local TempLogLeveled = {};
+local TempLogNote = {};
+local TempLogONote = {};
+local TempRankRename = {};
+local TempRejoin = {};
+local TempBannedRejoin = {};
+local TempLeftGuild = {};
+local TempNameChanged = {};
 
 ------------------------
 --- FUNCTIONS ----------
@@ -29,10 +47,31 @@ local timeDelayValue = 0; -- For time delay tracking. Only update on trigger. To
 -- Method:          SlimName(string)
 -- What it Does:    Removes the server name after character name.
 -- Purpose:         Server name is not important in a guild since all will be server name.
-local function SlimName(name)
+local function SlimName ( name )
+    return strsub ( name , 1 , string.find ( name ,"-" ) - 1 );
+end
 
-    return strsub(name,1,string.find(name,"-")-1);
-
+-- Method:          ParseClass(string)
+-- What it Does:    Takes a line of text from GuildMemberDetailFrame and parses out the Class
+-- Purpose:         While a call can be made to the server after parsing the index number in a built-in API lookup, that is resource hungry.
+--                  Since the server has already pulled the info in text form, this saves a lot of resources from querying the server for player class.
+local function ParseClass ( class )
+    local result = "";
+    local numFound = false;
+    for i = 1 , #class do
+        if numFound ~= true then
+            if tonumber ( string.sub ( class , i , i ) ) ~= nil then
+                -- NUM FOUND!
+                numFound = true;
+            end
+        else
+            if tonumber ( string.sub ( class , i , i ) ) == nil then   -- I am at the space after the player level ends
+                result = string.sub ( class , i + 1 );
+                break;  
+            end
+        end
+    end
+    return result;
 end
 
 -- Method:          GetNumGuildies()
@@ -41,6 +80,24 @@ end
 local function GetNumGuildies()
     local numMembers = GetNumGuildMembers();
     return numMembers;
+end
+
+-- Method:          ResetTempLogs()
+-- What it Does:    Empties the arrays of the reporting logs
+-- Purpose:         Logs are used to build changes in the guild and then to cleanly report them in order.
+local function ResetTempLogs()
+    TempNewMember = {};
+    TempInactiveReturnedLog = {};
+    TempLogPromotion = {};
+    TempLogDemotion = {};
+    TempLogLeveled = {};
+    TempLogNote = {};
+    TempLogONote = {};
+    TempRankRename = {};
+    TempRejoin = {};
+    TempBannedRejoin = {};
+    TempLeftGuild = {};
+    TempNameChanged = {};
 end
 
 -- Method:          ModifyCustomNote(string,string)
@@ -61,28 +118,111 @@ local function ModifyCustomNote(newNote,playerName)
     end
 end
 
--- Method:          GetLastOnline(string)
--- What it Does:    Returns the total numbner of hours since the player last logged in.
+-- Useful Lookup Tables for Epoch Time.
+local monthEnum = { Jan=1 , Feb=2 , Mar=3 , Apr=4 , May=5 , Jun=6 , Jul=7 , Aug=8 , Sep=9 , Oct=10 , Nov=11 , Dec=12 };
+local daysBeforeMonthEnum = { ['1']=0 , ['2']=31 , ['3']=31+28 , ['4']=31+28+31 , ['5']=31+28+31+30 , ['6']=31+28+31+30+31 , ['7']=31+28+31+30+31+30 , 
+                                ['8']=31+28+31+30+31+30+31 , ['9']=31+28+31+30+31+30+31+31 , ['10']=31+28+31+30+31+30+31+31+30 ,['11']=31+28+31+30+31+30+31+31+30+31, ['12']=31+28+31+30+31+30+31+31+30+31+30 };
+
+-- Method:          GetLastOnline(int)
+-- What it Does:    Returns the total numbner of hours since the player last logged in at given index position of guild roster
 -- Purpose:         For player management to notify addon user of too much time has passed, for recommendation to kick,
-local function GetLastOnline(name)
-    local years, months, days, hours = 0;
-    for i =1,GetNumGuildies() do
-        local rosterName = GetGuildRosterInfo(i);
-        if SlimName(rosterName) == name then
-            years, months, days, hours = GetGuildRosterLastOnline(i);
-        end
-        break;
+local function GetLastOnline(index)
+    local years, months, days, hours = GetGuildRosterLastOnline(index);
+    if years == nil then
+        years = 0;
     end
-    local totalHours = (years * 8736) + (months * 720) + (days * 24) + hours;
+    if months == nil then
+        months = 0;
+    end
+    if days == nil then
+        days = 0;
+    end
+    if hours == nil then
+        hours = 0;
+    end
+    if (years == 0) and (months == 0) and (days == 0) then
+        if hours == 0 then
+            hours = 0.5;    -- This can be any value less than 1, but must be between 0 and 1, to just make the point that total number of hrs since last login is < 1
+        end
+    end
+    local totalHours = (years * 8760) + (months * 730) + (days * 24) + hours;
     return totalHours;
 end
 
+-- Method:          IsLeapYear(int)
+-- What it Does:    Returns true if the given year is a leapYear
+-- Purpose:         For this addon, the calendar date selection, allows it to know to produce 29 days on leap year.
+local function IsLeapYear(yearDate)
+    if ( ( ( yearDate % 4 == 0 ) and ( yearDate % 100 ~= 0 ) ) or ( yearDate % 400 == 0 ) ) then
+        return true;
+    else
+        return false;
+    end
+end
+
+-- Method:          TimeStampToEpoch(timestamp)
+-- What it Does:    Converts a given timestamp: "22 Mar '17" into Epoch Seconds time.
+-- Purpose:         On adding notes, epoch time is considered when calculating how much time has passed, for exactness and custom dates need to include it.
+local function TimeStampToEpoch(timestamp)
+    -- Parsing Timestamp to useful data.
+    local year = tonumber ( strsub ( timestamp , string.find ( timestamp , "'" )  + 1 ) ) + 2000
+    local leapYear = IsLeapYear(year);
+    -- Find second index of spaces
+    local count = 0;
+    local index = 0;
+    local dayIndex = -1;
+    for i = 1,#timestamp do
+        if string.sub( timestamp , i , i ) == " " then
+            count = count + 1;
+        end
+        if count == 1 and dayIndex == -1 then
+            dayIndex = i;
+        end
+        if count == 2 then
+            index = i;
+            break;
+        end
+    end
+    local month = monthEnum [ string.sub ( timestamp , index + 1 , index + 3) ];
+    local day = tonumber ( string.sub ( timestamp , dayIndex + 1 , index - 1 ) );
+    -- End timestamp Parsing... 
+    local hour = 0;
+    local minute = 0;
+    local seconds = 0;
+
+    -- calculate the number of seconds passed since 1970 based on number of years that have passed.
+    local totalSeconds = 0;
+    for i = year - 1 , 1970 , -1 do
+        if IsLeapYear(i) then
+            totalSeconds = totalSeconds + (366 * 24 * 3600); -- leap year = 366 days
+        else
+            totalSeconds = totalSeconds + (365 * 24 * 3600); -- 365 days in normal year
+        end
+    end
+    
+    -- Now lets calculate how much time this year...
+    local monthDays = daysBeforeMonthEnum [ tostring ( month ) ];
+    if month > 2 and leapYear then -- Adding 1 for the leap year
+        monthDays = monthDays + 1;
+    end
+    -- adding month days so far this year to result so far.
+    totalSeconds = totalSeconds + (monthDays * 24 * 3600);
+
+    -- The rest is easy... as of now, I will not import hours/minutes/seconds, but I will leave the calculations in place in case need arises.
+    totalSeconds = totalSeconds + ( ( day - 1 ) * 24 * 3600 );  -- days
+    totalSeconds = totalSeconds + ( hour * 3600 );
+    totalSeconds = totalSeconds + ( minute * 60 );
+    totalSeconds = totalSeconds + seconds;
+    
+    return totalSeconds;
+end
 
 -- Method:          GetTimePassed(oldTimestamp)
 -- What it Does:    Reports back the elapsed, in English, since the previous given timestamp, based on the 1970 seconds count.
 -- Purpose:         Time tracking to keep track of elapsed time since previous action.
 local function GetTimePassed(oldTimestamp)
 
+    -- Need to consider Leap year, but for now, no biggie. 24hr differentiation only in 4 years.
     local totalSeconds = time() - oldTimestamp;
     local year = math.floor(totalSeconds/31536000); -- seconds in a year
     local yearTag = "year";
@@ -156,7 +296,7 @@ end
 -- Method:          AddLog(int,string)
 -- What it Does:    This adds a size 2 array to the Log including an index to be referenced for color coding, and the log entry
 -- Purpose:         Building the Log that will be displayed to the Log window that shows a history of all changes in guild since addon was activated.
-function AddLog(indexCode, logEntry)
+local function AddLog(indexCode, logEntry)
   local entry = {indexCode, logEntry}
   table.insert(GR_LogReport_Save, entry);
 end
@@ -207,6 +347,66 @@ local function GetTimestamp()
     return string.format(time);
 end
 
+-- Method:          HoursReport(int)
+-- What it Does:    Reports as a string the time passed since player last logged on.
+-- Purpose:         Cleaner reporting to the log.
+local function HoursReport(hours)
+    local result = "";
+    -- local _,month,_,currentYear = CalendarGetDate();
+
+    local years = math.floor(hours / 8760);
+    local months = math.floor((hours % 8760) / 730);
+    local days = math.floor(((hours % 8760) % 730) / 24);
+
+    -- Check for Leap Years.
+    -- for i = currentYear - 1 , currentYear - years, -1 dateOfLastPromotion
+    --     if IsLeapYear(i) then
+    --         days = days + 1;
+    --     end
+    -- end
+    -- if month > 2 and IsLeapYear(currentYear) then
+    --     days = days + 1;
+    -- end
+
+    -- Continue calculations.
+    local hours = math.floor(((hours % 8760) % 730) % 24);
+    
+    
+    if (years >= 1) then
+        if years > 1 then
+            result = result .. "" .. years .. " years ";
+        else
+            result = result .. "" .. years .. " year ";
+        end
+    end
+
+    if (months >= 1) then
+        if months > 1 then
+            result = result .. "" .. months .. " months ";
+        else
+            result = result .. "" .. months .. " month ";
+        end
+    end
+
+    if (days >= 1) then
+        if days > 1 then
+            result = result .. "" .. days .. " days ";
+        else
+            result = result .. "" .. days .. " day ";
+        end
+    end
+
+    if (hours >= 1) then
+        if hours > 1 then
+            result = result .. "" .. hours .. " hours.";
+        else
+            result = result .. "" .. hours .. " hour.";
+        end
+    end
+
+    return result;
+end
+
 -- Method:          AddMemberRecord()
 -- What it Does:    Builds Member Record into Guild History with various metadata
 -- Purpose:         For reliable guild data tracking.
@@ -241,6 +441,9 @@ local function AddMemberRecord(memberInfo,isReturningMember,oldMemberInfo,guildN
     local oldJoinDate = {}; -- filled upon player leaving the guild.
     local oldJoinDateMeta = {};
 
+    -- Pieces info that were added on later-- from index 24 of metaData array, so as not to mess with previous code
+    local lastOnline = 0; -- Stores it in number of HOURS since last online.
+
     if isReturningMember then
         birthday = oldMemberInfo[14];
         leftGuildDate = oldMemberInfo[15];
@@ -256,7 +459,7 @@ local function AddMemberRecord(memberInfo,isReturningMember,oldMemberInfo,guildN
 
     for i = 1,#GR_GuildMemberHistory_Save do
         if guildName == GR_GuildMemberHistory_Save[i][1] then
-            table.insert(GR_GuildMemberHistory_Save[i],{name,joinDate,joinDateMeta,rank,rankIndex,playerLevelOnJoining,note,officerNote,class,isMainToon,listOfAltsInGuild,dateOfLastPromotion,dateOfLastPromotionMeta,birthday,leftGuildDate,leftGuildDateMeta,bannedFromGuild,reasonBanned,oldRank,oldJoinDate,oldJoinDateMeta,privateNotes,custom});
+            table.insert(GR_GuildMemberHistory_Save[i],{name,joinDate,joinDateMeta,rank,rankIndex,playerLevelOnJoining,note,officerNote,class,isMainToon,listOfAltsInGuild,dateOfLastPromotion,dateOfLastPromotionMeta,birthday,leftGuildDate,leftGuildDateMeta,bannedFromGuild,reasonBanned,oldRank,oldJoinDate,oldJoinDateMeta,privateNotes,custom,lastOnline});
             break;
         end
     end
@@ -288,7 +491,7 @@ local function PrintLog(index,logReport,LoggingIt) -- 2D array index and logRepo
             -- Add to log
         else
             -- sending it to chatFrame
-            chat:AddMessage(logReport, 0.176, 0.420, 1.0);
+            chat:AddMessage(logReport, 0.0, 0.44, .87);
         end
     elseif (index == 4) then -- Note
         if LoggingIt then
@@ -338,11 +541,17 @@ local function PrintLog(index,logReport,LoggingIt) -- 2D array index and logRepo
         else
             chat:AddMessage(logReport,1.0,1.0,1.0);
         end
-    elseif (index == 13) then
+    elseif (index == 13) then -- Rejoining PLayer Custom Note Report
         if LoggingIt then
 
         else
             chat:AddMessage(logReport,0.4,0.71,0.9)
+        end
+    elseif (index == 14) then -- Player has returned from inactivity
+        if LoggingIt then
+
+        else
+            chat:AddMessage(logReport,0,1.0,0.87);
         end
     elseif (index == 99) then
         -- Addon Name Report Colors!
@@ -350,23 +559,127 @@ local function PrintLog(index,logReport,LoggingIt) -- 2D array index and logRepo
     end
 end
 
+-- Method:          FinalReport()
+-- What it Does:    Organizes flow of final report and send it to chat frame and to the logReport.
+-- Purpose:         Clean organization for presentation.
+local function FinalReport()
+    if #TempNewMember > 0 then
+        for i = 1,#TempNewMember do
+            PrintLog(TempNewMember[i][1], TempNewMember[i][2], TempNewMember[i][3]);   -- Send to print to chat window
+            AddLog(TempNewMember[i][4],TempNewMember[i][5]);                              -- Adding to the Log of Events
+        end
+    end
+
+    if #TempRejoin > 0 then
+        for i = 1,#TempRejoin do
+            PrintLog(TempRejoin[i][1], TempRejoin[i][2], TempRejoin[i][3]);   -- Same Comments on down
+            PrintLog(TempRejoin[i][4], TempRejoin[i][5], TempRejoin[i][6]);
+            if TempRejoin[i][11] then
+                PrintLog(TempRejoin[i][12],TempRejoin[i][13]);
+            end
+            AddLog(TempRejoin[i][7],TempRejoin[i][8]);
+            AddLog(TempRejoin[i][9],TempRejoin[i][10]);
+            if TempRejoin[i][11] then
+                AddLog(TempRejoin[i][12],TempRejoin[i][13]);
+            end
+        end
+    end
+
+    if #TempBannedRejoin > 0 then
+        for i = 1,#TempBannedRejoin do
+            PrintLog(TempBannedRejoin[i][1], TempBannedRejoin[i][2], TempBannedRejoin[i][3]);
+            PrintLog(TempBannedRejoin[i][4], TempBannedRejoin[i][5], TempBannedRejoin[i][6]);
+            if TempBannedRejoin[i][11] then
+                PrintLog(TempBannedRejoin[i][12],TempBannedRejoin[i][13]);
+            end
+            AddLog(TempBannedRejoin[i][7],TempBannedRejoin[i][8]);
+            AddLog(TempBannedRejoin[i][9],TempBannedRejoin[i][10]);
+            if TempBannedRejoin[i][11] then
+                AddLog(TempBannedRejoin[i][12],TempBannedRejoin[i][13]);
+            end
+        end
+    end
+
+    if #TempLeftGuild > 0 then
+        for i = 1,#TempLeftGuild do
+            PrintLog(TempLeftGuild[i][1], TempLeftGuild[i][2], TempLeftGuild[i][3]); 
+            AddLog(TempLeftGuild[i][4],TempLeftGuild[i][5]);                            
+        end
+    end
+
+    if #TempInactiveReturnedLog > 0 then
+        for i = 1,#TempInactiveReturnedLog do
+            PrintLog(TempInactiveReturnedLog[i][1], TempInactiveReturnedLog[i][2], TempInactiveReturnedLog[i][3]);   
+            AddLog(TempInactiveReturnedLog[i][4],TempInactiveReturnedLog[i][5]);                              
+        end
+    end
+
+    if #TempNameChanged > 0 then
+        for i = 1,#TempNameChanged do
+            PrintLog(TempNameChanged[i][1], TempNameChanged[i][2], TempNameChanged[i][3]);   
+            AddLog(TempNameChanged[i][4],TempNameChanged[i][5]);                              
+        end
+    end
+
+    if #TempLogPromotion > 0 then
+        for i = 1,#TempLogPromotion do
+            PrintLog(TempLogPromotion[i][1], TempLogPromotion[i][2], TempLogPromotion[i][3]);   
+            AddLog(TempLogPromotion[i][4],TempLogPromotion[i][5]);                              
+        end
+    end
+
+    if #TempLogDemotion > 0 then
+        for i = 1,#TempLogDemotion do
+            PrintLog(TempLogDemotion[i][1], TempLogDemotion[i][2], TempLogDemotion[i][3]);
+            AddLog(TempLogDemotion[i][4],TempLogDemotion[i][5]);                           
+        end
+    end
+
+    if #TempLogLeveled > 0 then
+        for i = 1,#TempLogLeveled do
+            PrintLog(TempLogLeveled[i][1], TempLogLeveled[i][2], TempLogLeveled[i][3]);  
+            AddLog(TempLogLeveled[i][4],TempLogLeveled[i][5]);                    
+        end
+    end
+
+    if #TempRankRename > 0 then
+        for i = 1,#TempRankRename do
+            PrintLog(TempRankRename[i][1], TempRankRename[i][2], TempRankRename[i][3]);  
+            AddLog(TempRankRename[i][4],TempRankRename[i][5]);                    
+        end
+    end
+
+    if #TempLogNote > 0 then
+        for i = 1,#TempLogNote do
+            PrintLog(TempLogNote[i][1], TempLogNote[i][2], TempLogNote[i][3]);  
+            AddLog(TempLogNote[i][4],TempLogNote[i][5]);                    
+        end
+    end
+
+    if #TempLogONote > 0 then
+        for i = 1,#TempLogONote do
+            PrintLog(TempLogONote[i][1], TempLogONote[i][2], TempLogONote[i][3]);  
+            AddLog(TempLogONote[i][4],TempLogONote[i][5]);                    
+        end
+    end
+    ResetTempLogs();
+end  
+
 -- Method           RecordChanges()
 -- What it does:    Builds all the changes, sorts them, then adds them to change report
 -- Purpose:         Consolidation of data for final output report.
 local function RecordChanges(indexOfInfo,memberInfo,memberOldInfo,guildName)
-    print("RecordChanges");
     local logReport = "";
+    local tempLog = {};
     local chatframe = DEFAULT_CHAT_FRAME;
     -- 2 = Guild Rank Promotion
     if indexOfInfo == 2 then
         logReport = string.format(GetTimestamp() .. " : " .. memberInfo[1] .. " has been PROMOTED from " .. memberOldInfo[4] .. " to " .. memberInfo[2]);
-        PrintLog(1, logReport, false); -- Send to print to chat window
-        AddLog(indexOfInfo,logReport); -- Adding to the Log of Events
+        table.insert(TempLogPromotion,{1,logReport,false,indexOfInfo,logReport});
     -- 9 = Guild Rank Demotion
     elseif indexOfInfo == 9 then
         logReport = string.format(GetTimestamp() .. " : " .. memberInfo[1] .. " has been DEMOTED from " .. memberOldInfo[4] .. " to " .. memberInfo[2]);
-        PrintLog(2, logReport, false);
-        AddLog(indexOfInfo,logReport); -- Adding to the Log of Events - and so on for the rest...
+        table.insert(TempLogDemotion,{2,logReport,false,indexOfInfo,logReport});
     -- 4 = level
     elseif indexOfInfo == 4 then
         local numGained = memberInfo[4] - memberOldInfo[6];
@@ -375,23 +688,19 @@ local function RecordChanges(indexOfInfo,memberInfo,memberOldInfo,guildName)
         else
             logReport = string.format(GetTimestamp() .. " : " .. memberInfo[1] .. " has Leveled to " .. memberInfo[4] .. " (+ " .. numGained .. " level)");
         end
-        PrintLog(3, logReport, false);
-        AddLog(indexOfInfo,logReport);
+        table.insert(TempLogLeveled,{3,logReport,false,indexOfInfo,logReport});
     -- 5 = note
     elseif indexOfInfo == 5 then
         logReport = string.format(GetTimestamp() .. " : " .. memberInfo[1] .. "'s Note has Changed\nFrom:  " .. memberOldInfo[7] .. "\nTo:       " .. memberInfo[5]);
-        PrintLog(4, logReport, false);
-        AddLog(indexOfInfo,logReport);
+        table.insert(TempLogNote,{4,logReport,false,indexOfInfo,logReport});
     -- 6 = officerNote
     elseif indexOfInfo == 6 then
         logReport = string.format(GetTimestamp() .. " : " .. memberInfo[1] .. "'s OFFICER Note has Changed\nFrom:  " .. memberOldInfo[8] .. "\nTo:       " .. memberInfo[6]);
-        PrintLog(5, logReport, false);
-        AddLog(indexOfInfo,logReport);
+        table.insert(TempLogONote,{5,logReport,false,indexOfInfo,logReport});
     -- 8 = Guild Rank Name Changed to something else
     elseif indexOfInfo == 8 then
         logReport = string.format(GetTimestamp() .. " : Guild Rank Renamed from " .. memberOldInfo[4] .. " to " .. memberInfo[2]);
-        PrintLog(6, logReport, false);
-        AddLog(indexOfInfo,logReport);
+        table.insert(TempRankRename,{6,logReport,false,indexOfInfo,logReport});
     -- 10 = New Player
     elseif indexOfInfo == 10 then
         -- Check against old member list first to see if returning player!
@@ -410,34 +719,46 @@ local function RecordChanges(indexOfInfo,memberInfo,memberOldInfo,guildName)
                             numTimesString = string.format(memberInfo[1] .. " is Returning for the First Time.");
                         end
                         if GR_PlayersThatLeftHistory_Save[i][j][17] == true then
-                            print("player was banned!");
                             -- Player was banned! WARNING!!!
                             local warning = string.format(GetTimestamp() .. " :\n---------- WARNING! WARNING! WARNING! WARNING! ----------\n" .. memberInfo[1] .. " has REJOINED the guild but was previously BANNED!");
                             logReport = string.format("     Date of Ban:                     " .. GR_PlayersThatLeftHistory_Save[i][j][15][#GR_PlayersThatLeftHistory_Save[i][j][15]] .. " (" .. GetTimePassed(GR_PlayersThatLeftHistory_Save[i][j][16][#GR_PlayersThatLeftHistory_Save[i][j][16]]) .. " ago)\nReason:                           " .. GR_PlayersThatLeftHistory_Save[i][j][18] .. "\nDate Originally Joined:    " .. GR_PlayersThatLeftHistory_Save[i][j][20][1] .. "\nOld Guild Rank:               " .. GR_PlayersThatLeftHistory_Save[i][j][19] .. "\n" .. numTimesString);
-                            
-                            PrintLog(9, warning, false);
-                            PrintLog(12, logReport, false);
-                            AddLog(9,warning);
-                            AddLog(12,logReport);
+                            local custom = "";
+                            local toReport = {9,warning,false,12,logReport,false,9,warning,12,logReport,false,13,custom}
                             -- Extra Custom Note added for returning players.
                             if GR_PlayersThatLeftHistory_Save[i][j][23] ~= "" then
-                                local custom = ("Notes:     " .. GR_PlayersThatLeftHistory_Save[i][j][23]);
-                                PrintLog(13,custom);
-                                AddLog(13,custom);
+                                custom = ("Notes:     " .. GR_PlayersThatLeftHistory_Save[i][j][23]);
+                                toReport[11] = true;
+                                toReport[13] = custom;
                             end
+                            table.insert(TempBannedRejoin,toReport);
                         else
                             -- No Ban found, player just returning!
                             logReport = string.format(GetTimestamp() .. " : " .. memberInfo[1] .. " has REJOINED the guild (LVL: " .. memberInfo[4] .. ")");
+                            local custom = "";
                             local details = ("     Date Left:                        " .. GR_PlayersThatLeftHistory_Save[i][j][15][#GR_PlayersThatLeftHistory_Save[i][j][15]] .. " (" .. GetTimePassed(GR_PlayersThatLeftHistory_Save[i][j][16][#GR_PlayersThatLeftHistory_Save[i][j][16]]) .. " ago)\nDate Originally Joined:   " .. GR_PlayersThatLeftHistory_Save[i][j][20][1] .. "\nOld Guild Rank:              " .. GR_PlayersThatLeftHistory_Save[i][j][19] .. "\n" .. numTimesString);
-                            
-                            PrintLog(7, logReport, false);
-                            PrintLog(12, details, false);
-                            AddLog(7,logReport);
-                            AddLog(12,details);
+                            local toReport = {7,logReport,false,12,details,false,7,logReport,12,details,false,13,custom}
+                            -- Extra Custom Note added for returning players.
+                            if GR_PlayersThatLeftHistory_Save[i][j][23] ~= "" then
+                                custom = ("Notes:     " .. GR_PlayersThatLeftHistory_Save[i][j][23]);
+                                toReport[11] = true;
+                                toReport[13] = custom;
+                            end
+                            table.insert(TempRejoin,toReport);
                         end
                         rejoin = true;
                         -- AddPlayerTo MemberHistory
                         AddMemberRecord(memberInfo,true,GR_PlayersThatLeftHistory_Save[i][j],guildName);
+
+                        -- Adding timestamp to new Player.
+                        if AddTimestampOnJoin and CanEditOfficerNote() then
+                            for h = 1,GetNumGuildies() do
+                                local name,_,_,_,_,_,_,oNote = GetGuildRosterInfo(s);
+                                if SlimName(name) == memberInfo[1] and oNote == "" then
+                                    GuildRosterSetOfficerNote(h,("Rejoined: " .. strsub(GetTimestamp(),1,10)));
+                                    break;
+                                end
+                            end
+                        end
                         -- Removing Player from LeftGuild History (Yes, they will be re-added upon leaving the guild.)
                         table.remove(GR_PlayersThatLeftHistory_Save[i], j);
                         break;
@@ -448,17 +769,24 @@ local function RecordChanges(indexOfInfo,memberInfo,memberOldInfo,guildName)
         end -- MemberHistory guild search
         if rejoin ~= true then
             -- New Guildie. NOT a rejoin!
-            print("not a rejoin!");
-            logReport = string.format(memberInfo[1] .. " has Joined the guild! (LVL: " .. memberInfo[4] .. ")");
+            logReport = string.format(GetTimestamp() .. " : " .. memberInfo[1] .. " has Joined the guild! (LVL: " .. memberInfo[4] .. ")");
             AddMemberRecord(memberInfo,false,nil,guildName);
-            PrintLog(8, logReport, false);
-            AddLog(8,logReport);
+            table.insert(TempNewMember,{8,logReport,false,8,logReport});
+            -- Adding timestamp to new Player.
+            if AddTimestampOnJoin and CanEditOfficerNote() then
+                for s = 1,GetNumGuildies() do
+                    local name,_,_,_,_,_,_,oNote = GetGuildRosterInfo(s);
+                    if SlimName(name) == memberInfo[1] and oNote == "" then
+                        GuildRosterSetOfficerNote(s,("Joined: " .. strsub(GetTimestamp(),1,10)));
+                        break;
+                    end
+                end
+            end
         end
     -- 11 = Player Left
     elseif indexOfInfo == 11 then
-        logReport = string.format(memberInfo[1] .. " has Left the guild");
-        PrintLog(10,logReport);
-        AddLog(10,logReport);
+        logReport = string.format(GetTimestamp() .. " : " .. memberInfo[1] .. " has Left the guild");
+        table.insert(TempLeftGuild,{10,logReport,false,10,logReport});
         -- Finding Player's record for removal of current guild and adding to the Left Guild table.
         for i = 1,#GR_GuildMemberHistory_Save do -- Scanning through guilds
             if guildName == GR_GuildMemberHistory_Save[i][1] then  -- Matching guild to index
@@ -489,12 +817,35 @@ local function RecordChanges(indexOfInfo,memberInfo,memberOldInfo,guildName)
             end
         end
 
-        -- PrintLog(10, logReport, false);
     -- 12 = NameChanged
     elseif indexOfInfo == 12 then
-        logReport = string.format(memberOldInfo[1] .. " has Name-Changed to ".. memberInfo[1]);
-        PrintLog(11, logReport, false);
-        AddLog(11,logReport);
+        logReport = string.format(GetTimestamp() .. " : " .. memberOldInfo[1] .. " has Name-Changed to ".. memberInfo[1]);
+        table.insert(TempNameChanged,{11,logReport,false,11,logReport});
+    -- 13 = Inactive Members Return!
+    elseif indexOfInfo == 13 then
+        logReport = string.format(GetTimestamp() .. " : " .. memberInfo .. " has Come ONLINE after being INACTIVE for " ..  HoursReport(memberOldInfo));
+        table.insert(TempInactiveReturnedLog,{14,logReport,false,14,logReport});
+    end
+end
+
+-- Method:          ReportLastOnline(array)
+-- What it Does:    Like the "CheckPlayerChanges()", this one does a one time scan on login or reload of notable changes of players who have returned from being offline for an extended period of time.
+-- Purpose:         To inform the guild leader that a guildie who has not logged in in a while has returned!
+local function ReportLastOnline(name,guildName,index)
+    for i = 1,#GR_GuildMemberHistory_Save do                                    -- Scanning saved guilds
+        if GR_GuildMemberHistory_Save[i][1] == guildName then                   -- Saved guild Found!
+            for j = 2,#GR_GuildMemberHistory_Save[1] do                         -- Scanning through roster so can check changes (position 1 is guild name, so no need to rescan)
+                if GR_GuildMemberHistory_Save[i][j][1] == name then             -- Player matched.
+                    local hours = GetLastOnline(index);
+                    if GR_GuildMemberHistory_Save[i][j][24] > InactiveMemberReturnsTimer and GR_GuildMemberHistory_Save[i][j][24] > hours then  -- Player has logged in after having been inactive for greater than 2 weeks!
+                        RecordChanges(13,name,GR_GuildMemberHistory_Save[i][j][24],guildName);      -- Recording the change in hours to log
+                    end
+                    GR_GuildMemberHistory_Save[i][j][24] = hours;                                   -- Set new hours since last login.
+                    break;
+                end
+            end
+        end
+        break;
     end
 end
 
@@ -618,7 +969,6 @@ local function CheckPlayerChanges(metaData,guildName)
                         end
                     end
                     -- Player not matched! For sure this player has left the guild!
-                    -- table.insert(GR_PlayersThatLeftHistory_Save,GR_GuildMemberHistory_Save[i][r]);
                     if playerNotMatched then
                         RecordChanges(11,leavingPlayers[k],leavingPlayers[k],guildName);
                         for r = 2,#GR_GuildMemberHistory_Save[i] do
@@ -665,25 +1015,8 @@ end
 -- What it does:    Rebuilds the roster to check against for any changes.
 -- Purpose:         To track for guild changes of course!
 local function BuildNewRoster()
-    print("Building Roster");
     local roster = {};
     local guildName = GetGuildInfo("player"); -- Guild Name
-
-    for i = 1,GetNumGuildies() do
-        local name, rank, rankIndex, level, _, _, note, officerNote, _, _, class = GetGuildRosterInfo(i);
-        roster[i] = {};
-        roster[i][1] = SlimName(name);
-        roster[i][2] = rank;
-        roster[i][3] = rankIndex;
-        roster[i][4] = level;
-        roster[i][5] = note;
-        if CanViewOfficerNote() then -- Officer Note permission to view.
-            roster[i][6] = officerNote;
-        else
-            roster[i][6] = i; -- Set Officer note to unique index position of player in array if unable to view.
-        end
-        roster[i][7] = class;
-    end
 
     -- Checking if Guild Found or Not Found, to pre-check for Guild name tag.
     local guildNotFound = true;
@@ -694,19 +1027,782 @@ local function BuildNewRoster()
         end
     end
 
+    for i = 1,GetNumGuildies() do
+        local name, rank, rankIndex, level, _, _, note, officerNote, _, _, class = GetGuildRosterInfo(i);
+        local slim = SlimName(name);
+        roster[i] = {};
+        roster[i][1] = slim
+        roster[i][2] = rank;
+        roster[i][3] = rankIndex;
+        roster[i][4] = level;
+        roster[i][5] = note;
+        if CanViewOfficerNote() then -- Officer Note permission to view.
+            roster[i][6] = officerNote;
+        else
+            roster[i][6] = i; -- Set Officer note to unique index position of player in array if unable to view.
+        end
+
+        roster[i][7] = class;
+        roster[i][8] = GetLastOnline(i); -- Time since they last logged in in hours.
+
+        -- Items to check One time check on login
+        -- Check players who have not been on a long time only on login or addon reload.
+        if guildNotFound ~= true then
+            ReportLastOnline(slim,guildName,i);
+        end
+
+    end
+    
     -- Build Roster for the first time if guild not found.
     if guildNotFound then
         print("Analyzing guild for the first time");
         table.insert(GR_GuildMemberHistory_Save,{guildName}); -- Creating a position in table for Guild Member Data
         table.insert(GR_PlayersThatLeftHistory_Save,{guildName}); -- Creating a position in Left Player Table for Guild Member Data
         for i = 1,#roster do
+            -- Add last time logged in initial timestamp.
             AddMemberRecord(roster[i],false,nil,guildName);
+            for r = 1,#GR_GuildMemberHistory_Save do                                                    -- identifying guild
+                if GR_GuildMemberHistory_Save[r][1] == guildName then                                   -- Guild found!
+                    GR_GuildMemberHistory_Save[r][#GR_GuildMemberHistory_Save[1]][24] = roster[i][8];  -- Setting Timestamp for the first time only.
+                end
+                break;
+            end
         end
+
     else -- Check over changes!
         CheckPlayerChanges(roster,guildName);
+    end
+end
 
+
+-- END OF BASIC METADATE TRACKING LOGIC...
+
+
+
+--------------------------------------
+--- UI FEATURES ----------------------
+--------------------------------------
+
+----------------------
+-- FRAMES ------------
+----------------------
+
+
+-- Guild Member Detail Frame UI and Children
+local GR_MemberDetailFrameButton = CreateFrame("Button","GR_OfficerButton",UIParent,"UIPanelButtonTemplate");
+GR_MemberDetailFrameButton:Hide();
+local YearDropDownMenu = CreateFrame("Frame","GR_YearDropDownMenu",GuildMemberDetailFrame,"UIDropDownMenuTemplate");
+local MonthDropDownMenu = CreateFrame("Frame","GR_MonthDropDownMenu",GuildMemberDetailFrame,"UIDropDownMenuTemplate");
+local DayDropDownMenu = CreateFrame("Frame","GR_DayDropDownMenu",GuildMemberDetailFrame,"UIDropDownMenuTemplate");
+local JoinDateSubmitButton = CreateFrame("Button","GR_JoinDateSubmitButton",GuildMemberDetailFrame,"UIPanelButtonTemplate");
+JoinDateSubmitButton:Hide();
+
+-- Core Frame
+local MemberDetailMetaData = CreateFrame( "Frame" , "GR_MemberDetails" , GuildMemberDetailFrame , "UIPanelDialogTemplate" );
+MemberDetailMetaData:Hide();
+
+-- Useful UI Local Globals
+local timer = 0;
+local position = 0;
+local pause = false;
+local detailFrame = false;
+local mouseClick = true;
+
+----------------------
+-- BUTTONS -----------
+----------------------
+
+
+-- Method:                  GR_CreateOfficerNoteButton()
+-- What it Does:            Initializes the Officer Button details
+-- Purpose:                 Simple positional and UI use logic for button.
+local function GR_CreateOfficerNoteButtons()
+    GR_MemberDetailFrameButton:SetPoint("TOPRIGHT",GuildMemberDetailFrame, -10 , -30 );
+    GR_MemberDetailFrameButton:SetText("Details");
+    GR_MemberDetailFrameButton:SetWidth(55);
+    GR_MemberDetailFrameButton:SetHeight(22);
+    GR_MemberDetailFrameButton:SetFrameStrata(HIGH);
+
+    GR_JoinDateSubmitButton:SetPoint("BottomRight",GuildMemberDetailFrame,172,80);
+    GR_JoinDateSubmitButton:SetText("Confirm Join Date");
+    GR_JoinDateSubmitButton:SetWidth(125);
+    GR_JoinDateSubmitButton:SetHeight(25);
+
+    -- Frame Control
+    MemberDetailMetaData:EnableMouse(true);
+    MemberDetailMetaData:SetMovable(true);
+    MemberDetailMetaData:RegisterForDrag("LeftButton");
+    MemberDetailMetaData:SetScript("OnDragStart", MemberDetailMetaData.StartMoving);
+    MemberDetailMetaData:SetScript("OnDragStop", MemberDetailMetaData.StopMovingOrSizing);
+
+    MemberDetailMetaData:SetPoint("TOPLEFT", GuildMemberDetailFrame, "TOPRIGHT" , -4 , 27 );
+    MemberDetailMetaData:SetHeight(345);
+    MemberDetailMetaData:SetWidth(285);
+
+    -- Set text for title
+    local windowHeader = MemberDetailMetaData:CreateFontString("GR_MemberDetailTitle" , "OVERLAY" , "GameFontNormal" );
+    windowHeader:SetPoint("TOP" , 0 , -9 );
+    windowHeader:SetText("Member Details");
+end
+
+
+local monthIndex;
+local yearIndex;
+local dayIndex;
+-- Method:          OnDropMenuClickDay(self)
+-- What it Does:    Upon clicking any item in a drop down menu, this sets the ID of that item as defaulted choice
+-- Purpose:         General use clicking logic for month based drop down menu.
+local function OnDropMenuClickDay ( self )
+    local index = self:GetID();
+    dayIndex = index;
+    UIDropDownMenu_SetSelectedID ( DayDropDownMenu , index );
+end
+
+-- Method:          OnDropMenuClicOnDropMenuClickYearkMonth(self)
+-- What it Does:    Upon clicking any item in a drop down menu, this sets the ID of that item as defaulted choice
+-- Purpose:         General use clicking logic for year based drop down menu.
+local function OnDropMenuClickYear ( self )
+    UIDropDownMenu_SetSelectedID ( YearDropDownMenu , self:GetID() );
+    yearIndex = tonumber(self:GetText());
+end
+
+-- Method:          OnDropMenuClickMonth(self)
+-- What it Does:    Upon clicking any item in a drop down menu, this sets the ID of that item as defaulted choice
+-- Purpose:         General use clicking logic for month based drop down menu.
+local function OnDropMenuClickMonth ( self )
+    local index = self:GetID();
+    monthIndex = index;
+    UIDropDownMenu_SetSelectedID ( MonthDropDownMenu , index );
+end
+
+local function InitializeDropDownDay ( self , level )
+    local shortMonth = 30;
+    local longMonth = 31;
+    local febMonth = 28;
+    local leapYear = 29;
+    
+    local yearDate = 0;
+    yearDate = yearIndex;
+    local isDateALeapyear = IsLeapYear(yearDate);
+    local numDays;
+    
+    if monthIndex % 2 == 1 then
+        numDays = longMonth;
+    elseif monthIndex == 2 and isDateALeapyear then
+        numDays = leapYear;
+    elseif monthIndex == 2 then
+        numDays = febMonth;
+    else
+        numDays = shortMonth;
     end
     
+    for i = 1 , numDays do
+        local day = UIDropDownMenu_CreateInfo();
+        day.text = i;
+        day.func = OnDropMenuClickDay;
+        if numDays == 29 and i == 29 then
+            -- Leap Year!
+            day.tooltipTitle = "If player anniversary is on a leap year, March 1st will be normal Anniversary date!";
+            day.tooltipOnButton = true;
+        else
+            day.tooltipTitle = "If day is unknown, just leave at default '1'";
+            day.tooltipOnButton = true;
+        end
+        UIDropDownMenu_AddButton ( day );
+    end
+    DayDropDownMenu:SetPoint ( "BOTTOMRIGHT" , GuildMemberDetailFrame , 235 , 51 );
+end
+
+-- Method:          InitializeDropDownYear(self,level)
+-- What it Does:    Initializes the year select drop-down OnDropMenuClick
+-- Purpose:         Easy way to set when player joined the guild.         
+local function InitializeDropDownYear ( self , level )
+    -- Year Drop Down
+    local _,_,_,currentYear = CalendarGetDate();
+    local yearStamp = currentYear; 
+    for i = 1 , ( currentYear - 2003 ) do               -- 2004 is when Warcraft Launched, so this will be earliest possible join year. (2003 is giveb due to index logic + 1)
+        local year = UIDropDownMenu_CreateInfo();       -- Creating template to be added
+        year.text = yearStamp;                          -- Year Stamp, descending order to be added
+        year.func = OnDropMenuClickYear;                    -- Selects the Item and makes it main selection
+        year.tooltipTitle = "Select Year";              -- Mouseover Tooltip text
+        year.tooltipOnButton = true;                    -- Initializes the tooltip
+        UIDropDownMenu_AddButton ( year );              -- Adding the dropdown UI Button to select.
+        yearStamp = yearStamp - 1                       -- Descending the year by 1
+    end;
+
+    YearDropDownMenu:SetPoint ( "BOTTOMRIGHT" , GuildMemberDetailFrame , 180 , 51 );
+end
+
+-- Method:          InitializeDropDownMonth(self,level)
+-- What it Does:    Initializes month drop select menu
+-- Purpose:         Date select for Officer Note "Join Date"
+local function InitializeDropDownMonth ( self , level )
+    -- Month Drop Down
+    local months = {"January" , "February" , "March" , "April" , "May" , "June" , "July" , "August" , "September" , "October" , "November" , "December"};
+    for i = 1 , #months do
+        local month = UIDropDownMenu_CreateInfo();
+        month.text = months[i];
+        month.func = OnDropMenuClickMonth;
+        month.tooltipTitle = "Select Month";
+        month.tooltipOnButton = true;
+        UIDropDownMenu_AddButton ( month );
+    end
+
+    MonthDropDownMenu:SetPoint ( "BOTTOMRIGHT" , GuildMemberDetailFrame , 112 , 51 );
+end
+
+local function AddNewJoinDateFromButton( self , button , down )
+    local name = GuildMemberDetailName:GetText();
+    local dayJoined = UIDropDownMenu_GetSelectedID ( DayDropDownMenu );
+    local monthJoined = UIDropDownMenu_GetSelectedID ( MonthDropDownMenu );
+    local yearJoined = tonumber( UIDropDownMenu_GetText ( YearDropDownMenu ) );
+    local isLeapYearSelected = IsLeapYear ( yearJoined );
+
+    local closeButtons = true;
+    if monthJoined % 2 == 0 then
+        if monthJoined == 2 then 
+            if ( dayJoined > 29 and isLeapYearSelected ) or ( dayJoined > 28 and isLeapYearSelected ~= true ) then
+                print("Please choose a valid Day!");
+                closeButtons = false;
+            end
+        elseif dayJoined == 31 then
+            print("Please choose a valid DAY");
+            closeButtons = false;
+        end
+    end
+
+    if closeButtons then
+        local guildName = GetGuildInfo("player");
+        for i = 1,GetNumGuildies() do
+            local handle = GetGuildRosterInfo(i);
+            if handle == name then
+                handle = SlimName(handle);
+                local resetJoinDate = ( "Joined: " .. dayJoined .. " " ..  strsub ( UIDropDownMenu_GetText ( MonthDropDownMenu ) , 1 , 3 ) .. " '" ..  strsub ( UIDropDownMenu_GetText ( YearDropDownMenu ) , 3 ) );
+                GuildRosterSetOfficerNote ( i , resetJoinDate ); -- Changing Officer Note
+                -- Update Guildmember Details
+                for j = 1,#GR_GuildMemberHistory_Save do
+                    if GR_GuildMemberHistory_Save[j][1] == guildName then
+                        for r = 2,#GR_GuildMemberHistory_Save[j] do
+                            if GR_GuildMemberHistory_Save[j][r][1] == handle then
+                                GR_GuildMemberHistory_Save[j][r][2] = resetJoinDate;
+                                GR_GuildMemberHistory_Save[j][r][3] = TimeStampToEpoch(resetJoinDate);
+                                break;
+                            end
+                        end
+                        break;
+                    end
+                end
+                break;
+            end
+        end
+        DayDropDownMenu:Hide();
+        MonthDropDownMenu:Hide();
+        YearDropDownMenu:Hide();
+        JoinDateSubmitButton:Hide();        
+    end
+
+
+end
+
+-- Method:          SetJoinDate(self,button,down)
+-- What it Does:    On Clicking the "Set Join Date" button this logic presents itself
+-- Purpose:         Handle the event to modify when a player joined the guild. This is useful for anniversary date tracking.
+--                  It is also necessary because upon starting the addon, it is unknown a person's true join date. This allows the gleader to set a general join date.
+local function SetJoinDate( self , button , down )
+    if button == "LeftButton" then
+        local _,month,_,currentYear = CalendarGetDate();
+
+        -- Month
+        UIDropDownMenu_Initialize ( MonthDropDownMenu , InitializeDropDownMonth );
+        UIDropDownMenu_SetWidth ( MonthDropDownMenu , 83 );
+        UIDropDownMenu_SetSelectedID ( MonthDropDownMenu , month )
+        monthIndex = month;
+        MonthDropDownMenu:Show();
+        
+        -- Year
+        UIDropDownMenu_Initialize ( YearDropDownMenu, InitializeDropDownYear );
+        UIDropDownMenu_SetWidth ( YearDropDownMenu , 53 );
+        UIDropDownMenu_SetSelectedID ( YearDropDownMenu , 1 );
+        yearIndex = currentYear;
+        YearDropDownMenu:Show();
+
+        -- Initialize the day choice now.
+        UIDropDownMenu_Initialize ( DayDropDownMenu , InitializeDropDownDay );
+        UIDropDownMenu_SetWidth ( DayDropDownMenu , 40 );
+        UIDropDownMenu_SetSelectedID ( DayDropDownMenu , 1 );
+        dayIndex = 1;
+        DayDropDownMenu:Show();
+
+        -- Confirm Button
+        JoinDateSubmitButton:Show();
+    end
+end
+
+
+-- Populating Frames
+local GR_MemberDetailNameText = MemberDetailMetaData:CreateFontString("GR_MemberDetailName" , "OVERLAY" , "GameFontNormal" );
+
+-------------------------------
+----- UI SCRIPTING LOGIC ------
+-------------------------------
+
+local function PopulateMemberDetails()
+    local handle = SlimName ( GuildMemberDetailName:GetText() );
+    local class = ParseClass ( GuildMemberDetailLevel:GetText() );
+    local guildName = GetGuildInfo("player");
+    for j = 1,#GR_GuildMemberHistory_Save do
+        if GR_GuildMemberHistory_Save[j][1] == guildName then
+            for r = 2,#GR_GuildMemberHistory_Save[j] do
+                if GR_GuildMemberHistory_Save[j][r][1] == handle then   --- Player Found in MetaData Logs
+                    
+                    ------ Populating the UI Window ------
+                    GR_MemberDetailNameText:SetPoint("TOP" , 0 , -28 );
+                    if class == "Death Knight" then
+                        GR_MemberDetailNameText:SetTextColor ( 0.77 , 0.12 , 0.23 , 1.0 );
+                    elseif class == "Demon Hunter" then
+                        GR_MemberDetailNameText:SetTextColor ( 0.64 , 0.19 , 0.79 , 1.0 );
+                    elseif class == "Druid" then
+                        GR_MemberDetailNameText:SetTextColor ( 1.0 , 0.49 , 0.04 , 1.0 );
+                    elseif class == "Hunter" then
+                        GR_MemberDetailNameText:SetTextColor ( 0.67 , 0.83 , 0.45 , 1.0 );
+                    elseif class == "Mage" then
+                        GR_MemberDetailNameText:SetTextColor ( 0.41 , 0.80 , 0.94 , 1.0 );
+                    elseif class == "Monk" then
+                        GR_MemberDetailNameText:SetTextColor ( 0.0 , 1.0 , 0.59 , 1.0 );
+                    elseif class == "Paladin" then
+                        GR_MemberDetailNameText:SetTextColor ( 0.96 , 0.55 , 0.73 , 1.0 );
+                    elseif class == "Priest" then
+                        GR_MemberDetailNameText:SetTextColor ( 1.0 , 1.0 , 1.0 , 1.0 );
+                    elseif class == "Rogue" then
+                        GR_MemberDetailNameText:SetTextColor ( 1.0 , 0.96 , 0.41 , 1.0 );
+                    elseif class == "Shaman" then
+                        GR_MemberDetailNameText:SetTextColor ( 0.0 , 0.44 , 0.87 , 1.0 );
+                    elseif class == "Warlock" then
+                        GR_MemberDetailNameText:SetTextColor ( 0.58 , 0.51 , 0.79 , 1.0 );
+                    elseif class == "Warrior" then
+                        GR_MemberDetailNameText:SetTextColor ( 0.78 , 0.61 , 0.43 , 1.0 );
+                    end
+                    GR_MemberDetailNameText:SetText(handle);
+
+
+
+
+
+
+
+                    break;
+                end
+            end
+            break;
+        end
+    end
+end
+
+-- Method:              GR_RosterFrame(self,elapsed)
+-- What it Does:        In the main guild window, guild roster screen, rather than having to select a guild member to see the additional window pop update
+--                      all the player needs to do is just mousover it.
+-- Purpose:             This is for more efficient "glancing" at info for guild leader.
+function GR_RosterFrame(self,elapsed)
+    timer = timer + elapsed;
+    if timer >= 0.075 then
+        -- control on whether to freeze the scanning.
+        if pause and GuildMemberDetailFrame:IsVisible() == false then
+            pause = false;
+        end
+
+        local NotSameWindow = true;
+        local mouseNotOver = true;
+        if pause == false then
+            if (GuildRosterContainerButton1:IsMouseOver(1,-1,-1,1)) then
+                if 1 ~= position then
+                    mouseClick = false;
+                    GuildRosterContainerButton1:Click();
+                    if detailFrame then
+                        PopulateMemberDetails();
+                    end
+                    if GR_MemberDetailFrameButton:IsVisible() ~= true then
+                        GR_MemberDetailFrameButton:Show();
+                        if detailFrame then
+                            MemberDetailMetaData:Show();
+                        end
+                    end
+                    mouseClick = true;
+                    position = 1;
+                    pause = false;
+                else
+                    NotSameWindow = false;
+                end
+                mouseNotOver = false;
+            elseif(GuildRosterContainerButton2:IsVisible() and GuildRosterContainerButton2:IsMouseOver(1,-1,-1,1)) then
+                if 2 ~= position then
+                    mouseClick = false;
+                    GuildRosterContainerButton2:Click();
+                    if detailFrame then
+                        PopulateMemberDetails();
+                    end
+                    if GR_MemberDetailFrameButton:IsVisible() ~= true then
+                        GR_MemberDetailFrameButton:Show();
+                        if detailFrame then
+                            MemberDetailMetaData:Show();
+                        end
+                    end
+                    mouseClick = true;
+                    position = 2;
+                    pause = false;
+                else
+                    NotSameWindow = false;
+                end
+                mouseNotOver = false;
+            elseif (GuildRosterContainerButton3:IsVisible() and GuildRosterContainerButton3:IsMouseOver(1,-1,-1,1)) then
+                if 3 ~= position then
+                    mouseClick = false;
+                    GuildRosterContainerButton3:Click();
+                    if detailFrame then
+                        PopulateMemberDetails();
+                    end
+                    if GR_MemberDetailFrameButton:IsVisible() ~= true then
+                        GR_MemberDetailFrameButton:Show();
+                        if detailFrame then
+                            MemberDetailMetaData:Show();
+                        end
+                    end
+                    mouseClick = true;
+                    position = 3;
+                    pause = false;
+                else
+                    NotSameWindow = false;
+                end
+                mouseNotOver = false;
+            elseif (GuildRosterContainerButton4:IsVisible() and GuildRosterContainerButton4:IsMouseOver(1,-1,-1,1)) then
+                if 4 ~= position then
+                    mouseClick = false;
+                    GuildRosterContainerButton4:Click();
+                    if detailFrame then
+                        PopulateMemberDetails();
+                    end
+                    if GR_MemberDetailFrameButton:IsVisible() ~= true then
+                        GR_MemberDetailFrameButton:Show();
+                        if detailFrame then
+                            MemberDetailMetaData:Show();
+                        end
+                    end
+                    mouseClick = true;
+                    position = 4;
+                    pause = false;
+                else
+                    NotSameWindow = false;
+                end
+                mouseNotOver = false;
+            elseif (GuildRosterContainerButton5:IsVisible() and GuildRosterContainerButton5:IsMouseOver(1,-1,-1,1)) then
+                if 5 ~= position then
+                    mouseClick = false;
+                    GuildRosterContainerButton5:Click();
+                    if detailFrame then
+                        PopulateMemberDetails();
+                    end
+                    if GR_MemberDetailFrameButton:IsVisible() ~= true then
+                        GR_MemberDetailFrameButton:Show();
+                        if detailFrame then
+                            MemberDetailMetaData:Show();
+                        end
+                    end
+                    mouseClick = true;
+                    position = 5;
+                    pause = false;
+                else
+                    NotSameWindow = false;
+                end
+                mouseNotOver = false;
+            elseif (GuildRosterContainerButton6:IsVisible() and GuildRosterContainerButton6:IsMouseOver(1,-1,-1,1)) then
+                if 6 ~= position then
+                    mouseClick = false;
+                    GuildRosterContainerButton6:Click();
+                    if detailFrame then
+                        PopulateMemberDetails();
+                    end
+                    if GR_MemberDetailFrameButton:IsVisible() ~= true then
+                        GR_MemberDetailFrameButton:Show();
+                        if detailFrame then
+                            MemberDetailMetaData:Show();
+                        end
+                    end
+                    mouseClick = true;
+                    position = 6;
+                    pause = false;
+                else
+                    NotSameWindow = false;
+                end
+                mouseNotOver = false;
+            elseif (GuildRosterContainerButton7:IsVisible() and GuildRosterContainerButton7:IsMouseOver(1,-1,-1,1)) then
+                if 7 ~= position then
+                    mouseClick = false;
+                    GuildRosterContainerButton7:Click();
+                    if detailFrame then
+                        PopulateMemberDetails();
+                    end
+                    if GR_MemberDetailFrameButton:IsVisible() ~= true then
+                        GR_MemberDetailFrameButton:Show();
+                        if detailFrame then
+                            MemberDetailMetaData:Show();
+                        end
+                    end
+                    mouseClick = true;
+                    position = 7;
+                    pause = false;
+                else
+                    NotSameWindow = false;
+                end
+                mouseNotOver = false;
+            elseif (GuildRosterContainerButton8:IsVisible() and GuildRosterContainerButton8:IsMouseOver(1,-1,-1,1)) then
+                if 8 ~= position then
+                    mouseClick = false;
+                    GuildRosterContainerButton8:Click();
+                    if detailFrame then
+                        PopulateMemberDetails();
+                    end
+                    if GR_MemberDetailFrameButton:IsVisible() ~= true then
+                        GR_MemberDetailFrameButton:Show();
+                        if detailFrame then
+                            MemberDetailMetaData:Show();
+                        end
+                    end
+                    mouseClick = true;
+                    position = 8;
+                    pause = false;
+                else
+                    NotSameWindow = false;
+                end
+                mouseNotOver = false;
+            elseif (GuildRosterContainerButton9:IsVisible() and GuildRosterContainerButton9:IsMouseOver(1,-1,-1,1)) then
+                if 9 ~= position then
+                    mouseClick = false;
+                    GuildRosterContainerButton9:Click();
+                    if detailFrame then
+                        PopulateMemberDetails();
+                    end
+                    if GR_MemberDetailFrameButton:IsVisible() ~= true then
+                        GR_MemberDetailFrameButton:Show();
+                        if detailFrame then
+                            MemberDetailMetaData:Show();
+                        end
+                    end
+                    mouseClick = true;
+                    position = 9;
+                    pause = false;
+                else
+                    NotSameWindow = false;
+                end
+                mouseNotOver = false;
+            elseif (GuildRosterContainerButton10:IsVisible() and GuildRosterContainerButton10:IsMouseOver(1,-1,-1,1)) then
+                if 10 ~= position then
+                    mouseClick = false;
+                    GuildRosterContainerButton10:Click();
+                    if detailFrame then
+                        PopulateMemberDetails();
+                    end
+                    if GR_MemberDetailFrameButton:IsVisible() ~= true then
+                        GR_MemberDetailFrameButton:Show();
+                        if detailFrame then
+                            MemberDetailMetaData:Show();
+                        end
+                    end
+                    mouseClick = true;
+                    position = 10;
+                    pause = false;
+                else
+                    NotSameWindow = false;
+                end
+                mouseNotOver = false;
+            elseif (GuildRosterContainerButton11:IsVisible() and GuildRosterContainerButton11:IsMouseOver(1,-1,-1,1)) then
+                if 11 ~= position then
+                    mouseClick = false;
+                    GuildRosterContainerButton11:Click();
+                    if detailFrame then
+                        PopulateMemberDetails();
+                    end
+                    if GR_MemberDetailFrameButton:IsVisible() ~= true then
+                        GR_MemberDetailFrameButton:Show();
+                        if detailFrame then
+                            MemberDetailMetaData:Show();
+                        end
+                    end
+                    mouseClick = true;
+                    position = 11;
+                    pause = false;
+                else
+                    NotSameWindow = false;
+                end
+                mouseNotOver = false;
+            elseif (GuildRosterContainerButton12:IsVisible() and GuildRosterContainerButton12:IsMouseOver(1,-1,-1,1)) then
+                if 12 ~= position then
+                    mouseClick = false;
+                    GuildRosterContainerButton12:Click();
+                    if detailFrame then
+                        PopulateMemberDetails();
+                    end
+                    if GR_MemberDetailFrameButton:IsVisible() ~= true then
+                        GR_MemberDetailFrameButton:Show();
+                        if detailFrame then
+                            MemberDetailMetaData:Show();
+                        end
+                    end
+                    mouseClick = true;
+                    position = 12;
+                    pause = false;
+                else
+                    NotSameWindow = false;
+                end
+                mouseNotOver = false;
+            elseif (GuildRosterContainerButton13:IsVisible() and GuildRosterContainerButton13:IsMouseOver(1,-1,-1,1)) then
+                if 13 ~= position then
+                    mouseClick = false;
+                    GuildRosterContainerButton13:Click();
+                    if detailFrame then
+                        PopulateMemberDetails();
+                    end
+                    if GR_MemberDetailFrameButton:IsVisible() ~= true then
+                        GR_MemberDetailFrameButton:Show();
+                        if detailFrame then
+                            MemberDetailMetaData:Show();
+                        end
+                    end
+                    mouseClick = true;
+                    position = 13;
+                    pause = false;
+                else
+                    NotSameWindow = false;
+                end
+                mouseNotOver = false;
+            elseif (GuildRosterContainerButton14:IsVisible() and GuildRosterContainerButton14:IsMouseOver(1,-1,-1,1)) then
+                if 14 ~= position then
+                    mouseClick = false;
+                    GuildRosterContainerButton14:Click();
+                    if detailFrame then
+                        PopulateMemberDetails();
+                    end
+                    if GR_MemberDetailFrameButton:IsVisible() ~= true then
+                        GR_MemberDetailFrameButton:Show();
+                        if detailFrame then
+                            MemberDetailMetaData:Show();
+                        end
+                    end
+                    mouseClick = true;
+                    position = 14;
+                    pause = false;
+                else
+                    NotSameWindow = false;
+                end
+                mouseNotOver = false;
+            end
+            -- Logic on when to make Member Detail,not,rank window disappear.
+            if mouseNotOver and NotSameWindow and pause == false then
+                if ( GuildRosterFrame:IsMouseOver(2,-2,-2,2) ~= true and GuildMemberDetailFrame:IsMouseOver(2,-2,-2,2) ~= true and GR_MemberDetails:IsMouseOver(2,-2,-2,2) ~= true ) or ( GR_MemberDetails:IsMouseOver(2,-2,-2,2) == true and GR_MemberDetails:IsVisible() ~= true ) then  -- If player is moused over side window, it will not hide it!
+                    position = 0;
+                    GR_MemberDetailFrameButton:Hide();
+                    MonthDropDownMenu:Hide();
+                    YearDropDownMenu:Hide();
+                    DayDropDownMenu:Hide();
+                    GuildMemberDetailFrame:Hide();
+                    JoinDateSubmitButton:Hide();
+                    MemberDetailMetaData:Hide();
+                end
+            end
+        end
+        if GuildMemberDetailFrame:IsVisible() ~= true then
+            GR_MemberDetailFrameButton:Hide();
+            MonthDropDownMenu:Hide();
+            YearDropDownMenu:Hide();
+            DayDropDownMenu:Hide();
+            JoinDateSubmitButton:Hide();
+            MemberDetailMetaData:Hide();
+        end
+        timer = 0;
+    end
+end
+
+-- Method:              GR_Roster_Click(self,button,down)
+-- What it Does:        For logic on mouseover, instead of mouseover, it simulates a click on the item by bringing it to show.
+--                      The "pause" is just a call to pause the hiding of the frame in the GR_RosterFrame() function until it finds a new window (to prevent wasteful clicking and resource hogging)
+-- Purpose:             Smoother UI interface in the built-in Guild Roster in-game UI default window.
+local function GR_Roster_Click(self,button,down)
+    if mouseClick then
+        GuildMemberDetailFrame:Show();
+        pause = true;
+    end
+end
+
+local function ClearAllRosterButtons ( self , button , down )
+    GuildFrame:Hide();
+    GR_MemberDetailFrameButton:Hide();
+    MemberDetailMetaData:Hide();
+    MonthDropDownMenu:Hide();
+    YearDropDownMenu:Hide();
+    DayDropDownMenu:Hide();
+    JoinDateSubmitButton:Hide();
+    detailFrame = false;
+end
+
+local function OpenMemberDetailFrame( self , button , down)
+    if button == "LeftButton" then
+        if MemberDetailMetaData:IsVisible() then
+            MemberDetailMetaData:Hide();            -- Hitting the button again hides the frame, exactly like closing.
+            detailFrame = false;
+        else
+            detailFrame = true;
+            MemberDetailMetaData:Show();
+        end
+    end
+end
+
+local function SetCloseBoolean( self , button , down )
+    if button == "LeftButton" then
+        detailFrame = false;
+        GR_MemberDetails:Hide();
+    end
+end
+
+
+-- Method:              SetRosterTooltip(self,event,msg)
+-- What it Does:        Event Listener, it activates when the Guild Roster window is opened and interface is queried/triggered
+--                      "GuildRoster()" needs to fire for this to activate as it creates the following 4 listeners this is looking for: GUILD_NEWS_UPDATE, GUILD_RANKS_UPDATE, GUILD_ROSTER_UPDATE, and GUILD_TRADESKILL_UPDATE
+-- Purpose:             Create an Event Listener for the Guild Roster Frame in the guild window ('J' key)
+local function SetRosterTooltip(self,event,msg)
+    -- So when you click the lower Roster Tab
+    if GuildFrame:IsVisible() and GuildRosterFrame:IsVisible() ~= true then
+        -- Do nothing... Queryof these frames is all it needs to kickstart internal GuildRoster() query.
+    end
+
+    -- To Clear Frames
+    GuildFrameCloseButton:SetScript("OnClick",ClearAllRosterButtons);
+
+    if GuildRosterFrame:IsVisible() then
+        -- Member Detail Frame Info
+        GR_CreateOfficerNoteButtons(); -- Initializing Officer Note Edit Button.
+        GR_MemberDetailFrameButton:SetScript("OnClick",OpenMemberDetailFrame);
+
+        -- For closeButton
+        GR_MemberDetailsClose:SetScript("OnClick",SetCloseBoolean);
+        
+        -- Misc details
+        GR_JoinDateSubmitButton:SetScript("OnClick",AddNewJoinDateFromButton);
+       
+        -- Roster Positions
+        GuildRosterFrame:HookScript("OnUpdate",GR_RosterFrame);
+        GuildRosterContainerButton1:HookScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton2:HookScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton3:HookScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton4:HookScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton5:HookScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton6:HookScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton7:HookScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton8:HookScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton9:HookScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton10:HookScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton11:HookScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton12:HookScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton13:HookScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton14:HookScript("OnClick",GR_Roster_Click)
+    end
 end
 
 -- Method:          Tracking()
@@ -715,11 +1811,13 @@ end
 local function Tracking()
     if IsInGuild() then
         local timeCallJustOnce = time();
-        if timeDelayValue == 0 or (timeCallJustOnce - timeDelayValue) > 3 then -- Initial scan is zero.
+        if timeDelayValue == 0 or (timeCallJustOnce - timeDelayValue) > 5 then -- Initial scan is zero.
             timeDelayValue = timeCallJustOnce;
-            TrackingHappenedLive = true;
             BuildNewRoster();
-            TrackingHappenedLive = false;
+            FinalReport();
+
+            -- Prevent from re-scanning changes
+            LastOnlineNotReported = false;
         end
         C_Timer.After(HowOftenToCheck,Tracking); -- Recursive check every 10 seconds.
     end
@@ -731,6 +1829,11 @@ end
 local function GR_LoadAddon()
     GeneralEventTracking:RegisterEvent("PLAYER_GUILD_UPDATE"); -- If player leaves or joins a guild, this should fire.
     GeneralEventTracking:SetScript("OnEvent", ManageGuildStatus);
+    UI_Events:RegisterEvent("GUILD_ROSTER_UPDATE");
+    UI_Events:RegisterEvent("GUILD_RANKS_UPDATE");
+    UI_Events:RegisterEvent("GUILD_NEWS_UPDATE");
+    UI_Events:RegisterEvent("GUILD_TRADESKILL_UPDATE");
+    UI_Events:SetScript("OnEvent",SetRosterTooltip)
     Tracking();
 end
 
@@ -742,16 +1845,18 @@ function ManageGuildStatus(self,event,msg)
     if guildStatusChecked ~= true then
        timeDelayValue = time(); -- Prevents it from doing "IsInGuild()" too soon by resetting timer as server reaction is slow.
     end
+
     if timeDelayValue == 0 or (time() - timeDelayValue) > 3 then -- Let's do a recheck on guild status to prevent unnecessary scanning.
         if IsInGuild() then
+
             local guildName = GetGuildInfo("player");
             print("Player is in guild SUCCESS!");
             print("Reactivating Tracking");
-            PlayerIsCurrentlyInGuild = status;
+            PlayerIsCurrentlyInGuild = true;
             Tracking();
         else
             print("player no longer in guild confirmed!"); -- Store the data.
-            PlayerIsCurrentlyInGuild = status;
+            PlayerIsCurrentlyInGuild = false;
             GR_LoadAddon();
         end
         guildStatusChecked = false;
@@ -775,10 +1880,10 @@ function ActivateAddon(self,event,addon)
     elseif event == "PLAYER_ENTERING_WORLD" then
         if IsInGuild() then
             Initialization:UnregisterEvent("PLAYER_ENTERING_WORLD");
-            Initialization:UnregisterEvent("ADDON_LOADED"); -- no need to keep scanning these after full loaded.
-            GuildRoster(); -- Initial queries...
+            Initialization:UnregisterEvent("ADDON_LOADED");     -- no need to keep scanning these after full loaded.
+            GuildRoster();                                      -- Initial queries...
             QueryGuildEventLog();
-            C_Timer.After(5,GR_LoadAddon); -- Queries do not return info immediately, gives server a 5 second delay.
+            C_Timer.After(5,GR_LoadAddon);                      -- Queries do not return info immediately, gives server a 5 second delay.
         else
             ManageGuildStatus();
         end
@@ -787,6 +1892,7 @@ end
 
 Initialization:RegisterEvent("ADDON_LOADED");
 Initialization:SetScript("OnEvent",ActivateAddon);
+
 
 
 -- Long Term goals
@@ -806,19 +1912,28 @@ Initialization:SetScript("OnEvent",ActivateAddon);
     -- Auto setting officer note or player note for alts
     -- Anniversary and Birthday tracking, or other notable events "Custom data to track for reminder"
     -- Guild Bank log tracking as well -- Maybe, gbank log is SO SLOW!
-    -- GetGuildRosterLastOnline - Check how long since they logged on
     -- GetGuildNewsInfo
     -- >>>>>>>>>>>>>>>>>>>>> NEXT ONE TO CHECK RIGHT HERE!
     -- check data since last online.
     -- Give this update upon login.
     -- >>>>>>>>>>>>>>>>>>>>> REPORTING INFO RIGHT HERE!!!
     -- Professions... if they cap them... notable important recipes learned... If they change them.
-    -- Auto add join date in Officer note for new members
     -- if player is currently in a guild or not in a guild "updateGuildStatusToSaveFile()" at very end tag true/false if in it?
     -- Logentry, if player joins a new guild it breaks a couple of spaces in the entry, reports guild nameChange, with NEW guild name in center, then breaks a few more spaces. #Aesthetics
     -- Popup window on player leaving the guild asking if you wish to leave some notes, with 2 options "Don't Ask Again this Session" or "Don't ask again EVER!" Option to check box if player was banned.
     -- Add Reminders (Promotion Reminders) - Slash command or button to create reminder to promote someone (off schedule).
     -- GUILD REMINDERS!!!!!!!!!!!!!!!!!!!!!!!!! Create in-game reminders for yourself or related to the guild!
     -- If Banned from guild -- popup box Warning... Option to remove ban RemoveBan(player)
-    -- Add Timestamp to Officer Note upon Joining Guild. Or, "Change" option next to custom UI printout on guild member sheet.
+    -- "Change" option next to custom UI printout on guild member sheet.
     -- Sort guild roster by "Time in guild" - possible in built-in UI?
+    -- Any ranks to ignore if they return from being online after a while? -- Probably won't include, but maybe
+    -- WorldFrame > GuildMemberDetailFrame
+    -- /roster will be the slash command
+    -- Notable dates in History!
+    -- Fix Timestamp and Timepassed dating off Epoch clock... Calculations slightly off.
+    -- Longest period of time player was inactive.
+
+    -- FEATURES ADDED
+
+    -------- UI MODIFICATIONS ----------
+    
