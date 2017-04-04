@@ -74,6 +74,31 @@ local function ParseClass ( class )
     return result;
 end
 
+-- Method:          ParseLevel(string)
+-- What it Does:    Takes the same text line from GuildmemberDetailFrame and parses out the Level
+-- Purpose:         To obtain a player's level one needs to query the server. Since the string is already available, this just grabs the string simply.
+local function ParseLevel ( level )
+    local result = "";
+    local numFound = false;
+    local startIndex = 1;
+
+    for i = 1, #level do
+        if numFound ~= true then
+            if tonumber ( string.sub ( level , i , i ) ) ~= nil then
+                -- Num Found!
+                numFound = true;
+                startIndex = i;
+            end
+        else
+            if tonumber ( string.sub ( level , i , i ) ) == nil then
+                result = string.sub ( level , startIndex , i - 1 );
+                break;
+            end
+        end
+    end
+    return result;
+end
+
 -- Method:          GetNumGuildies()
 -- What it Does:    Returns the int number of total toons within the guild, including main/alts
 -- Purpose:         For book-keeping and tracking total guild membership.
@@ -281,7 +306,6 @@ local function GetTimePassed(oldTimestamp)
             timestamp = string.format(seconds .. " " .. secondsTag);
         end
     end
-    print(timestamp);
     return timestamp;
 end
 
@@ -442,9 +466,13 @@ local function AddMemberRecord(memberInfo,isReturningMember,oldMemberInfo,guildN
     local oldJoinDateMeta = {};
 
     -- Pieces info that were added on later-- from index 24 of metaData array, so as not to mess with previous code
-    local lastOnline = 0; -- Stores it in number of HOURS since last online.
+    local lastOnline = 0;                                                                           -- Stores it in number of HOURS since last online.
+    local rankHistory = {};
+    table.insert ( rankHistory , { rank , strsub ( joinDate , 1 , string.find ( joinDate , "'" ) + 2 ) , joinDateMeta } );
 
     if isReturningMember then
+        dateOfLastPromotion = oldMemberInfo[12];
+        dateOfLastPromotionMeta = oldMemberInfo[13];
         birthday = oldMemberInfo[14];
         leftGuildDate = oldMemberInfo[15];
         leftGuildDateMeta = oldMemberInfo[16];
@@ -455,11 +483,14 @@ local function AddMemberRecord(memberInfo,isReturningMember,oldMemberInfo,guildN
         oldJoinDateMeta = oldMemberInfo[21];
         privateNotes = oldMemberInfo[22];
         custom = oldMemberInfo[23];
+        rankHistory = oldMemberInfo[25];
     end
 
     for i = 1,#GR_GuildMemberHistory_Save do
         if guildName == GR_GuildMemberHistory_Save[i][1] then
-            table.insert(GR_GuildMemberHistory_Save[i],{name,joinDate,joinDateMeta,rank,rankIndex,playerLevelOnJoining,note,officerNote,class,isMainToon,listOfAltsInGuild,dateOfLastPromotion,dateOfLastPromotionMeta,birthday,leftGuildDate,leftGuildDateMeta,bannedFromGuild,reasonBanned,oldRank,oldJoinDate,oldJoinDateMeta,privateNotes,custom,lastOnline});
+            table.insert(GR_GuildMemberHistory_Save[i],{name,joinDate,joinDateMeta,rank,rankIndex,playerLevelOnJoining,note,officerNote,class,isMainToon,
+                listOfAltsInGuild,dateOfLastPromotion,dateOfLastPromotionMeta,birthday,leftGuildDate,leftGuildDateMeta,bannedFromGuild,reasonBanned,oldRank,
+                    oldJoinDate,oldJoinDateMeta,privateNotes,custom,lastOnline,rankHistory});  -- 25 so far.
             break;
         end
     end
@@ -769,7 +800,20 @@ local function RecordChanges(indexOfInfo,memberInfo,memberOldInfo,guildName)
         end -- MemberHistory guild search
         if rejoin ~= true then
             -- New Guildie. NOT a rejoin!
-            logReport = string.format(GetTimestamp() .. " : " .. memberInfo[1] .. " has Joined the guild! (LVL: " .. memberInfo[4] .. ")");
+            logReport = string.format( timestamp .. " : " .. memberInfo[1] .. " has Joined the guild! (LVL: " .. memberInfo[4] .. ")");
+            for i = 1,#GR_PlayersThatLeftHistory_Save do
+                if (GR_PlayersThatLeftHistory_Save[i][1] == guildName) then -- guild Identified in position 'i'
+                    for j = 2,#GR_PlayersThatLeftHistory_Save[i] do -- Number of players that have left the guild.
+                        if memberInfo[1] == GR_PlayersThatLeftHistory_Save[i][j][1] then
+                            local timestamp = GetTimestamp();
+                            GR_GuildMemberHistory_Save[i][j][12] = strsub ( timestamp , 1 , string.find ( timestamp , "'" ) + 2 );
+                            GR_GuildMemberHistory_Save[i][j][13] = time();
+                            break;
+                        end
+                    end
+                    break;
+                end
+            end
             AddMemberRecord(memberInfo,false,nil,guildName);
             table.insert(TempNewMember,{8,logReport,false,8,logReport});
             -- Adding timestamp to new Player.
@@ -878,10 +922,14 @@ local function CheckPlayerChanges(metaData,guildName)
                                     elseif metaData[j][3] > GR_GuildMemberHistory_Save[i][r][5] then
                                         RecordChanges(9,metaData[j],GR_GuildMemberHistory_Save[i][r],guildName);
                                     end
+                                    
+                                    local timestamp = GetTimestamp();
                                     GR_GuildMemberHistory_Save[i][r][4] = metaData[j][2]; -- Saving new rank Info
                                     GR_GuildMemberHistory_Save[i][r][5] = metaData[j][3]; -- Saving new rank Index Info
-                                    GR_GuildMemberHistory_Save[i][r][12] = GetTimestamp(); -- Time stamping rank change
+                                    GR_GuildMemberHistory_Save[i][r][12] = strsub ( timestamp , 1 , string.find ( timestamp , "'" ) + 2 ) -- Time stamping rank change
                                     GR_GuildMemberHistory_Save[i][r][13] = time();
+                                    table.insert ( GR_GuildMemberHistory_Save[i][r][25] , { GR_GuildMemberHistory_Save[i][r][4] , GR_GuildMemberHistory_Save[i][r][12] , GR_GuildMemberHistory_Save[i][r][13] } ); -- New rank, date, metatimestamp
+                               
                                 elseif (k == 2) and (metaData[j][2] ~= GR_GuildMemberHistory_Save[i][r][4]) and (metaData[j][3] == GR_GuildMemberHistory_Save[i][r][5]) then
                                     -- RANK RENAMED!
                                     if (guildRankIndexIfChanged ~= metaData[j][3]) then -- If alrady been reported, no need to report it again.
@@ -889,6 +937,7 @@ local function CheckPlayerChanges(metaData,guildName)
                                         guildRankIndexIfChanged = metaData[j][3]; -- Avoid repeat reporting for each member of that rank upon a namechange.
                                     end
                                     GR_GuildMemberHistory_Save[i][r][4] = metaData[j][2]; -- Saving new Info
+                                    GR_GuildMemberHistory_Save[i][r][25][#GR_GuildMemberHistory_Save[i][r][25]][1] = metaData[j][2];   -- Adjusting the historical name if guild rank changes.
                                 -- Level
                                 elseif (k==4) then
                                     RecordChanges(k,metaData[j],GR_GuildMemberHistory_Save[i][r],guildName);
@@ -1087,68 +1136,52 @@ end
 -- FRAMES ------------
 ----------------------
 
+-- Core Frame
+local MemberDetailMetaData = CreateFrame( "Frame" , "GR_MemberDetails" , GuildRosterFrame , "TranslucentFrameTemplate" );
+local MemberDetailMetaDataCloseButton = CreateFrame("Button","GR_MemberDetailMetaDataCloseButton",MemberDetailMetaData,"UIPanelCloseButton");
+MemberDetailMetaData:Hide();  -- Prevent error where it sometimes auto-loads.
 
 -- Guild Member Detail Frame UI and Children
-local GR_MemberDetailFrameButton = CreateFrame("Button","GR_OfficerButton",UIParent,"UIPanelButtonTemplate");
-GR_MemberDetailFrameButton:Hide();
-local YearDropDownMenu = CreateFrame("Frame","GR_YearDropDownMenu",GuildMemberDetailFrame,"UIDropDownMenuTemplate");
-local MonthDropDownMenu = CreateFrame("Frame","GR_MonthDropDownMenu",GuildMemberDetailFrame,"UIDropDownMenuTemplate");
-local DayDropDownMenu = CreateFrame("Frame","GR_DayDropDownMenu",GuildMemberDetailFrame,"UIDropDownMenuTemplate");
-local JoinDateSubmitButton = CreateFrame("Button","GR_JoinDateSubmitButton",GuildMemberDetailFrame,"UIPanelButtonTemplate");
-JoinDateSubmitButton:Hide();
+local YearDropDownMenu = CreateFrame("Frame","GR_YearDropDownMenu",MemberDetailMetaData,"UIDropDownMenuTemplate");
+local MonthDropDownMenu = CreateFrame("Frame","GR_MonthDropDownMenu",MemberDetailMetaData,"UIDropDownMenuTemplate");
+local DayDropDownMenu = CreateFrame("Frame","GR_DayDropDownMenu",MemberDetailMetaData,"UIDropDownMenuTemplate");
+local SetPromoDateButton = CreateFrame("Button","GR_SetPromoDateButton",MemberDetailMetaData,"UIPanelButtonTemplate");
 
--- Core Frame
-local MemberDetailMetaData = CreateFrame( "Frame" , "GR_MemberDetails" , GuildMemberDetailFrame , "UIPanelDialogTemplate" );
-MemberDetailMetaData:Hide();
+
+-- SUBMIT BUTTONS
+local DateSubmitButton = CreateFrame("Button","GR_DateSubmitButton",MemberDetailMetaData,"UIPanelButtonTemplate");
+local DateSubmitCancelButton = CreateFrame("Button","GR_DateSubmitCancelButton",MemberDetailMetaData,"UIPanelButtonTemplate");
+
+-- MISC FRAMES
+local guildRankDropDownMenu = CreateFrame("Frame" , "GR_RankDropDownMenu" , MemberDetailMetaData , "UIDropDownMenuTemplate");
+
+-- Populating Frames
+local GR_MemberDetailNameText = MemberDetailMetaData:CreateFontString ( "GR_MemberDetailName" , "OVERLAY" , "GameFontNormalLarge" );
+local GR_MemberDetailLevel = MemberDetailMetaData:CreateFontString ( "GR_MemberDetailLevel" , "OVERLAY" , "GameFontNormalSmall" );
+local GR_MemberDetailRankTxt = MemberDetailMetaData:CreateFontString ( "GR_MemberDetailRankTxt" , "OVERLAY" , "GameFontNormal" );
+local GR_MemberDetailRankDateTxt = MemberDetailMetaData:CreateFontString ( "GR_MemberDetailRankDateTxt" , "OVERLAY" , "GameFontNormalSmall" );
+
+-- Tooltips
+local MemberDetailRankToolTip = CreateFrame ( "GameTooltip" , "GR_MemberDetailRankToolTip" , MemberDetailMetaData , "GameTooltipTemplate" );
+MemberDetailRankToolTip:Hide();
 
 -- Useful UI Local Globals
 local timer = 0;
+local timer2 = 0; 
 local position = 0;
 local pause = false;
-local detailFrame = false;
-local mouseClick = true;
 
-----------------------
--- BUTTONS -----------
-----------------------
+-- DropDownMenuPopulateLogic
+local tempName = "";
+local rankIndex = 1;
+local playerIndex = -1;
+local addonPlayerName = GetUnitName("PLAYER",false);
 
-
--- Method:                  GR_CreateOfficerNoteButton()
--- What it Does:            Initializes the Officer Button details
--- Purpose:                 Simple positional and UI use logic for button.
-local function GR_CreateOfficerNoteButtons()
-    GR_MemberDetailFrameButton:SetPoint("TOPRIGHT",GuildMemberDetailFrame, -10 , -30 );
-    GR_MemberDetailFrameButton:SetText("Details");
-    GR_MemberDetailFrameButton:SetWidth(55);
-    GR_MemberDetailFrameButton:SetHeight(22);
-    GR_MemberDetailFrameButton:SetFrameStrata(HIGH);
-
-    GR_JoinDateSubmitButton:SetPoint("BottomRight",GuildMemberDetailFrame,172,80);
-    GR_JoinDateSubmitButton:SetText("Confirm Join Date");
-    GR_JoinDateSubmitButton:SetWidth(125);
-    GR_JoinDateSubmitButton:SetHeight(25);
-
-    -- Frame Control
-    MemberDetailMetaData:EnableMouse(true);
-    MemberDetailMetaData:SetMovable(true);
-    MemberDetailMetaData:RegisterForDrag("LeftButton");
-    MemberDetailMetaData:SetScript("OnDragStart", MemberDetailMetaData.StartMoving);
-    MemberDetailMetaData:SetScript("OnDragStop", MemberDetailMetaData.StopMovingOrSizing);
-
-    MemberDetailMetaData:SetPoint("TOPLEFT", GuildMemberDetailFrame, "TOPRIGHT" , -4 , 27 );
-    MemberDetailMetaData:SetHeight(345);
-    MemberDetailMetaData:SetWidth(285);
-
-    -- Set text for title
-    local windowHeader = MemberDetailMetaData:CreateFontString("GR_MemberDetailTitle" , "OVERLAY" , "GameFontNormal" );
-    windowHeader:SetPoint("TOP" , 0 , -9 );
-    windowHeader:SetText("Member Details");
-end
-
-
+-- DropDownMenus
 local monthIndex;
 local yearIndex;
 local dayIndex;
+
 -- Method:          OnDropMenuClickDay(self)
 -- What it Does:    Upon clicking any item in a drop down menu, this sets the ID of that item as defaulted choice
 -- Purpose:         General use clicking logic for month based drop down menu.
@@ -1186,7 +1219,7 @@ local function InitializeDropDownDay ( self , level )
     local isDateALeapyear = IsLeapYear(yearDate);
     local numDays;
     
-    if monthIndex % 2 == 1 then
+    if monthIndex == 1 or monthIndex == 3 or monthIndex == 5 or monthIndex == 7 or monthIndex == 8 or monthIndex == 10 or monthIndex == 12 then
         numDays = longMonth;
     elseif monthIndex == 2 and isDateALeapyear then
         numDays = leapYear;
@@ -1210,7 +1243,6 @@ local function InitializeDropDownDay ( self , level )
         end
         UIDropDownMenu_AddButton ( day );
     end
-    DayDropDownMenu:SetPoint ( "BOTTOMRIGHT" , GuildMemberDetailFrame , 235 , 51 );
 end
 
 -- Method:          InitializeDropDownYear(self,level)
@@ -1229,8 +1261,6 @@ local function InitializeDropDownYear ( self , level )
         UIDropDownMenu_AddButton ( year );              -- Adding the dropdown UI Button to select.
         yearStamp = yearStamp - 1                       -- Descending the year by 1
     end;
-
-    YearDropDownMenu:SetPoint ( "BOTTOMRIGHT" , GuildMemberDetailFrame , 180 , 51 );
 end
 
 -- Method:          InitializeDropDownMonth(self,level)
@@ -1248,10 +1278,9 @@ local function InitializeDropDownMonth ( self , level )
         UIDropDownMenu_AddButton ( month );
     end
 
-    MonthDropDownMenu:SetPoint ( "BOTTOMRIGHT" , GuildMemberDetailFrame , 112 , 51 );
 end
 
-local function AddNewJoinDateFromButton( self , button , down )
+local function SetOfficerNoteDate ( self , button , down )
     local name = GuildMemberDetailName:GetText();
     local dayJoined = UIDropDownMenu_GetSelectedID ( DayDropDownMenu );
     local monthJoined = UIDropDownMenu_GetSelectedID ( MonthDropDownMenu );
@@ -1284,7 +1313,7 @@ local function AddNewJoinDateFromButton( self , button , down )
                     if GR_GuildMemberHistory_Save[j][1] == guildName then
                         for r = 2,#GR_GuildMemberHistory_Save[j] do
                             if GR_GuildMemberHistory_Save[j][r][1] == handle then
-                                GR_GuildMemberHistory_Save[j][r][2] = resetJoinDate;
+                                GR_GuildMemberHistory_Save[j][r][2] = resetJoinDate;           --- INCONSISTENT... THIS TIME IS LACKING THE MINUTES AND HOURS WHILST THE OTHER HAS IT
                                 GR_GuildMemberHistory_Save[j][r][3] = TimeStampToEpoch(resetJoinDate);
                                 break;
                             end
@@ -1298,91 +1327,296 @@ local function AddNewJoinDateFromButton( self , button , down )
         DayDropDownMenu:Hide();
         MonthDropDownMenu:Hide();
         YearDropDownMenu:Hide();
-        JoinDateSubmitButton:Hide();        
     end
-
-
 end
 
--- Method:          SetJoinDate(self,button,down)
+
+local function SetPromoDate ( self , button , down )
+    local name = GR_MemberDetailName:GetText();
+    local dayJoined = UIDropDownMenu_GetSelectedID ( DayDropDownMenu );
+    local monthJoined = UIDropDownMenu_GetSelectedID ( MonthDropDownMenu );
+    local yearJoined = tonumber( UIDropDownMenu_GetText ( YearDropDownMenu ) );
+    local isLeapYearSelected = IsLeapYear ( yearJoined );
+
+    local closeButtons = true;
+    if monthJoined % 2 == 0 then
+        if monthJoined == 2 then 
+            if ( dayJoined > 29 and isLeapYearSelected ) or ( dayJoined > 28 and isLeapYearSelected ~= true ) then
+                print("Please choose a valid Day!");
+                closeButtons = false;
+            end
+        elseif dayJoined == 31 then
+            print("Please choose a valid DAY");
+            closeButtons = false;
+        end
+    end
+
+    if closeButtons then
+        local guildName = GetGuildInfo("player");
+        
+        for j = 1,#GR_GuildMemberHistory_Save do
+            if GR_GuildMemberHistory_Save[j][1] == guildName then
+                for r = 2,#GR_GuildMemberHistory_Save[j] do
+                    if GR_GuildMemberHistory_Save[j][r][1] == name then
+                        local promotionDate = ( "Joined: " .. dayJoined .. " " ..  strsub ( UIDropDownMenu_GetText ( MonthDropDownMenu ) , 1 , 3 ) .. " '" ..  strsub ( UIDropDownMenu_GetText ( YearDropDownMenu ) , 3 ) );
+                        
+                        GR_GuildMemberHistory_Save[j][r][12] = strsub ( promotionDate , 9 );
+                        GR_GuildMemberHistory_Save[j][r][25][#GR_GuildMemberHistory_Save[j][r][25]][2] = strsub ( promotionDate , 9 );
+                        GR_GuildMemberHistory_Save[j][r][13] = TimeStampToEpoch(promotionDate);
+
+                        if rankIndex > playerIndex then
+                            GR_MemberDetailRankDateTxt:SetPoint ( "TOP" , 0 , -82 ); -- slightly varied positioning due to drop down window or not.
+                        else
+                            GR_MemberDetailRankDateTxt:SetPoint ( "TOP" , 0 , -70 );
+                        end
+                        GR_MemberDetailRankDateTxt:SetTextColor ( 1 , 1 , 1 , 1.0 );
+                        GR_MemberDetailRankDateTxt:SetText ( "PROMOTED: " .. strsub ( GR_GuildMemberHistory_Save[j][r][12] , 1 , 10) );
+                        break;
+                    end
+                end
+                break;
+            end
+        end
+        DayDropDownMenu:Hide();
+        MonthDropDownMenu:Hide();
+        YearDropDownMenu:Hide();
+        DateSubmitCancelButton:Hide();
+        DateSubmitButton:Hide();
+        GR_MemberDetailRankDateTxt:Show();
+    end
+end
+
+-- Method:          SetDateSelectFrame( string , frameObject, string )
 -- What it Does:    On Clicking the "Set Join Date" button this logic presents itself
 -- Purpose:         Handle the event to modify when a player joined the guild. This is useful for anniversary date tracking.
 --                  It is also necessary because upon starting the addon, it is unknown a person's true join date. This allows the gleader to set a general join date.
-local function SetJoinDate( self , button , down )
-    if button == "LeftButton" then
-        local _,month,_,currentYear = CalendarGetDate();
+local function SetDateSelectFrame ( position, frame, buttonName )
+    local _,month,_,currentYear = CalendarGetDate();
+    local xPosMonth,yPosMonth,xPosDay,yPosDay,xPosYear,yPosYear,xPosSubmit,yPosSubmit,xPosCancel,yPosCancel = 0;        -- Default positions.
 
-        -- Month
-        UIDropDownMenu_Initialize ( MonthDropDownMenu , InitializeDropDownMonth );
-        UIDropDownMenu_SetWidth ( MonthDropDownMenu , 83 );
-        UIDropDownMenu_SetSelectedID ( MonthDropDownMenu , month )
-        monthIndex = month;
-        MonthDropDownMenu:Show();
+    -- Month
+    UIDropDownMenu_Initialize ( MonthDropDownMenu , InitializeDropDownMonth );
+    UIDropDownMenu_SetWidth ( MonthDropDownMenu , 83 );
+    UIDropDownMenu_SetSelectedID ( MonthDropDownMenu , month )
+    monthIndex = month;
+    
+    
+    -- Year
+    UIDropDownMenu_Initialize ( YearDropDownMenu, InitializeDropDownYear );
+    UIDropDownMenu_SetWidth ( YearDropDownMenu , 53 );
+    UIDropDownMenu_SetSelectedID ( YearDropDownMenu , 1 );
+    yearIndex = currentYear;
+    
+
+    -- Initialize the day choice now.
+    UIDropDownMenu_Initialize ( DayDropDownMenu , InitializeDropDownDay );
+    UIDropDownMenu_SetWidth ( DayDropDownMenu , 40 );
+    UIDropDownMenu_SetSelectedID ( DayDropDownMenu , 1 );
+    dayIndex = 1;
+    
+    -- Dimensions
+    DateSubmitButton:SetWidth( 70 );
+    DateSubmitButton:SetText ( "Submit" );
+    DateSubmitCancelButton:SetWidth( 70 );
+    DateSubmitCancelButton:SetText ( "Cancel" );
+
+    -- Script Handlers
+    DateSubmitCancelButton:SetScript("OnClick" , function (self , button , down ) 
+        MonthDropDownMenu:Hide();
+        YearDropDownMenu:Hide();
+        DayDropDownMenu:Hide();
+        DateSubmitButton:Hide();
+        DateSubmitCancelButton:Hide();
+        SetPromoDateButton:Show();
         
-        -- Year
-        UIDropDownMenu_Initialize ( YearDropDownMenu, InitializeDropDownYear );
-        UIDropDownMenu_SetWidth ( YearDropDownMenu , 53 );
-        UIDropDownMenu_SetSelectedID ( YearDropDownMenu , 1 );
-        yearIndex = currentYear;
-        YearDropDownMenu:Show();
+    end);
 
-        -- Initialize the day choice now.
-        UIDropDownMenu_Initialize ( DayDropDownMenu , InitializeDropDownDay );
-        UIDropDownMenu_SetWidth ( DayDropDownMenu , 40 );
-        UIDropDownMenu_SetSelectedID ( DayDropDownMenu , 1 );
-        dayIndex = 1;
-        DayDropDownMenu:Show();
+    if buttonName == "PromoRank" then
 
-        -- Confirm Button
-        JoinDateSubmitButton:Show();
+        -- Script for each button
+        DateSubmitButton:SetScript("OnClick" , SetPromoDate );
+
+        xPosMonth = -68;
+        yPosMonth = -80;
+        xPosYear = 14;
+        yPosYear = -80
+        xPosDay = 75;
+        yPosDay = -80;
+        xPosSubmit = -35;
+        yPosSubmit = -106;
+        xPosCancel = 35;
+        yPosCancel = -106;
+    end
+
+    MonthDropDownMenu:SetPoint ( position , frame , xPosMonth , yPosMonth );
+    YearDropDownMenu:SetPoint ( position , frame , xPosYear , yPosYear );
+    DayDropDownMenu:SetPoint ( position , frame , xPosDay , yPosDay );
+    DateSubmitButton:SetPoint ( position , frame , xPosSubmit , yPosSubmit );
+    DateSubmitCancelButton:SetPoint ( position , frame , xPosCancel , yPosCancel );
+
+    -- Show all Frames
+    MonthDropDownMenu:Show();
+    YearDropDownMenu:Show();
+    DayDropDownMenu:Show();
+    DateSubmitButton:Show();
+    DateSubmitCancelButton:Show();
+end
+
+local function OnRankDropMenuClick ( self )
+    local rankIndex2 = self:GetID();
+    local numRanks = GuildControlGetNumRanks();
+    local numChoices = (numRanks - playerIndex - 1);
+    local solution = rankIndex2 + numRanks - numChoices;
+
+    UIDropDownMenu_SetSelectedID ( guildRankDropDownMenu , rankIndex2 );
+        
+    for i = 1 , GetNumGuildies() do
+        local name = GetGuildRosterInfo ( i );
+        
+        if SlimName ( name ) == tempName then
+            SetGuildMemberRank ( i , solution );
+            break;
+        end
+    end
+
+end
+
+local function PopulateRankDropDown ( self , level )
+    for i = 2 , ( GuildControlGetNumRanks() - playerIndex ) do
+        local rank = UIDropDownMenu_CreateInfo();
+        rank.text = ("   " .. GuildControlGetRankName ( i + playerIndex ));  -- Extra spacing is to justify it properly to center in allignment with other text due to dropdown button deformation of pattern.
+        rank.func = OnRankDropMenuClick;
+        UIDropDownMenu_AddButton ( rank );
     end
 end
 
+local function CreateRankDropDown( self )
+    
+    UIDropDownMenu_Initialize ( guildRankDropDownMenu , PopulateRankDropDown );
+    UIDropDownMenu_SetWidth ( guildRankDropDownMenu , 112 );
+    UIDropDownMenu_JustifyText ( guildRankDropDownMenu , "CENTER" );
 
--- Populating Frames
-local GR_MemberDetailNameText = MemberDetailMetaData:CreateFontString("GR_MemberDetailName" , "OVERLAY" , "GameFontNormal" );
+    local numRanks = GuildControlGetNumRanks();
+    local numChoices = (numRanks - playerIndex - 1);
+    local solution =  rankIndex - ( numRanks - numChoices ) + 1;   -- Calculating which rank to select based on flexible and scalable rank numbers.
+
+    UIDropDownMenu_SetSelectedID ( guildRankDropDownMenu , solution );
+    guildRankDropDownMenu:Show();
+end
 
 -------------------------------
 ----- UI SCRIPTING LOGIC ------
 -------------------------------
 
-local function PopulateMemberDetails()
-    local handle = SlimName ( GuildMemberDetailName:GetText() );
-    local class = ParseClass ( GuildMemberDetailLevel:GetText() );
+local function PopulateMemberDetails( handle )
     local guildName = GetGuildInfo("player");
+    
     for j = 1,#GR_GuildMemberHistory_Save do
         if GR_GuildMemberHistory_Save[j][1] == guildName then
             for r = 2,#GR_GuildMemberHistory_Save[j] do
                 if GR_GuildMemberHistory_Save[j][r][1] == handle then   --- Player Found in MetaData Logs
                     
                     ------ Populating the UI Window ------
-                    GR_MemberDetailNameText:SetPoint("TOP" , 0 , -28 );
-                    if class == "Death Knight" then
+                    local class = GR_GuildMemberHistory_Save[j][r][9];
+                    local level = GR_GuildMemberHistory_Save[j][r][6];
+
+                    --- NAME
+                    GR_MemberDetailNameText:SetPoint( "TOP" , 0 , -20 );
+                    if class == "DEATH KNIGHT" then
                         GR_MemberDetailNameText:SetTextColor ( 0.77 , 0.12 , 0.23 , 1.0 );
-                    elseif class == "Demon Hunter" then
+                    elseif class == "DEMON HUNTER" then
                         GR_MemberDetailNameText:SetTextColor ( 0.64 , 0.19 , 0.79 , 1.0 );
-                    elseif class == "Druid" then
+                    elseif class == "DRUID" then
                         GR_MemberDetailNameText:SetTextColor ( 1.0 , 0.49 , 0.04 , 1.0 );
-                    elseif class == "Hunter" then
+                    elseif class == "HUNTER" then
                         GR_MemberDetailNameText:SetTextColor ( 0.67 , 0.83 , 0.45 , 1.0 );
-                    elseif class == "Mage" then
+                    elseif class == "MAGE" then
                         GR_MemberDetailNameText:SetTextColor ( 0.41 , 0.80 , 0.94 , 1.0 );
-                    elseif class == "Monk" then
+                    elseif class == "MONK" then
                         GR_MemberDetailNameText:SetTextColor ( 0.0 , 1.0 , 0.59 , 1.0 );
-                    elseif class == "Paladin" then
+                    elseif class == "PALADIN" then
                         GR_MemberDetailNameText:SetTextColor ( 0.96 , 0.55 , 0.73 , 1.0 );
-                    elseif class == "Priest" then
+                    elseif class == "PRIEST" then
                         GR_MemberDetailNameText:SetTextColor ( 1.0 , 1.0 , 1.0 , 1.0 );
-                    elseif class == "Rogue" then
+                    elseif class == "ROGUE" then
                         GR_MemberDetailNameText:SetTextColor ( 1.0 , 0.96 , 0.41 , 1.0 );
-                    elseif class == "Shaman" then
+                    elseif class == "SHAMAN" then
                         GR_MemberDetailNameText:SetTextColor ( 0.0 , 0.44 , 0.87 , 1.0 );
-                    elseif class == "Warlock" then
+                    elseif class == "WARLOCK" then
                         GR_MemberDetailNameText:SetTextColor ( 0.58 , 0.51 , 0.79 , 1.0 );
-                    elseif class == "Warrior" then
+                    elseif class == "WARRIOR" then
                         GR_MemberDetailNameText:SetTextColor ( 0.78 , 0.61 , 0.43 , 1.0 );
                     end
                     GR_MemberDetailNameText:SetText(handle);
+
+                    --- LEVEL
+                    GR_MemberDetailLevel:SetPoint ( "TOP" , 0 , -38 );
+                    GR_MemberDetailLevel:SetText ( "Level: " .. level );
+
+                    -- RANK
+                    tempName = handle;
+                    rankIndex = GR_GuildMemberHistory_Save[j][r][5];
+
+                    for i = 1 , GetNumGuildies() do
+                        local name,_,indexOfRank = GetGuildRosterInfo ( i );
+                        if addonPlayerName == SlimName ( name ) then
+                            playerIndex = indexOfRank;
+                            break;
+                        end
+                    end 
+
+                    if rankIndex > playerIndex then
+                        GR_MemberDetailRankTxt:Hide();
+                        CreateRankDropDown();
+                    else
+                        guildRankDropDownMenu:Hide();
+                        GR_MemberDetailRankTxt:SetPoint ( "TOP" , 0 , -52 );
+                        GR_MemberDetailRankTxt:SetTextColor ( 0.90 , 0.80 , 0.50 , 1.0 );
+                        GR_MemberDetailRankTxt:SetText ( "\"" .. GR_GuildMemberHistory_Save[j][r][4] .. "\"");
+                        GR_MemberDetailRankTxt:Show();
+                    end
+
+                    -- --RANK PROMO DATE
+                    if GR_GuildMemberHistory_Save[j][r][12] == nil then      --- Promotion has never been recorded!
+                        GR_MemberDetailRankDateTxt:Hide();
+                        if rankIndex > playerIndex then
+                            SetPromoDateButton:SetPoint ( "TOP" , MemberDetailMetaData , 0 , -80 ); -- slightly varied positioning due to drop down window or not.
+                        else
+                            SetPromoDateButton:SetPoint ( "TOP" , MemberDetailMetaData , 0 , -67 );
+                        end
+                        SetPromoDateButton:SetText ("Date Promoted?");
+                        SetPromoDateButton:SetHeight ( 18 );
+                        SetPromoDateButton:SetWidth ( 110 );
+                        SetPromoDateButton:SetScript( "OnClick" , function( self , button , down ) 
+                            if button == "LeftButton" then
+                                SetPromoDateButton:Hide();
+                                SetDateSelectFrame ( "TOP" , MemberDetailMetaData , "PromoRank" );  -- Position, Frame, ButtonName
+                                pause = true;
+                            end
+                        end);
+                        
+                        SetPromoDateButton:Show();
+                        -- Button - Date Promoted?
+                        -- OnClick, hide Button, show date choices, submit, cancel
+                        -- if cancel, then hide all of those, show button again.
+                        -- If submit, then record log, hide all the button frames, show Date Promoted (index 12 of memberHistorySave);
+                    else
+                        SetPromoDateButton:Hide();
+                        if rankIndex > playerIndex then
+                            GR_MemberDetailRankDateTxt:SetPoint ( "TOP" , 0 , -82 ); -- slightly varied positioning due to drop down window or not.
+                        else
+                            GR_MemberDetailRankDateTxt:SetPoint ( "TOP" , 0 , -70 );
+                        end
+                        GR_MemberDetailRankDateTxt:SetTextColor ( 1 , 1 , 1 , 1.0 );
+                        GR_MemberDetailRankDateTxt:SetText ( "PROMOTED: " .. strsub ( GR_GuildMemberHistory_Save[j][r][12] , 1 , 10) );
+                        GR_MemberDetailRankDateTxt:Show();
+                    end
+
+
+
+
+
+
 
 
 
@@ -1398,35 +1632,40 @@ local function PopulateMemberDetails()
     end
 end
 
+local function ClearFrame()
+    MonthDropDownMenu:Hide();
+    YearDropDownMenu:Hide();
+    DayDropDownMenu:Hide();
+    guildRankDropDownMenu:Hide();
+    MemberDetailMetaData:Hide();
+end
+
 -- Method:              GR_RosterFrame(self,elapsed)
 -- What it Does:        In the main guild window, guild roster screen, rather than having to select a guild member to see the additional window pop update
 --                      all the player needs to do is just mousover it.
 -- Purpose:             This is for more efficient "glancing" at info for guild leader.
-function GR_RosterFrame(self,elapsed)
+local function GR_RosterFrame(self,elapsed)
     timer = timer + elapsed;
     if timer >= 0.075 then
         -- control on whether to freeze the scanning.
-        if pause and GuildMemberDetailFrame:IsVisible() == false then
+        if pause and MemberDetailMetaData:IsVisible() == false then
             pause = false;
         end
 
         local NotSameWindow = true;
         local mouseNotOver = true;
+        local name = "";
         if pause == false then
             if (GuildRosterContainerButton1:IsMouseOver(1,-1,-1,1)) then
                 if 1 ~= position then
-                    mouseClick = false;
-                    GuildRosterContainerButton1:Click();
-                    if detailFrame then
-                        PopulateMemberDetails();
+                    name = GuildRosterContainerButton1String1:GetText();
+                    if tonumber ( name ) ~= nil then
+                        name = GuildRosterContainerButton1String2:GetText();
                     end
-                    if GR_MemberDetailFrameButton:IsVisible() ~= true then
-                        GR_MemberDetailFrameButton:Show();
-                        if detailFrame then
-                            MemberDetailMetaData:Show();
-                        end
+                    PopulateMemberDetails( name );
+                    if MemberDetailMetaData:IsVisible() ~= true then
+                        MemberDetailMetaData:Show();
                     end
-                    mouseClick = true;
                     position = 1;
                     pause = false;
                 else
@@ -1435,18 +1674,14 @@ function GR_RosterFrame(self,elapsed)
                 mouseNotOver = false;
             elseif(GuildRosterContainerButton2:IsVisible() and GuildRosterContainerButton2:IsMouseOver(1,-1,-1,1)) then
                 if 2 ~= position then
-                    mouseClick = false;
-                    GuildRosterContainerButton2:Click();
-                    if detailFrame then
-                        PopulateMemberDetails();
+                    name = GuildRosterContainerButton2String1:GetText();
+                    if tonumber ( name ) ~= nil then
+                        name = GuildRosterContainerButton2String2:GetText();
                     end
-                    if GR_MemberDetailFrameButton:IsVisible() ~= true then
-                        GR_MemberDetailFrameButton:Show();
-                        if detailFrame then
-                            MemberDetailMetaData:Show();
-                        end
+                    PopulateMemberDetails( name );
+                    if MemberDetailMetaData:IsVisible() ~= true then
+                        MemberDetailMetaData:Show();
                     end
-                    mouseClick = true;
                     position = 2;
                     pause = false;
                 else
@@ -1455,18 +1690,14 @@ function GR_RosterFrame(self,elapsed)
                 mouseNotOver = false;
             elseif (GuildRosterContainerButton3:IsVisible() and GuildRosterContainerButton3:IsMouseOver(1,-1,-1,1)) then
                 if 3 ~= position then
-                    mouseClick = false;
-                    GuildRosterContainerButton3:Click();
-                    if detailFrame then
-                        PopulateMemberDetails();
+                    name = GuildRosterContainerButton3String1:GetText();
+                    if tonumber ( name ) ~= nil then
+                        name = GuildRosterContainerButton3String2:GetText();
                     end
-                    if GR_MemberDetailFrameButton:IsVisible() ~= true then
-                        GR_MemberDetailFrameButton:Show();
-                        if detailFrame then
-                            MemberDetailMetaData:Show();
-                        end
+                    PopulateMemberDetails( name );
+                    if MemberDetailMetaData:IsVisible() ~= true then
+                        MemberDetailMetaData:Show();
                     end
-                    mouseClick = true;
                     position = 3;
                     pause = false;
                 else
@@ -1475,18 +1706,14 @@ function GR_RosterFrame(self,elapsed)
                 mouseNotOver = false;
             elseif (GuildRosterContainerButton4:IsVisible() and GuildRosterContainerButton4:IsMouseOver(1,-1,-1,1)) then
                 if 4 ~= position then
-                    mouseClick = false;
-                    GuildRosterContainerButton4:Click();
-                    if detailFrame then
-                        PopulateMemberDetails();
+                    name = GuildRosterContainerButton4String1:GetText();
+                    if tonumber ( name ) ~= nil then
+                        name = GuildRosterContainerButton4String2:GetText();
                     end
-                    if GR_MemberDetailFrameButton:IsVisible() ~= true then
-                        GR_MemberDetailFrameButton:Show();
-                        if detailFrame then
-                            MemberDetailMetaData:Show();
-                        end
+                    PopulateMemberDetails( name );
+                    if MemberDetailMetaData:IsVisible() ~= true then
+                        MemberDetailMetaData:Show();
                     end
-                    mouseClick = true;
                     position = 4;
                     pause = false;
                 else
@@ -1495,18 +1722,14 @@ function GR_RosterFrame(self,elapsed)
                 mouseNotOver = false;
             elseif (GuildRosterContainerButton5:IsVisible() and GuildRosterContainerButton5:IsMouseOver(1,-1,-1,1)) then
                 if 5 ~= position then
-                    mouseClick = false;
-                    GuildRosterContainerButton5:Click();
-                    if detailFrame then
-                        PopulateMemberDetails();
+                    name = GuildRosterContainerButton5String1:GetText();
+                    if tonumber ( name ) ~= nil then
+                        name = GuildRosterContainerButton5String2:GetText();
                     end
-                    if GR_MemberDetailFrameButton:IsVisible() ~= true then
-                        GR_MemberDetailFrameButton:Show();
-                        if detailFrame then
-                            MemberDetailMetaData:Show();
-                        end
+                    PopulateMemberDetails( name );
+                    if MemberDetailMetaData:IsVisible() ~= true then
+                        MemberDetailMetaData:Show();
                     end
-                    mouseClick = true;
                     position = 5;
                     pause = false;
                 else
@@ -1515,18 +1738,14 @@ function GR_RosterFrame(self,elapsed)
                 mouseNotOver = false;
             elseif (GuildRosterContainerButton6:IsVisible() and GuildRosterContainerButton6:IsMouseOver(1,-1,-1,1)) then
                 if 6 ~= position then
-                    mouseClick = false;
-                    GuildRosterContainerButton6:Click();
-                    if detailFrame then
-                        PopulateMemberDetails();
+                    name = GuildRosterContainerButton6String1:GetText();
+                    if tonumber ( name ) ~= nil then
+                        name = GuildRosterContainerButton6String2:GetText();
                     end
-                    if GR_MemberDetailFrameButton:IsVisible() ~= true then
-                        GR_MemberDetailFrameButton:Show();
-                        if detailFrame then
-                            MemberDetailMetaData:Show();
-                        end
+                    PopulateMemberDetails( name );
+                    if MemberDetailMetaData:IsVisible() ~= true then
+                        MemberDetailMetaData:Show();
                     end
-                    mouseClick = true;
                     position = 6;
                     pause = false;
                 else
@@ -1535,18 +1754,14 @@ function GR_RosterFrame(self,elapsed)
                 mouseNotOver = false;
             elseif (GuildRosterContainerButton7:IsVisible() and GuildRosterContainerButton7:IsMouseOver(1,-1,-1,1)) then
                 if 7 ~= position then
-                    mouseClick = false;
-                    GuildRosterContainerButton7:Click();
-                    if detailFrame then
-                        PopulateMemberDetails();
+                    name = GuildRosterContainerButton7String1:GetText();
+                    if tonumber ( name ) ~= nil then
+                        name = GuildRosterContainerButton7String2:GetText();
                     end
-                    if GR_MemberDetailFrameButton:IsVisible() ~= true then
-                        GR_MemberDetailFrameButton:Show();
-                        if detailFrame then
-                            MemberDetailMetaData:Show();
-                        end
+                    PopulateMemberDetails( name );
+                    if MemberDetailMetaData:IsVisible() ~= true then
+                        MemberDetailMetaData:Show();
                     end
-                    mouseClick = true;
                     position = 7;
                     pause = false;
                 else
@@ -1555,18 +1770,14 @@ function GR_RosterFrame(self,elapsed)
                 mouseNotOver = false;
             elseif (GuildRosterContainerButton8:IsVisible() and GuildRosterContainerButton8:IsMouseOver(1,-1,-1,1)) then
                 if 8 ~= position then
-                    mouseClick = false;
-                    GuildRosterContainerButton8:Click();
-                    if detailFrame then
-                        PopulateMemberDetails();
+                    name = GuildRosterContainerButton8String1:GetText();
+                    if tonumber ( name ) ~= nil then
+                        name = GuildRosterContainerButton8String2:GetText();
                     end
-                    if GR_MemberDetailFrameButton:IsVisible() ~= true then
-                        GR_MemberDetailFrameButton:Show();
-                        if detailFrame then
-                            MemberDetailMetaData:Show();
-                        end
+                    PopulateMemberDetails( name );
+                    if MemberDetailMetaData:IsVisible() ~= true then
+                        MemberDetailMetaData:Show();
                     end
-                    mouseClick = true;
                     position = 8;
                     pause = false;
                 else
@@ -1575,18 +1786,14 @@ function GR_RosterFrame(self,elapsed)
                 mouseNotOver = false;
             elseif (GuildRosterContainerButton9:IsVisible() and GuildRosterContainerButton9:IsMouseOver(1,-1,-1,1)) then
                 if 9 ~= position then
-                    mouseClick = false;
-                    GuildRosterContainerButton9:Click();
-                    if detailFrame then
-                        PopulateMemberDetails();
+                    name = GuildRosterContainerButton9String1:GetText();
+                    if tonumber ( name ) ~= nil then
+                        name = GuildRosterContainerButton9String2:GetText();
                     end
-                    if GR_MemberDetailFrameButton:IsVisible() ~= true then
-                        GR_MemberDetailFrameButton:Show();
-                        if detailFrame then
-                            MemberDetailMetaData:Show();
-                        end
+                    PopulateMemberDetails( name );
+                    if MemberDetailMetaData:IsVisible() ~= true then
+                        MemberDetailMetaData:Show();
                     end
-                    mouseClick = true;
                     position = 9;
                     pause = false;
                 else
@@ -1595,18 +1802,14 @@ function GR_RosterFrame(self,elapsed)
                 mouseNotOver = false;
             elseif (GuildRosterContainerButton10:IsVisible() and GuildRosterContainerButton10:IsMouseOver(1,-1,-1,1)) then
                 if 10 ~= position then
-                    mouseClick = false;
-                    GuildRosterContainerButton10:Click();
-                    if detailFrame then
-                        PopulateMemberDetails();
+                    name = GuildRosterContainerButton10String1:GetText();
+                    if tonumber ( name ) ~= nil then
+                        name = GuildRosterContainerButton10String2:GetText();
                     end
-                    if GR_MemberDetailFrameButton:IsVisible() ~= true then
-                        GR_MemberDetailFrameButton:Show();
-                        if detailFrame then
-                            MemberDetailMetaData:Show();
-                        end
+                    PopulateMemberDetails( name );
+                    if MemberDetailMetaData:IsVisible() ~= true then
+                        MemberDetailMetaData:Show();
                     end
-                    mouseClick = true;
                     position = 10;
                     pause = false;
                 else
@@ -1615,18 +1818,14 @@ function GR_RosterFrame(self,elapsed)
                 mouseNotOver = false;
             elseif (GuildRosterContainerButton11:IsVisible() and GuildRosterContainerButton11:IsMouseOver(1,-1,-1,1)) then
                 if 11 ~= position then
-                    mouseClick = false;
-                    GuildRosterContainerButton11:Click();
-                    if detailFrame then
-                        PopulateMemberDetails();
+                    name = GuildRosterContainerButton11String1:GetText();
+                    if tonumber ( name ) ~= nil then
+                        name = GuildRosterContainerButton11String2:GetText();
                     end
-                    if GR_MemberDetailFrameButton:IsVisible() ~= true then
-                        GR_MemberDetailFrameButton:Show();
-                        if detailFrame then
-                            MemberDetailMetaData:Show();
-                        end
+                    PopulateMemberDetails( name );
+                    if MemberDetailMetaData:IsVisible() ~= true then
+                        MemberDetailMetaData:Show();
                     end
-                    mouseClick = true;
                     position = 11;
                     pause = false;
                 else
@@ -1635,18 +1834,14 @@ function GR_RosterFrame(self,elapsed)
                 mouseNotOver = false;
             elseif (GuildRosterContainerButton12:IsVisible() and GuildRosterContainerButton12:IsMouseOver(1,-1,-1,1)) then
                 if 12 ~= position then
-                    mouseClick = false;
-                    GuildRosterContainerButton12:Click();
-                    if detailFrame then
-                        PopulateMemberDetails();
+                    name = GuildRosterContainerButton12String1:GetText();
+                    if tonumber ( name ) ~= nil then
+                        name = GuildRosterContainerButton12String2:GetText();
                     end
-                    if GR_MemberDetailFrameButton:IsVisible() ~= true then
-                        GR_MemberDetailFrameButton:Show();
-                        if detailFrame then
-                            MemberDetailMetaData:Show();
-                        end
+                    PopulateMemberDetails( name );
+                    if MemberDetailMetaData:IsVisible() ~= true then
+                        MemberDetailMetaData:Show();
                     end
-                    mouseClick = true;
                     position = 12;
                     pause = false;
                 else
@@ -1655,18 +1850,14 @@ function GR_RosterFrame(self,elapsed)
                 mouseNotOver = false;
             elseif (GuildRosterContainerButton13:IsVisible() and GuildRosterContainerButton13:IsMouseOver(1,-1,-1,1)) then
                 if 13 ~= position then
-                    mouseClick = false;
-                    GuildRosterContainerButton13:Click();
-                    if detailFrame then
-                        PopulateMemberDetails();
+                    name = GuildRosterContainerButton13String1:GetText();
+                    if tonumber ( name ) ~= nil then
+                        name = GuildRosterContainerButton13String2:GetText();
                     end
-                    if GR_MemberDetailFrameButton:IsVisible() ~= true then
-                        GR_MemberDetailFrameButton:Show();
-                        if detailFrame then
-                            MemberDetailMetaData:Show();
-                        end
+                    PopulateMemberDetails( name );
+                    if MemberDetailMetaData:IsVisible() ~= true then
+                        MemberDetailMetaData:Show();
                     end
-                    mouseClick = true;
                     position = 13;
                     pause = false;
                 else
@@ -1675,18 +1866,14 @@ function GR_RosterFrame(self,elapsed)
                 mouseNotOver = false;
             elseif (GuildRosterContainerButton14:IsVisible() and GuildRosterContainerButton14:IsMouseOver(1,-1,-1,1)) then
                 if 14 ~= position then
-                    mouseClick = false;
-                    GuildRosterContainerButton14:Click();
-                    if detailFrame then
-                        PopulateMemberDetails();
+                    name = GuildRosterContainerButton14String1:GetText();
+                    if tonumber ( name ) ~= nil then
+                        name = GuildRosterContainerButton14String2:GetText();
                     end
-                    if GR_MemberDetailFrameButton:IsVisible() ~= true then
-                        GR_MemberDetailFrameButton:Show();
-                        if detailFrame then
-                            MemberDetailMetaData:Show();
-                        end
+                    PopulateMemberDetails( name );
+                    if MemberDetailMetaData:IsVisible() ~= true then
+                        MemberDetailMetaData:Show();
                     end
-                    mouseClick = true;
                     position = 14;
                     pause = false;
                 else
@@ -1696,24 +1883,22 @@ function GR_RosterFrame(self,elapsed)
             end
             -- Logic on when to make Member Detail,not,rank window disappear.
             if mouseNotOver and NotSameWindow and pause == false then
-                if ( GuildRosterFrame:IsMouseOver(2,-2,-2,2) ~= true and GuildMemberDetailFrame:IsMouseOver(2,-2,-2,2) ~= true and GR_MemberDetails:IsMouseOver(2,-2,-2,2) ~= true ) or ( GR_MemberDetails:IsMouseOver(2,-2,-2,2) == true and GR_MemberDetails:IsVisible() ~= true ) then  -- If player is moused over side window, it will not hide it!
+                if ( GuildRosterFrame:IsMouseOver(2,-2,-2,2) ~= true and DropDownList1Backdrop:IsMouseOver(2,-2,-2,2) ~= true and GR_MemberDetails:IsMouseOver(2,-2,-2,2) ~= true ) or 
+                    ( GR_MemberDetails:IsMouseOver(2,-2,-2,2) == true and GR_MemberDetails:IsVisible() ~= true ) then  -- If player is moused over side window, it will not hide it!
                     position = 0;
-                    GR_MemberDetailFrameButton:Hide();
                     MonthDropDownMenu:Hide();
                     YearDropDownMenu:Hide();
                     DayDropDownMenu:Hide();
-                    GuildMemberDetailFrame:Hide();
-                    JoinDateSubmitButton:Hide();
+                    guildRankDropDownMenu:Hide();
                     MemberDetailMetaData:Hide();
                 end
             end
         end
-        if GuildMemberDetailFrame:IsVisible() ~= true then
-            GR_MemberDetailFrameButton:Hide();
+        if GuildRosterFrame:IsVisible() ~= true then
             MonthDropDownMenu:Hide();
             YearDropDownMenu:Hide();
             DayDropDownMenu:Hide();
-            JoinDateSubmitButton:Hide();
+            guildRankDropDownMenu:Hide();
             MemberDetailMetaData:Hide();
         end
         timer = 0;
@@ -1724,43 +1909,102 @@ end
 -- What it Does:        For logic on mouseover, instead of mouseover, it simulates a click on the item by bringing it to show.
 --                      The "pause" is just a call to pause the hiding of the frame in the GR_RosterFrame() function until it finds a new window (to prevent wasteful clicking and resource hogging)
 -- Purpose:             Smoother UI interface in the built-in Guild Roster in-game UI default window.
-local function GR_Roster_Click(self,button,down)
-    if mouseClick then
-        GuildMemberDetailFrame:Show();
-        pause = true;
+local function GR_Roster_Click  (self , button , down )
+    GuildMemberDetailFrame:Hide();
+    if GuildRosterContainerButton1:IsMouseOver(1,-1,-1,1) then
+        GuildRosterContainerButton1:UnlockHighlight();
+    elseif GuildRosterContainerButton2:IsMouseOver(1,-1,-1,1) then
+        GuildRosterContainerButton2:UnlockHighlight();
     end
+    pause = true;
 end
 
 local function ClearAllRosterButtons ( self , button , down )
     GuildFrame:Hide();
-    GR_MemberDetailFrameButton:Hide();
-    MemberDetailMetaData:Hide();
     MonthDropDownMenu:Hide();
     YearDropDownMenu:Hide();
     DayDropDownMenu:Hide();
-    JoinDateSubmitButton:Hide();
-    detailFrame = false;
+    guildRankDropDownMenu:Hide();
+    MemberDetailMetaData:Hide();
 end
 
 local function OpenMemberDetailFrame( self , button , down)
     if button == "LeftButton" then
         if MemberDetailMetaData:IsVisible() then
             MemberDetailMetaData:Hide();            -- Hitting the button again hides the frame, exactly like closing.
-            detailFrame = false;
         else
-            detailFrame = true;
-            MemberDetailMetaData:Show();
+            if MemberDetailMetaData:IsVisible() ~= true then
+                MemberDetailMetaData:Show();
+            end
         end
     end
 end
 
 local function SetCloseBoolean( self , button , down )
     if button == "LeftButton" then
-        detailFrame = false;
-        GR_MemberDetails:Hide();
+        MemberDetailMetaData:Hide();
     end
 end
 
+
+-- tooltipLogic
+
+local function rankHistoryTT ( self , elapsed )
+    timer2 = timer2 + elapsed;
+    if timer2 >= 0.075 then
+        -- Only populate and show tooltip if mouse is over text frame and it is not already visible.
+        if MemberDetailRankToolTip:IsVisible() ~= true and GR_MemberDetailRankDateTxt:IsVisible() == true and GR_MemberDetailRankDateTxt:IsMouseOver(1,-1,-1,1) == true then
+            local name = GR_MemberDetailName:GetText();
+            local guildName = GetGuildInfo("player");
+
+            MemberDetailRankToolTip:SetOwner( GR_MemberDetailRankDateTxt , "ANCHOR_CURSOR" );
+            MemberDetailRankToolTip:AddLine( "|cFFFFFFFF Rank History");
+            for i = 1 , #GR_GuildMemberHistory_Save do
+                if GR_GuildMemberHistory_Save[i][1] == guildName then
+                    for j = 2,#GR_GuildMemberHistory_Save[i] do
+                        if GR_GuildMemberHistory_Save[i][j][1] == name then   --- Player Found in MetaData Logs
+
+                            for k = #GR_GuildMemberHistory_Save[i][j][25] , 1 , -1 do
+                                MemberDetailRankToolTip:AddDoubleLine( GR_GuildMemberHistory_Save[i][j][25][k][1] .. ":" , GR_GuildMemberHistory_Save[i][j][25][k][2] , 0.38 , 0.67 , 1.0 );
+                            end
+                        break;
+                        end
+                    end
+                    break;
+                end
+            end
+            MemberDetailRankToolTip:Show();
+        elseif MemberDetailRankToolTip:IsVisible() == true and GR_MemberDetailRankDateTxt:IsMouseOver(1,-1,-1,1) ~= true then
+            MemberDetailRankToolTip:Hide();
+        end
+        timer2 = 0;
+    end
+end
+
+-- Method:                  GR_CreateOfficerNoteButton()
+-- What it Does:            Initializes the Officer Button details
+-- Purpose:                 Simple positional and UI use logic for button.
+local function GR_MetaDataInitializeUI()
+    -- Frame Control
+    MemberDetailMetaData:EnableMouse(true);
+    MemberDetailMetaData:SetMovable(true);
+    MemberDetailMetaData:RegisterForDrag("LeftButton");
+    MemberDetailMetaData:SetScript("OnDragStart", MemberDetailMetaData.StartMoving);
+    MemberDetailMetaData:SetScript("OnDragStop", MemberDetailMetaData.StopMovingOrSizing);
+
+    -- Placement and Dimensions
+    MemberDetailMetaData:SetPoint("TOPLEFT", GuildRosterFrame, "TOPRIGHT" , -4 , 5 );
+    MemberDetailMetaData:SetHeight(330);
+    MemberDetailMetaData:SetWidth(285);
+    MemberDetailMetaData:HookScript( "OnShow", function() MemberDetailMetaDataCloseButton:SetPoint("TOPRIGHT" , MemberDetailMetaData ); MemberDetailMetaDataCloseButton:Show() end );
+    MemberDetailMetaData:HookScript ( "OnUpdate" , rankHistoryTT );
+
+    -- Keyboard Control for easy ESC closeButtons
+    tinsert(UISpecialFrames, "GR_MemberDetails");
+
+    -- FRAME CHILDREN FEATURES
+    guildRankDropDownMenu:SetPoint( "TOP" , MemberDetailMetaData , 0 , -50 );
+end
 
 -- Method:              SetRosterTooltip(self,event,msg)
 -- What it Does:        Event Listener, it activates when the Guild Roster window is opened and interface is queried/triggered
@@ -1777,14 +2021,7 @@ local function SetRosterTooltip(self,event,msg)
 
     if GuildRosterFrame:IsVisible() then
         -- Member Detail Frame Info
-        GR_CreateOfficerNoteButtons(); -- Initializing Officer Note Edit Button.
-        GR_MemberDetailFrameButton:SetScript("OnClick",OpenMemberDetailFrame);
-
-        -- For closeButton
-        GR_MemberDetailsClose:SetScript("OnClick",SetCloseBoolean);
-        
-        -- Misc details
-        GR_JoinDateSubmitButton:SetScript("OnClick",AddNewJoinDateFromButton);
+        GR_MetaDataInitializeUI(); -- Initializing Officer Note Edit Button.  
        
         -- Roster Positions
         GuildRosterFrame:HookScript("OnUpdate",GR_RosterFrame);
@@ -1932,7 +2169,21 @@ Initialization:SetScript("OnEvent",ActivateAddon);
     -- Notable dates in History!
     -- Fix Timestamp and Timepassed dating off Epoch clock... Calculations slightly off.
     -- Longest period of time player was inactive.
+    -- Add slash command to ban player, which simultaneously gkicks them.
+    -- Fix Player level when joining.
+    -- On closeing MetaDetailFrame, unhighlight rosterbuttons if clicked.
+    -- # times signed up for event. (attended?)
+    -- Previous ranks held, as well as dates of promotions.
+    -- Search of the History Window
+    -- Filters
+    -- Export to PDF
+    -- Export to TXT
+    -- Export to Excel?
 
+    -- Remaining Characters Count on Notes when Editing (and possibly Message of the Day).
+    -- NEED TO TEST NEW MEMBER THAT IT AUTO-POPULATES RANK PROMOTION DATE, WHILST OTHERS IT DOES NOT.
+    -- Check for Guild Name Change
+    
     -- FEATURES ADDED
 
     -------- UI MODIFICATIONS ----------
