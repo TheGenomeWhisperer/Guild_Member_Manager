@@ -1,5 +1,5 @@
 
-## Interface: 70100
+## Interface: 70200
 ## Title: Guild Roster Manager
 ## Author: TheGenomeWhisperer
 ## Version: 1.0.0
