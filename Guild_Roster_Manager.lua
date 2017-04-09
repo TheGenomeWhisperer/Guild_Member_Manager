@@ -6,7 +6,7 @@ GR_AddOn = {};
 -- Useful Customizations
 local HowOftenToCheck = 10;                     -- in seconds
 local TimeOfflineToKick = 6;                    -- In months
-local InactiveMemberReturnsTimer = 1;           -- How many hours need to pass by for the guild leader to be notified of player coming back (2 weeks is default value)
+local InactiveMemberReturnsTimer = 72;           -- How many hours need to pass by for the guild leader to be notified of player coming back (2 weeks is default value)
 local AddTimestampOnJoin = true;                -- Timestamps the officer note on joining, if Officer Note privileges.
 
 -- Saved Variables Per Character
@@ -1141,6 +1141,9 @@ local MemberDetailMetaData = CreateFrame( "Frame" , "GR_MemberDetails" , GuildRo
 local MemberDetailMetaDataCloseButton = CreateFrame("Button","GR_MemberDetailMetaDataCloseButton",MemberDetailMetaData,"UIPanelCloseButton");
 MemberDetailMetaData:Hide();  -- Prevent error where it sometimes auto-loads.
 
+-- Log History Frame
+-- local GR_GuildRosterHistory = CreateFrame("ScrollFrame" , "GR_History" , UIParent , "MinimalScrollFrameTemplate" );
+
 -- Guild Member Detail Frame UI and Children
 local YearDropDownMenu = CreateFrame("Frame","GR_YearDropDownMenu",MemberDetailMetaData,"UIDropDownMenuTemplate");
 local MonthDropDownMenu = CreateFrame("Frame","GR_MonthDropDownMenu",MemberDetailMetaData,"UIDropDownMenuTemplate");
@@ -1152,8 +1155,26 @@ local SetPromoDateButton = CreateFrame("Button","GR_SetPromoDateButton",MemberDe
 local DateSubmitButton = CreateFrame("Button","GR_DateSubmitButton",MemberDetailMetaData,"UIPanelButtonTemplate");
 local DateSubmitCancelButton = CreateFrame("Button","GR_DateSubmitCancelButton",MemberDetailMetaData,"UIPanelButtonTemplate");
 
--- MISC FRAMES
-local guildRankDropDownMenu = CreateFrame("Frame" , "GR_RankDropDownMenu" , MemberDetailMetaData , "UIDropDownMenuTemplate");
+-- RANK DROPDOWN
+local guildRankDropDownMenu = CreateFrame("Frame" , "GR_RankDropDownMenu" , MemberDetailMetaData , "UIDropDownMenuTemplate" );
+
+-- NOTE/OFFICER NOTES
+local noteBackdrop = {
+    bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background" ,
+    edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+    tile = true,
+    tileSize = 32,
+    edgeSize = 18,
+    insets = { left == 5 , right = 5 , top = 5 , bottom = 5 }
+}
+local PlayerNoteWindow = CreateFrame( "Frame" , "GR_PlayerNoteWindow" , MemberDetailMetaData );
+local noteFontString1 = PlayerNoteWindow:CreateFontString ( "GR_NoteText" , "OVERLAY" , "GameFontWhiteTiny" );
+local PlayerNoteEditBox = CreateFrame( "EditBox" , "GR_PlayerNoteEditBox" , MemberDetailMetaData );
+local PlayerOfficerNoteWindow = CreateFrame( "Frame" , "GR_PlayerOfficerNoteWindow" , MemberDetailMetaData );
+local noteFontString2 = PlayerNoteWindow:CreateFontString ( "GR_OfficerNoteText" , "OVERLAY" , "GameFontWhiteTiny" );
+local PlayerOfficerNoteEditBox = CreateFrame( "EditBox" , "GR_OfficerPlayerNoteEditBox" , MemberDetailMetaData );
+PlayerNoteEditBox:Hide();
+PlayerOfficerNoteEditBox:Hide();
 
 -- Populating Frames
 local GR_MemberDetailNameText = MemberDetailMetaData:CreateFontString ( "GR_MemberDetailName" , "OVERLAY" , "GameFontNormalLarge" );
@@ -1612,10 +1633,37 @@ local function PopulateMemberDetails( handle )
                         GR_MemberDetailRankDateTxt:Show();
                     end
 
+                    -- PLAYER NOTE AND OFFICER NOTE EDIT BOXES
+                    local finalNote = "Click here to set a Public Note";
+                    local finalONote = "Click here to set an Officer's Note";
+                    PlayerNoteEditBox:Hide();
+                    PlayerOfficerNoteEditBox:Hide();
 
+                    -- Set note if there is one
+                    if GR_GuildMemberHistory_Save[j][r][7] ~= nil and GR_GuildMemberHistory_Save[j][r][7] ~= "" then
+                        finalNote = GR_GuildMemberHistory_Save[j][r][7];
+                    end
+                    noteFontString1:SetText ( finalNote );
+                    if finalNote ~= "Click here to set a Public Note" then
+                        PlayerNoteEditBox:SetText( finalNote );
+                    else
+                        PlayerNoteEditBox:SetText( "" );
+                    end
 
-
-
+                    -- Set O Note
+                    if GR_GuildMemberHistory_Save[j][r][8] ~= nil and GR_GuildMemberHistory_Save[j][r][8] ~= "" then
+                        finalONote = GR_GuildMemberHistory_Save[j][r][8];
+                    end
+                    noteFontString2:SetText ( finalONote );
+                    if finalONote ~= "Click here to set an Officer's Note" then
+                        PlayerOfficerNoteEditBox:SetText( finalONote );
+                    else
+                        PlayerOfficerNoteEditBox:SetText( "" );
+                    end
+                    
+                    noteFontString2:Show();
+                    noteFontString1:Show();
+                    -- GR_GuildRosterHistory:Show();
 
 
 
@@ -2003,7 +2051,62 @@ local function GR_MetaDataInitializeUI()
     tinsert(UISpecialFrames, "GR_MemberDetails");
 
     -- FRAME CHILDREN FEATURES
+    -- rank drop down 
     guildRankDropDownMenu:SetPoint( "TOP" , MemberDetailMetaData , 0 , -50 );
+   
+    -- player note edit box and font string (31 characters)
+    PlayerNoteWindow:SetPoint( "LEFT" , MemberDetailMetaData , 15 , 10 );
+    noteFontString1:SetPoint ( "TOPLEFT" , PlayerNoteWindow , 9 , -11 );
+    noteFontString1:SetWordWrap ( true );
+    noteFontString1:SetWidth ( 110 );
+    noteFontString1:SetJustifyH ( "LEFT" );
+
+    PlayerNoteWindow:SetBackdrop ( noteBackdrop );
+    PlayerNoteWindow:SetWidth ( 125 );
+    PlayerNoteWindow:SetHeight ( 40 );
+    
+    PlayerNoteEditBox:SetBackdrop ( noteBackdrop );
+    PlayerNoteEditBox:SetPoint( "LEFT" , MemberDetailMetaData , 15 , 10 );
+    PlayerNoteEditBox:SetWidth ( 125 );
+    PlayerNoteEditBox:SetHeight ( 40 );
+    PlayerNoteEditBox:SetTextInsets( 8 , 9 , 9 , 8 );
+    PlayerNoteEditBox:SetMaxLetters ( 31 );
+    PlayerNoteEditBox:SetFont( "Fonts\\FRIZQT__.TTF" , 10 );
+
+    -- Officer Note
+    PlayerOfficerNoteWindow:SetPoint( "RIGHT" , MemberDetailMetaData , -15 , 10 );
+    noteFontString2:SetPoint ( "TOPLEFT" , PlayerOfficerNoteWindow , 9 , -11 );
+    noteFontString2:SetWordWrap ( true );
+    noteFontString2:SetWidth ( 110 );
+    noteFontString2:SetJustifyH ( "LEFT" );
+
+    PlayerOfficerNoteWindow:SetBackdrop ( noteBackdrop );
+    PlayerOfficerNoteWindow:SetWidth ( 125 );
+    PlayerOfficerNoteWindow:SetHeight ( 40 );
+    
+    PlayerOfficerNoteEditBox:SetBackdrop ( noteBackdrop );
+    PlayerOfficerNoteEditBox:SetPoint( "RIGHT" , MemberDetailMetaData , -15 , 10 );
+    PlayerOfficerNoteEditBox:SetWidth ( 125 );
+    PlayerOfficerNoteEditBox:SetHeight ( 40 );
+    PlayerOfficerNoteEditBox:SetTextInsets( 8 , 9 , 9 , 8 );
+    PlayerOfficerNoteEditBox:SetMaxLetters ( 31 );
+    PlayerOfficerNoteEditBox:SetFont( "Fonts\\FRIZQT__.TTF" , 10 );
+
+    -- Script handlers on Notes
+    PlayerNoteWindow:SetScript ( "OnMouseDown" , function( self , button ) 
+        if button == "LeftButton" then 
+            pause = true;
+            noteFontString1:Hide();
+            PlayerNoteEditBox:Show();
+        end 
+    end);
+    PlayerOfficerNoteWindow:SetScript ( "OnMouseDown" , function( self , button ) 
+        if button == "LeftButton" then 
+            pause = true;
+            noteFontString2:Hide();
+            PlayerOfficerNoteEditBox:Show();
+        end 
+    end);
 end
 
 -- Method:              SetRosterTooltip(self,event,msg)
@@ -2183,7 +2286,7 @@ Initialization:SetScript("OnEvent",ActivateAddon);
     -- Remaining Characters Count on Notes when Editing (and possibly Message of the Day).
     -- NEED TO TEST NEW MEMBER THAT IT AUTO-POPULATES RANK PROMOTION DATE, WHILST OTHERS IT DOES NOT.
     -- Check for Guild Name Change
-    
+
     -- FEATURES ADDED
 
     -------- UI MODIFICATIONS ----------
