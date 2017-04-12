@@ -185,6 +185,44 @@ local function IsLeapYear(yearDate)
     end
 end
 
+-- Method:          IsValidSubmitDate ( int , int , boolean )
+-- What it Does:    Returns true if the submission date is valid (not an untrue day or in the future)
+-- Purpose:         Check to ensure the wrong date is not submitted on accident.
+local function IsValidSubmitDate( dayJoined , monthJoined , yearJoined , isLeapYearSelected )
+    local closeButtons = true;
+    local timeEnum = date ( "*t" );
+    local currentYear = timeEnum [ "year" ];
+    local currentMonth = timeEnum [ "month" ];
+    local currentDay = timeEnum [ "day" ];
+    local numDays;
+
+    if monthJoined == 1 or monthJoined == 3 or monthJoined == 5 or monthJoined == 7 or monthJoined == 8 or monthJoined == 10 or monthJoined == 12 then
+        numDays = 31;
+    elseif monthJoined == 2 and isLeapYearSelected then
+        numDays = 29;
+    elseif monthJoined == 2 then
+        numDays = 28;
+    else
+        numDays = 30;
+    end
+    if dayJoined > numDays then
+        closeButtons = false;
+    end
+    
+    if closeButtons then
+        if ( currentYear < yearJoined ) or ( currentYear == yearJoined and currentMonth < monthJoined ) or ( currentYear == yearJoined and currentMonth == monthJoined and currentDay < dayJoined ) then
+            print("Player Does Not Have a Time Machine!")
+            closeButtons = false;
+        end
+    end
+
+    if closeButtons == false then
+        print("Please choose a valid DAY");
+    end
+    
+    return closeButtons;
+end
+
 -- Method:          TimeStampToEpoch(timestamp)
 -- What it Does:    Converts a given timestamp: "22 Mar '17" into Epoch Seconds time.
 -- Purpose:         On adding notes, epoch time is considered when calculating how much time has passed, for exactness and custom dates need to include it.
@@ -749,9 +787,11 @@ local function RecordChanges(indexOfInfo,memberInfo,memberOldInfo,guildName)
                         else
                             numTimesString = string.format(memberInfo[1] .. " is Returning for the First Time.");
                         end
+
+                        local timeStamp = GetTimestamp();
                         if GR_PlayersThatLeftHistory_Save[i][j][17] == true then
                             -- Player was banned! WARNING!!!
-                            local warning = string.format(GetTimestamp() .. " :\n---------- WARNING! WARNING! WARNING! WARNING! ----------\n" .. memberInfo[1] .. " has REJOINED the guild but was previously BANNED!");
+                            local warning = string.format(timeStamp .. " :\n---------- WARNING! WARNING! WARNING! WARNING! ----------\n" .. memberInfo[1] .. " has REJOINED the guild but was previously BANNED!");
                             logReport = string.format("     Date of Ban:                     " .. GR_PlayersThatLeftHistory_Save[i][j][15][#GR_PlayersThatLeftHistory_Save[i][j][15]] .. " (" .. GetTimePassed(GR_PlayersThatLeftHistory_Save[i][j][16][#GR_PlayersThatLeftHistory_Save[i][j][16]]) .. " ago)\nReason:                           " .. GR_PlayersThatLeftHistory_Save[i][j][18] .. "\nDate Originally Joined:    " .. GR_PlayersThatLeftHistory_Save[i][j][20][1] .. "\nOld Guild Rank:               " .. GR_PlayersThatLeftHistory_Save[i][j][19] .. "\n" .. numTimesString);
                             local custom = "";
                             local toReport = {9,warning,false,12,logReport,false,9,warning,12,logReport,false,13,custom}
@@ -764,7 +804,7 @@ local function RecordChanges(indexOfInfo,memberInfo,memberOldInfo,guildName)
                             table.insert(TempBannedRejoin,toReport);
                         else
                             -- No Ban found, player just returning!
-                            logReport = string.format(GetTimestamp() .. " : " .. memberInfo[1] .. " has REJOINED the guild (LVL: " .. memberInfo[4] .. ")");
+                            logReport = string.format(timeStamp .. " : " .. memberInfo[1] .. " has REJOINED the guild (LVL: " .. memberInfo[4] .. ")");
                             local custom = "";
                             local details = ("     Date Left:                        " .. GR_PlayersThatLeftHistory_Save[i][j][15][#GR_PlayersThatLeftHistory_Save[i][j][15]] .. " (" .. GetTimePassed(GR_PlayersThatLeftHistory_Save[i][j][16][#GR_PlayersThatLeftHistory_Save[i][j][16]]) .. " ago)\nDate Originally Joined:   " .. GR_PlayersThatLeftHistory_Save[i][j][20][1] .. "\nOld Guild Rank:              " .. GR_PlayersThatLeftHistory_Save[i][j][19] .. "\n" .. numTimesString);
                             local toReport = {7,logReport,false,12,details,false,7,logReport,12,details,false,13,custom}
@@ -774,16 +814,16 @@ local function RecordChanges(indexOfInfo,memberInfo,memberOldInfo,guildName)
                                 toReport[11] = true;
                                 toReport[13] = custom;
                             end
-                            table.insert(TempRejoin,toReport);
+                            table.insert ( TempRejoin , toReport );
                         end
                         rejoin = true;
                         -- AddPlayerTo MemberHistory
-                        AddMemberRecord(memberInfo,true,GR_PlayersThatLeftHistory_Save[i][j],guildName);
+                        AddMemberRecord( memberInfo , true , GR_PlayersThatLeftHistory_Save[i][j] , guildName );
 
                         -- Adding timestamp to new Player.
                         if AddTimestampOnJoin and CanEditOfficerNote() then
                             for h = 1,GetNumGuildies() do
-                                local name,_,_,_,_,_,_,oNote = GetGuildRosterInfo(s);
+                                local name,_,_,_,_,_,_,oNote = GetGuildRosterInfo( h );
                                 if SlimName(name) == memberInfo[1] and oNote == "" then
                                     GuildRosterSetOfficerNote(h,("Rejoined: " .. strsub(GetTimestamp(),1,10)));
                                     break;
@@ -829,7 +869,8 @@ local function RecordChanges(indexOfInfo,memberInfo,memberOldInfo,guildName)
         end
     -- 11 = Player Left
     elseif indexOfInfo == 11 then
-        logReport = string.format(GetTimestamp() .. " : " .. memberInfo[1] .. " has Left the guild");
+        local timestamp = GetTimestamp();
+        logReport = string.format(timestamp .. " : " .. memberInfo[1] .. " has Left the guild");
         table.insert(TempLeftGuild,{10,logReport,false,10,logReport});
         -- Finding Player's record for removal of current guild and adding to the Left Guild table.
         for i = 1,#GR_GuildMemberHistory_Save do -- Scanning through guilds
@@ -837,8 +878,8 @@ local function RecordChanges(indexOfInfo,memberInfo,memberOldInfo,guildName)
                 for j = 2,#GR_GuildMemberHistory_Save[i] do  -- Scanning through all entries
                     if memberInfo[1] == GR_GuildMemberHistory_Save[i][j][1] then -- Matching member leaving to guild saved entry
                         -- Found!
-                        table.insert(GR_GuildMemberHistory_Save[i][j][15],GetTimestamp());   -- leftGuildDate
-                        table.insert(GR_GuildMemberHistory_Save[i][j][16],time());           -- leftGuildDateMeta
+                        table.insert(GR_GuildMemberHistory_Save[i][j][15], timestamp );   -- leftGuildDate
+                        table.insert(GR_GuildMemberHistory_Save[i][j][16], time());           -- leftGuildDateMeta
                         GR_GuildMemberHistory_Save[i][j][19] = GR_GuildMemberHistory_Save[i][j][4];                -- oldRank on leaving.
                         table.insert(GR_GuildMemberHistory_Save[i][j][20],GR_GuildMemberHistory_Save[i][j][2]);    -- oldJoinDate
                         table.insert(GR_GuildMemberHistory_Save[i][j][21],GR_GuildMemberHistory_Save[i][j][3]);    -- oldJoinDateMeta
@@ -853,14 +894,13 @@ local function RecordChanges(indexOfInfo,memberInfo,memberOldInfo,guildName)
                         end
                         
                         -- removing from active member library
-                        table.remove(GR_GuildMemberHistory_Save[i],j);
+                        table.remove ( GR_GuildMemberHistory_Save[i] , j );
                         break;
                     end
                 end
                 break;
             end
         end
-
     -- 12 = NameChanged
     elseif indexOfInfo == 12 then
         logReport = string.format(GetTimestamp() .. " : " .. memberOldInfo[1] .. " has Name-Changed to ".. memberInfo[1]);
@@ -1154,6 +1194,8 @@ local SetPromoDateButton = CreateFrame("Button","GR_SetPromoDateButton",MemberDe
 -- SUBMIT BUTTONS
 local DateSubmitButton = CreateFrame("Button","GR_DateSubmitButton",MemberDetailMetaData,"UIPanelButtonTemplate");
 local DateSubmitCancelButton = CreateFrame("Button","GR_DateSubmitCancelButton",MemberDetailMetaData,"UIPanelButtonTemplate");
+local GR_DateSubmitButtonTxt = DateSubmitButton:CreateFontString ( "GR_DateSubmitButtonTxt" , "OVERLAY" , "GameFontWhiteTiny" );
+local GR_DateSubmitCancelButtonTxt = DateSubmitCancelButton:CreateFontString ( "GR_DateSubmitCancelButtonTxt" , "OVERLAY" , "GameFontWhiteTiny" );
 
 -- RANK DROPDOWN
 local guildRankDropDownMenu = CreateFrame("Frame" , "GR_RankDropDownMenu" , MemberDetailMetaData , "UIDropDownMenuTemplate" );
@@ -1171,16 +1213,27 @@ local PlayerNoteWindow = CreateFrame( "Frame" , "GR_PlayerNoteWindow" , MemberDe
 local noteFontString1 = PlayerNoteWindow:CreateFontString ( "GR_NoteText" , "OVERLAY" , "GameFontWhiteTiny" );
 local PlayerNoteEditBox = CreateFrame( "EditBox" , "GR_PlayerNoteEditBox" , MemberDetailMetaData );
 local PlayerOfficerNoteWindow = CreateFrame( "Frame" , "GR_PlayerOfficerNoteWindow" , MemberDetailMetaData );
-local noteFontString2 = PlayerNoteWindow:CreateFontString ( "GR_OfficerNoteText" , "OVERLAY" , "GameFontWhiteTiny" );
+local noteFontString2 = PlayerOfficerNoteWindow:CreateFontString ( "GR_OfficerNoteText" , "OVERLAY" , "GameFontWhiteTiny" );
 local PlayerOfficerNoteEditBox = CreateFrame( "EditBox" , "GR_OfficerPlayerNoteEditBox" , MemberDetailMetaData );
+local officerNoteCount = PlayerOfficerNoteEditBox:CreateFontString ( "GR_OfficerNoteCharCount" , "OVERLAY" , "GameFontWhiteTiny" );
+local NoteCount = PlayerNoteEditBox:CreateFontString ( "GR_NoteCharCount" , "OVERLAY" , "GameFontWhiteTiny" );
 PlayerNoteEditBox:Hide();
 PlayerOfficerNoteEditBox:Hide();
 
--- Populating Frames
+-- Populating Frames with FontStrings
 local GR_MemberDetailNameText = MemberDetailMetaData:CreateFontString ( "GR_MemberDetailName" , "OVERLAY" , "GameFontNormalLarge" );
 local GR_MemberDetailLevel = MemberDetailMetaData:CreateFontString ( "GR_MemberDetailLevel" , "OVERLAY" , "GameFontNormalSmall" );
 local GR_MemberDetailRankTxt = MemberDetailMetaData:CreateFontString ( "GR_MemberDetailRankTxt" , "OVERLAY" , "GameFontNormal" );
 local GR_MemberDetailRankDateTxt = MemberDetailMetaData:CreateFontString ( "GR_MemberDetailRankDateTxt" , "OVERLAY" , "GameFontNormalSmall" );
+local GR_MemberDetailNoteTitle = MemberDetailMetaData:CreateFontString ( "GR_MemberDetailNoteTitle" , "OVERLAY" , "GameFontNormalSmall" );
+local GR_MemberDetailOfficerNoteTitle = MemberDetailMetaData:CreateFontString ( "GR_MemberDetailOfficerNoteTitle" , "OVERLAY" , "GameFontNormalSmall" );
+
+-- Fontstring for MemberRank History Gonna use 3 to create Underline effect.
+local GR_MemberDetailJoinTitleTxt = MemberDetailMetaData:CreateFontString ( "GR_MemberDetailJoinTitleTxt" , "OVERYALY" , "GameFontNormalSmall" );
+local GR_JoinTitleTxtUnderline = MemberDetailMetaData:CreateFontString ( "GR_JoinTitleTxtUnderline" , "OVERYALY" , "GameFontNormalSmall" );
+local GR_MemberDetailJoinTxt = MemberDetailMetaData:CreateFontString ( "GR_MemberDetailJoinTxt" , "OVERYALY" , "GameFontWhiteTiny" );
+local MemberDetailJoinDateButton = CreateFrame ( "Button" , "GR_MemberDetailJoinDateButton" , MemberDetailMetaData , "UIPanelButtonTemplate" );
+local GR_JoinDateButtonText = MemberDetailJoinDateButton:CreateFontString ( "GR_JoinDateButtonText" , "OVERLAY" , "GameFontWhiteTiny" );
 
 -- Tooltips
 local MemberDetailRankToolTip = CreateFrame ( "GameTooltip" , "GR_MemberDetailRankToolTip" , MemberDetailMetaData , "GameTooltipTemplate" );
@@ -1191,6 +1244,7 @@ local timer = 0;
 local timer2 = 0; 
 local position = 0;
 local pause = false;
+local rankDateSet = false;
 
 -- DropDownMenuPopulateLogic
 local tempName = "";
@@ -1301,55 +1355,55 @@ local function InitializeDropDownMonth ( self , level )
 
 end
 
-local function SetOfficerNoteDate ( self , button , down )
-    local name = GuildMemberDetailName:GetText();
-    local dayJoined = UIDropDownMenu_GetSelectedID ( DayDropDownMenu );
-    local monthJoined = UIDropDownMenu_GetSelectedID ( MonthDropDownMenu );
-    local yearJoined = tonumber( UIDropDownMenu_GetText ( YearDropDownMenu ) );
-    local isLeapYearSelected = IsLeapYear ( yearJoined );
+-- local function SetOfficerNoteDate ( self , button , down )
+--     local name = GuildMemberDetailName:GetText();
+--     local dayJoined = UIDropDownMenu_GetSelectedID ( DayDropDownMenu );
+--     local monthJoined = UIDropDownMenu_GetSelectedID ( MonthDropDownMenu );
+--     local yearJoined = tonumber( UIDropDownMenu_GetText ( YearDropDownMenu ) );
+--     local isLeapYearSelected = IsLeapYear ( yearJoined );
 
-    local closeButtons = true;
-    if monthJoined % 2 == 0 then
-        if monthJoined == 2 then 
-            if ( dayJoined > 29 and isLeapYearSelected ) or ( dayJoined > 28 and isLeapYearSelected ~= true ) then
-                print("Please choose a valid Day!");
-                closeButtons = false;
-            end
-        elseif dayJoined == 31 then
-            print("Please choose a valid DAY");
-            closeButtons = false;
-        end
-    end
+--     local closeButtons = true;
+--     if monthJoined % 2 == 0 then
+--         if monthJoined == 2 then 
+--             if ( dayJoined > 29 and isLeapYearSelected ) or ( dayJoined > 28 and isLeapYearSelected ~= true ) then
+--                 print("Please choose a valid Day!");
+--                 closeButtons = false;
+--             end
+--         elseif dayJoined == 31 then
+--             print("Please choose a valid DAY");
+--             closeButtons = false;
+--         end
+--     end
 
-    if closeButtons then
-        local guildName = GetGuildInfo("player");
-        for i = 1,GetNumGuildies() do
-            local handle = GetGuildRosterInfo(i);
-            if handle == name then
-                handle = SlimName(handle);
-                local resetJoinDate = ( "Joined: " .. dayJoined .. " " ..  strsub ( UIDropDownMenu_GetText ( MonthDropDownMenu ) , 1 , 3 ) .. " '" ..  strsub ( UIDropDownMenu_GetText ( YearDropDownMenu ) , 3 ) );
-                GuildRosterSetOfficerNote ( i , resetJoinDate ); -- Changing Officer Note
-                -- Update Guildmember Details
-                for j = 1,#GR_GuildMemberHistory_Save do
-                    if GR_GuildMemberHistory_Save[j][1] == guildName then
-                        for r = 2,#GR_GuildMemberHistory_Save[j] do
-                            if GR_GuildMemberHistory_Save[j][r][1] == handle then
-                                GR_GuildMemberHistory_Save[j][r][2] = resetJoinDate;           --- INCONSISTENT... THIS TIME IS LACKING THE MINUTES AND HOURS WHILST THE OTHER HAS IT
-                                GR_GuildMemberHistory_Save[j][r][3] = TimeStampToEpoch(resetJoinDate);
-                                break;
-                            end
-                        end
-                        break;
-                    end
-                end
-                break;
-            end
-        end
-        DayDropDownMenu:Hide();
-        MonthDropDownMenu:Hide();
-        YearDropDownMenu:Hide();
-    end
-end
+--     if closeButtons then
+--         local guildName = GetGuildInfo("player");
+--         for i = 1,GetNumGuildies() do
+--             local handle = GetGuildRosterInfo(i);
+--             if handle == name then
+--                 handle = SlimName(handle);
+--                 local resetJoinDate = ( "Joined: " .. dayJoined .. " " ..  strsub ( UIDropDownMenu_GetText ( MonthDropDownMenu ) , 1 , 3 ) .. " '" ..  strsub ( UIDropDownMenu_GetText ( YearDropDownMenu ) , 3 ) );
+--                 GuildRosterSetOfficerNote ( i , resetJoinDate ); -- Changing Officer Note
+--                 -- Update Guildmember Details
+--                 for j = 1,#GR_GuildMemberHistory_Save do
+--                     if GR_GuildMemberHistory_Save[j][1] == guildName then
+--                         for r = 2,#GR_GuildMemberHistory_Save[j] do
+--                             if GR_GuildMemberHistory_Save[j][r][1] == handle then
+--                                 GR_GuildMemberHistory_Save[j][r][2] = resetJoinDate;           --- INCONSISTENT... THIS TIME IS LACKING THE MINUTES AND HOURS WHILST THE OTHER HAS IT
+--                                 GR_GuildMemberHistory_Save[j][r][3] = TimeStampToEpoch(resetJoinDate);
+--                                 break;
+--                             end
+--                         end
+--                         break;
+--                     end
+--                 end
+--                 break;
+--             end
+--         end
+--         DayDropDownMenu:Hide();
+--         MonthDropDownMenu:Hide();
+--         YearDropDownMenu:Hide();
+--     end
+-- end
 
 
 local function SetPromoDate ( self , button , down )
@@ -1359,20 +1413,7 @@ local function SetPromoDate ( self , button , down )
     local yearJoined = tonumber( UIDropDownMenu_GetText ( YearDropDownMenu ) );
     local isLeapYearSelected = IsLeapYear ( yearJoined );
 
-    local closeButtons = true;
-    if monthJoined % 2 == 0 then
-        if monthJoined == 2 then 
-            if ( dayJoined > 29 and isLeapYearSelected ) or ( dayJoined > 28 and isLeapYearSelected ~= true ) then
-                print("Please choose a valid Day!");
-                closeButtons = false;
-            end
-        elseif dayJoined == 31 then
-            print("Please choose a valid DAY");
-            closeButtons = false;
-        end
-    end
-
-    if closeButtons then
+    if IsValidSubmitDate ( dayJoined , monthJoined , yearJoined, isLeapYearSelected ) then
         local guildName = GetGuildInfo("player");
         
         for j = 1,#GR_GuildMemberHistory_Save do
@@ -1405,6 +1446,7 @@ local function SetPromoDate ( self , button , down )
         DateSubmitButton:Hide();
         GR_MemberDetailRankDateTxt:Show();
     end
+    pause = false;
 end
 
 -- Method:          SetDateSelectFrame( string , frameObject, string )
@@ -1414,6 +1456,10 @@ end
 local function SetDateSelectFrame ( position, frame, buttonName )
     local _,month,_,currentYear = CalendarGetDate();
     local xPosMonth,yPosMonth,xPosDay,yPosDay,xPosYear,yPosYear,xPosSubmit,yPosSubmit,xPosCancel,yPosCancel = 0;        -- Default positions.
+    local joinDateText = "Set Join Date";
+    local promoDateText = "Set Promo Date"
+    local timeEnum = date ( "*t" );
+    local currentDay = timeEnum [ "day" ];
 
     -- Month
     UIDropDownMenu_Initialize ( MonthDropDownMenu , InitializeDropDownMonth );
@@ -1432,40 +1478,66 @@ local function SetDateSelectFrame ( position, frame, buttonName )
     -- Initialize the day choice now.
     UIDropDownMenu_Initialize ( DayDropDownMenu , InitializeDropDownDay );
     UIDropDownMenu_SetWidth ( DayDropDownMenu , 40 );
-    UIDropDownMenu_SetSelectedID ( DayDropDownMenu , 1 );
+    UIDropDownMenu_SetSelectedID ( DayDropDownMenu , currentDay );
     dayIndex = 1;
     
-    -- Dimensions
-    DateSubmitButton:SetWidth( 70 );
-    DateSubmitButton:SetText ( "Submit" );
-    DateSubmitCancelButton:SetWidth( 70 );
-    DateSubmitCancelButton:SetText ( "Cancel" );
-
     -- Script Handlers
     DateSubmitCancelButton:SetScript("OnClick" , function (self , button , down ) 
+        
         MonthDropDownMenu:Hide();
         YearDropDownMenu:Hide();
         DayDropDownMenu:Hide();
         DateSubmitButton:Hide();
         DateSubmitCancelButton:Hide();
-        SetPromoDateButton:Show();
-        
+
+        -- Determine which information needs to repopulate.
+        local buttonText = GR_DateSubmitButtonTxt:GetText()
+        if joinDateText == buttonText then
+            MemberDetailJoinDateButton:Show();
+            --RANK PROMO DATE
+            if rankDateSet == false then      --- Promotion has never been recorded!
+                GR_MemberDetailRankDateTxt:Hide();                     
+                SetPromoDateButton:Show();
+            else
+                GR_MemberDetailRankDateTxt:Show();
+            end
+        elseif buttonText == promoDateText then
+            SetPromoDateButton:Show();
+        end
+        pause = false;
     end);
 
     if buttonName == "PromoRank" then
-
-        -- Script for each button
+        
+        -- Change this button
+        GR_DateSubmitButtonTxt:SetText ( promoDateText );
         DateSubmitButton:SetScript("OnClick" , SetPromoDate );
-
-        xPosMonth = -68;
-        yPosMonth = -80;
-        xPosYear = 14;
-        yPosYear = -80
-        xPosDay = 75;
+        
+        xPosDay = -82;
         yPosDay = -80;
-        xPosSubmit = -35;
+        xPosMonth = -6;
+        yPosMonth = -80;
+        xPosYear = 77;
+        yPosYear = -80
+        xPosSubmit = -37;
         yPosSubmit = -106;
-        xPosCancel = 35;
+        xPosCancel = 37;
+        yPosCancel = -106;
+
+    elseif buttonName == "JoinDate" then
+
+        GR_DateSubmitButtonTxt:SetText ( joinDateText );
+        DateSubmitButton:SetScript("OnClick" , SetPromoDate );
+        
+        xPosDay = -82;
+        yPosDay = -80;
+        xPosMonth = -6;
+        yPosMonth = -80;
+        xPosYear = 77;
+        yPosYear = -80
+        xPosSubmit = -37;
+        yPosSubmit = -106;
+        xPosCancel = 37;
         yPosCancel = -106;
     end
 
@@ -1488,6 +1560,7 @@ local function OnRankDropMenuClick ( self )
     local numRanks = GuildControlGetNumRanks();
     local numChoices = (numRanks - playerIndex - 1);
     local solution = rankIndex2 + numRanks - numChoices;
+    local guildName = GetGuildInfo("player");
 
     UIDropDownMenu_SetSelectedID ( guildRankDropDownMenu , rankIndex2 );
         
@@ -1496,10 +1569,16 @@ local function OnRankDropMenuClick ( self )
         
         if SlimName ( name ) == tempName then
             SetGuildMemberRank ( i , solution );
+            -- Now, let's make the changes immediate for the button date.
+            if SetPromoDateButton:IsVisible() then
+                SetPromoDateButton:Hide();
+                GR_MemberDetailRankDateTxt:SetText ( "PROMOTED: " .. strsub(GetTimestamp() , 1 , 10 ) );
+                GR_MemberDetailRankDateTxt:Show();
+            end
+            pause = false;
             break;
         end
     end
-
 end
 
 local function PopulateRankDropDown ( self , level )
@@ -1531,7 +1610,8 @@ end
 
 local function PopulateMemberDetails( handle )
     local guildName = GetGuildInfo("player");
-    
+    rankDateSet = false;        -- resetting tracker
+
     for j = 1,#GR_GuildMemberHistory_Save do
         if GR_GuildMemberHistory_Save[j][1] == guildName then
             for r = 2,#GR_GuildMemberHistory_Save[j] do
@@ -1568,7 +1648,7 @@ local function PopulateMemberDetails( handle )
                     elseif class == "WARRIOR" then
                         GR_MemberDetailNameText:SetTextColor ( 0.78 , 0.61 , 0.43 , 1.0 );
                     end
-                    GR_MemberDetailNameText:SetText(handle);
+                    GR_MemberDetailNameText:SetText ( handle );
 
                     --- LEVEL
                     GR_MemberDetailLevel:SetPoint ( "TOP" , 0 , -38 );
@@ -1591,36 +1671,19 @@ local function PopulateMemberDetails( handle )
                         CreateRankDropDown();
                     else
                         guildRankDropDownMenu:Hide();
-                        GR_MemberDetailRankTxt:SetPoint ( "TOP" , 0 , -52 );
-                        GR_MemberDetailRankTxt:SetTextColor ( 0.90 , 0.80 , 0.50 , 1.0 );
                         GR_MemberDetailRankTxt:SetText ( "\"" .. GR_GuildMemberHistory_Save[j][r][4] .. "\"");
                         GR_MemberDetailRankTxt:Show();
                     end
 
-                    -- --RANK PROMO DATE
+                    --RANK PROMO DATE
                     if GR_GuildMemberHistory_Save[j][r][12] == nil then      --- Promotion has never been recorded!
                         GR_MemberDetailRankDateTxt:Hide();
                         if rankIndex > playerIndex then
                             SetPromoDateButton:SetPoint ( "TOP" , MemberDetailMetaData , 0 , -80 ); -- slightly varied positioning due to drop down window or not.
                         else
                             SetPromoDateButton:SetPoint ( "TOP" , MemberDetailMetaData , 0 , -67 );
-                        end
-                        SetPromoDateButton:SetText ("Date Promoted?");
-                        SetPromoDateButton:SetHeight ( 18 );
-                        SetPromoDateButton:SetWidth ( 110 );
-                        SetPromoDateButton:SetScript( "OnClick" , function( self , button , down ) 
-                            if button == "LeftButton" then
-                                SetPromoDateButton:Hide();
-                                SetDateSelectFrame ( "TOP" , MemberDetailMetaData , "PromoRank" );  -- Position, Frame, ButtonName
-                                pause = true;
-                            end
-                        end);
-                        
+                        end                        
                         SetPromoDateButton:Show();
-                        -- Button - Date Promoted?
-                        -- OnClick, hide Button, show date choices, submit, cancel
-                        -- if cancel, then hide all of those, show button again.
-                        -- If submit, then record log, hide all the button frames, show Date Promoted (index 12 of memberHistorySave);
                     else
                         SetPromoDateButton:Hide();
                         if rankIndex > playerIndex then
@@ -1628,9 +1691,22 @@ local function PopulateMemberDetails( handle )
                         else
                             GR_MemberDetailRankDateTxt:SetPoint ( "TOP" , 0 , -70 );
                         end
+                        rankDateSet = true;
                         GR_MemberDetailRankDateTxt:SetTextColor ( 1 , 1 , 1 , 1.0 );
                         GR_MemberDetailRankDateTxt:SetText ( "PROMOTED: " .. strsub ( GR_GuildMemberHistory_Save[j][r][12] , 1 , 10) );
                         GR_MemberDetailRankDateTxt:Show();
+                    end
+
+                    -- Date Player Joined the Guild.
+                    -- GR_MemberDetailJoinTxt
+                    if #GR_GuildMemberHistory_Save[j][r][20] == 0 then
+                        MemberDetailJoinDateButton:Show();
+                    -- On date join it just changes the default date [2] timestamp() [3] epoch
+                    elseif #GR_GuildMemberHistory_Save[j][r][20] == 1 then
+                        -- No Need to trigger tooltip.
+                    else
+                        -- Trigger tooltip activation
+                        -- Original Join Date [20][1] > Date Left [15][1] > End of for loop ... now add >> Date Rejoined [5] as last line.
                     end
 
                     -- PLAYER NOTE AND OFFICER NOTE EDIT BOXES
@@ -1639,7 +1715,7 @@ local function PopulateMemberDetails( handle )
                     PlayerNoteEditBox:Hide();
                     PlayerOfficerNoteEditBox:Hide();
 
-                    -- Set note if there is one
+                    -- Set Public Note if is One
                     if GR_GuildMemberHistory_Save[j][r][7] ~= nil and GR_GuildMemberHistory_Save[j][r][7] ~= "" then
                         finalNote = GR_GuildMemberHistory_Save[j][r][7];
                     end
@@ -1651,16 +1727,22 @@ local function PopulateMemberDetails( handle )
                     end
 
                     -- Set O Note
-                    if GR_GuildMemberHistory_Save[j][r][8] ~= nil and GR_GuildMemberHistory_Save[j][r][8] ~= "" then
-                        finalONote = GR_GuildMemberHistory_Save[j][r][8];
-                    end
-                    noteFontString2:SetText ( finalONote );
-                    if finalONote ~= "Click here to set an Officer's Note" then
-                        PlayerOfficerNoteEditBox:SetText( finalONote );
+                    if CanViewOfficerNote() == true then
+                        if GR_GuildMemberHistory_Save[j][r][8] ~= nil and GR_GuildMemberHistory_Save[j][r][8] ~= "" then
+                            finalONote = GR_GuildMemberHistory_Save[j][r][8];
+                        end
+                        if finalONote == "Click here to set an Officer's Note" and CanEditOfficerNote() ~= true then
+                            finalONote = "Unable to Add Officer Note at Rank";
+                        end
+                        noteFontString2:SetText ( finalONote );
+                        if finalONote ~= "Click here to set an Officer's Note" then
+                            PlayerOfficerNoteEditBox:SetText( finalONote );
+                        else
+                            PlayerOfficerNoteEditBox:SetText( "" );
+                        end
                     else
-                        PlayerOfficerNoteEditBox:SetText( "" );
+                        noteFontString2:SetText ( "Unable to View Officer Note at Rank" );
                     end
-                    
                     noteFontString2:Show();
                     noteFontString1:Show();
                     -- GR_GuildRosterHistory:Show();
@@ -1691,7 +1773,7 @@ end
 -- Method:              GR_RosterFrame(self,elapsed)
 -- What it Does:        In the main guild window, guild roster screen, rather than having to select a guild member to see the additional window pop update
 --                      all the player needs to do is just mousover it.
--- Purpose:             This is for more efficient "glancing" at info for guild leader.
+-- Purpose:             This is for more efficient "glancing" at info for guild leader, with more details.
 local function GR_RosterFrame(self,elapsed)
     timer = timer + elapsed;
     if timer >= 0.075 then
@@ -1938,6 +2020,8 @@ local function GR_RosterFrame(self,elapsed)
                     YearDropDownMenu:Hide();
                     DayDropDownMenu:Hide();
                     guildRankDropDownMenu:Hide();
+                    DateSubmitButton:Hide();
+                    DateSubmitCancelButton:Hide();
                     MemberDetailMetaData:Hide();
                 end
             end
@@ -1947,6 +2031,8 @@ local function GR_RosterFrame(self,elapsed)
             YearDropDownMenu:Hide();
             DayDropDownMenu:Hide();
             guildRankDropDownMenu:Hide();
+            DateSubmitButton:Hide();
+            DateSubmitCancelButton:Hide();
             MemberDetailMetaData:Hide();
         end
         timer = 0;
@@ -2044,17 +2130,77 @@ local function GR_MetaDataInitializeUI()
     MemberDetailMetaData:SetPoint("TOPLEFT", GuildRosterFrame, "TOPRIGHT" , -4 , 5 );
     MemberDetailMetaData:SetHeight(330);
     MemberDetailMetaData:SetWidth(285);
-    MemberDetailMetaData:HookScript( "OnShow", function() MemberDetailMetaDataCloseButton:SetPoint("TOPRIGHT" , MemberDetailMetaData ); MemberDetailMetaDataCloseButton:Show() end );
-    MemberDetailMetaData:HookScript ( "OnUpdate" , rankHistoryTT );
+    MemberDetailMetaData:SetScript( "OnShow", function() MemberDetailMetaDataCloseButton:SetPoint("TOPRIGHT" , MemberDetailMetaData , 3, 3 ); MemberDetailMetaDataCloseButton:Show() end );
+    MemberDetailMetaData:SetScript ( "OnUpdate" , rankHistoryTT );
 
     -- Keyboard Control for easy ESC closeButtons
     tinsert(UISpecialFrames, "GR_MemberDetails");
 
-    -- FRAME CHILDREN FEATURES
+    -- CORE FRAME CHILDREN FEATURES
     -- rank drop down 
     guildRankDropDownMenu:SetPoint( "TOP" , MemberDetailMetaData , 0 , -50 );
-   
+
+    --Rank Drop down submit and cancel
+    SetPromoDateButton:SetText ("Date Promoted?");
+    SetPromoDateButton:SetHeight ( 18 );
+    SetPromoDateButton:SetWidth ( 110 );
+    SetPromoDateButton:SetScript( "OnClick" , function( self , button , down ) 
+        if button == "LeftButton" then
+            SetPromoDateButton:Hide();
+            SetDateSelectFrame ( "TOP" , MemberDetailMetaData , "PromoRank" );  -- Position, Frame, ButtonName
+            pause = true;
+        end
+    end);
+
+    DateSubmitButton:SetWidth( 74 );
+    DateSubmitCancelButton:SetWidth( 74 );
+    GR_DateSubmitCancelButtonTxt:SetPoint ( "CENTER" , DateSubmitCancelButton );
+    GR_DateSubmitCancelButtonTxt:SetFont ( "Fonts\\FRIZQT__.TTF" , 7.9 );
+    GR_DateSubmitCancelButtonTxt:SetText ( "Cancel" );
+    GR_DateSubmitButtonTxt:SetPoint ( "CENTER" , DateSubmitButton );
+    GR_DateSubmitButtonTxt:SetFont ( "Fonts\\FRIZQT__.TTF" , 7.9 );
+
+    -- Rank promotion date text
+    GR_MemberDetailRankTxt:SetPoint ( "TOP" , 0 , -52 );
+    GR_MemberDetailRankTxt:SetTextColor ( 0.90 , 0.80 , 0.50 , 1.0 );
+
+    -- "MEMBER SINCE"
+    GR_MemberDetailJoinTitleTxt:SetPoint ( "TOPLEFT" , MemberDetailMetaData , 18 , -20 );
+    GR_MemberDetailJoinTitleTxt:SetText ("Date Joined");
+    GR_MemberDetailJoinTitleTxt:SetFont ( "Fonts\\FRIZQT__.TTF" , 9 );
+    GR_JoinTitleTxtUnderline:SetPoint ( "TOPLEFT" , MemberDetailMetaData , 20 , -22 );
+    GR_JoinTitleTxtUnderline:SetText ("__________");
+    GR_JoinTitleTxtUnderline:SetFont ( "Fonts\\FRIZQT__.TTF" , 9 );
+    GR_MemberDetailJoinTxt:SetPoint ( "TOPLEFT" , MemberDetailMetaData , 18 , -27 );
+    GR_MemberDetailJoinTxt:SetFont ( "Fonts\\FRIZQT__.TTF" , 8 );
+    GR_MemberDetailJoinTxt:SetTextColor ( 1.0 , 1.0 , 1.0 , 1.0 );
+
+    MemberDetailJoinDateButton:SetPoint ( "TOPLEFT" , MemberDetailMetaData , 16 , - 33 );
+    MemberDetailJoinDateButton:SetWidth ( 58 );
+    MemberDetailJoinDateButton:SetHeight ( 17 );
+    GR_JoinDateButtonText:SetText ( "Join Date?" );
+    GR_JoinDateButtonText:SetFont ( "Fonts\\FRIZQT__.TTF" , 8 );
+    GR_JoinDateButtonText:SetPoint ( "CENTER" , MemberDetailJoinDateButton , 0 , 0 );
+    MemberDetailJoinDateButton:Hide();
+    MemberDetailJoinDateButton:SetScript ( "OnClick" , function ( self , button , down )
+        if button == "LeftButton" then
+            MemberDetailJoinDateButton:Hide();
+            if GR_MemberDetailRankDateTxt:IsVisible() then
+                GR_MemberDetailRankDateTxt:Hide();
+            elseif SetPromoDateButton:IsVisible() then
+                SetPromoDateButton:Hide();
+            end
+            SetDateSelectFrame ( "TOP" , MemberDetailMetaData , "JoinDate" );  -- Position, Frame, ButtonName
+            pause = true;
+        end
+    end);
+
     -- player note edit box and font string (31 characters)
+    GR_MemberDetailNoteTitle:SetPoint ( "LEFT" , MemberDetailMetaData , 21 , 32 );
+    GR_MemberDetailNoteTitle:SetText ( "Note:" );
+    GR_MemberDetailNoteTitle:SetFont ( "Fonts\\FRIZQT__.TTF" , 8 );
+
+    -- OFFICER AND PLAYER NOTES
     PlayerNoteWindow:SetPoint( "LEFT" , MemberDetailMetaData , 15 , 10 );
     noteFontString1:SetPoint ( "TOPLEFT" , PlayerNoteWindow , 9 , -11 );
     noteFontString1:SetWordWrap ( true );
@@ -2072,8 +2218,14 @@ local function GR_MetaDataInitializeUI()
     PlayerNoteEditBox:SetTextInsets( 8 , 9 , 9 , 8 );
     PlayerNoteEditBox:SetMaxLetters ( 31 );
     PlayerNoteEditBox:SetFont( "Fonts\\FRIZQT__.TTF" , 10 );
+    NoteCount:SetPoint ("TOPRIGHT" , PlayerNoteEditBox , -6 , 8 );
+    NoteCount:SetFont ( "Fonts\\FRIZQT__.TTF" , 8 );
 
     -- Officer Note
+    GR_MemberDetailOfficerNoteTitle:SetPoint ( "RIGHT" , MemberDetailMetaData , -70 , 32 );
+    GR_MemberDetailOfficerNoteTitle:SetText ( "Officer's Note:" );
+    GR_MemberDetailOfficerNoteTitle:SetFont ( "Fonts\\FRIZQT__.TTF" , 8 );
+
     PlayerOfficerNoteWindow:SetPoint( "RIGHT" , MemberDetailMetaData , -15 , 10 );
     noteFontString2:SetPoint ( "TOPLEFT" , PlayerOfficerNoteWindow , 9 , -11 );
     noteFontString2:SetWordWrap ( true );
@@ -2091,22 +2243,209 @@ local function GR_MetaDataInitializeUI()
     PlayerOfficerNoteEditBox:SetTextInsets( 8 , 9 , 9 , 8 );
     PlayerOfficerNoteEditBox:SetMaxLetters ( 31 );
     PlayerOfficerNoteEditBox:SetFont( "Fonts\\FRIZQT__.TTF" , 10 );
+    officerNoteCount:SetPoint ("TOPRIGHT" , PlayerOfficerNoteEditBox , -6 , 8 );
+    officerNoteCount:SetFont ( "Fonts\\FRIZQT__.TTF" , 8 );
 
-    -- Script handlers on Notes
+    -- Script handlers on Note Edit Boxes
+    local defaultNote = "Click here to set a Public Note";
+    local defaultONote = "Click here to set an Officer's Note";
+    local tempNote = "";
+    local finalNote = "";
+
+    -- Script handlers on Note Frames
     PlayerNoteWindow:SetScript ( "OnMouseDown" , function( self , button ) 
-        if button == "LeftButton" then 
+        if button == "LeftButton" and CanEditPublicNote() then 
             pause = true;
             noteFontString1:Hide();
+            PlayerOfficerNoteEditBox:Hide();
+            tempNote = noteFontString2:GetText();
+            if tempNote ~= defaultONote and tempNote ~= "" then
+                finalNote = tempNote;
+            else
+                finalNote = "";
+            end
+            PlayerOfficerNoteEditBox:SetText( finalNote );
+            noteFontString2:Show();
+
+            local charCount = #PlayerNoteEditBox:GetText();
+            NoteCount:SetText( charCount .. "/31");
             PlayerNoteEditBox:Show();
         end 
     end);
+
     PlayerOfficerNoteWindow:SetScript ( "OnMouseDown" , function( self , button ) 
-        if button == "LeftButton" then 
+        if button == "LeftButton" and CanEditOfficerNote() then 
             pause = true;
             noteFontString2:Hide();
+            PlayerNoteEditBox:Hide();
+            tempNote = noteFontString1:GetText();
+            if tempNote ~= defaultNote and tempNote ~= "" then
+                finalNote = tempNote;
+            else
+                finalNote = "";
+            end
+            PlayerNoteEditBox:SetText( finalNote );
+            noteFontString1:Show();
+
+            local charCount = #PlayerOfficerNoteEditBox:GetText();      -- How many characters initially
+            officerNoteCount:SetText( charCount .. "/31");
             PlayerOfficerNoteEditBox:Show();
         end 
     end);
+
+
+    -- Cancels editing in Note editbox
+    PlayerNoteEditBox:SetScript ( "OnEscapePressed" , function ( self ) 
+        PlayerNoteEditBox:Hide();
+        tempNote = noteFontString1:GetText();
+        if tempNote ~= defaultNote and tempNote ~= "" then
+            finalNote = tempNote;
+        else
+            finalNote = "";
+        end
+        PlayerNoteEditBox:SetText( finalNote );
+        noteFontString1:Show();
+        if DateSubmitButton:IsVisible() ~= true then            -- Does not unpause if the date still needs to be selected or canceled.
+            pause = false;
+        end
+    end);
+
+    -- Updates char count as player types.
+    PlayerNoteEditBox:SetScript ( "OnChar" , function ( self , text ) 
+        local charCount = #PlayerNoteEditBox:GetText();
+        charCount = charCount;
+        NoteCount:SetText( charCount .. "/31");
+    end);
+
+    -- Update on backspace changes too
+    PlayerNoteEditBox:SetScript ( "OnKeyDown" , function ( self , text )  -- While technically this one script handler could do all, this is more processor efficient to have 2.
+        if text == "BACKSPACE" then
+            local charCount = #PlayerNoteEditBox:GetText();
+            charCount = charCount - 1;
+            if charCount == -1 then
+                charCount = 0;
+            end
+            NoteCount:SetText( charCount .. "/31");
+        end
+    end);
+
+    -- Updating the new information to Public Note
+    PlayerNoteEditBox:SetScript ( "OnEnterPressed" , function ( self ) 
+        local newNote = PlayerNoteEditBox:GetText();
+        local name = GR_MemberDetailName:GetText();
+        local guildName = GetGuildInfo("player");
+        
+        for i = 1 , #GR_GuildMemberHistory_Save do
+            if GR_GuildMemberHistory_Save[i][1] == guildName then
+                for j = 2 , #GR_GuildMemberHistory_Save[i] do
+                    if GR_GuildMemberHistory_Save[i][j][1] == name then         -- Player Found and Located.
+                        -- -- First, let's add the change to the official server-sde note
+                        for h = 1,GetNumGuildies() do
+                            local playerName,_,_,_,_,_,publicNote = GetGuildRosterInfo( h );
+                            if SlimName(playerName) == name and publicNote ~= newNote and CanEditPublicNote() then      -- No need to update old note if it is the same.
+                                GuildRosterSetPublicNote ( h , newNote );
+                                -- To metadata save
+                                RecordChanges ( 5 , { name , nil , nil , nil , newNote } , GR_GuildMemberHistory_Save[i][j] , guildName );
+                                GR_GuildMemberHistory_Save[i][j][7] = newNote;
+                                if #newNote == 0 then
+                                    noteFontString1:SetText ( defaultNote );
+                                else
+                                    noteFontString1:SetText ( newNote );
+                                end
+                                PlayerNoteEditBox:SetText( newNote );
+                                break;
+                            end
+                        end
+                        break;
+                    end
+                end            
+                break;
+            end
+        end
+        PlayerNoteEditBox:Hide();
+        noteFontString1:Show();
+        if DateSubmitButton:IsVisible() ~= true then            -- Does not unpause if the date still needs to be selected or canceled.
+            pause = false;
+        end
+    end);
+
+    PlayerOfficerNoteEditBox:SetScript ( "OnEscapePressed" , function ( self ) 
+        PlayerOfficerNoteEditBox:Hide();
+        tempNote = noteFontString2:GetText();
+        if tempNote ~= defaultONote and tempNote ~= "" then
+            finalNote = tempNote;
+        else
+            finalNote = "";
+        end
+        PlayerOfficerNoteEditBox:SetText( finalNote );
+        noteFontString2:Show();
+        if DateSubmitButton:IsVisible() ~= true then            -- Does not unpause if the date still needs to be selected or canceled.
+            pause = false;
+        end
+    end);
+
+    -- Updates char count as player types.
+    PlayerOfficerNoteEditBox:SetScript ( "OnChar" , function ( self , text ) 
+        local charCount = #PlayerOfficerNoteEditBox:GetText();
+        charCount = charCount;
+        officerNoteCount:SetText( charCount .. "/31");
+    end);
+
+    -- Update on backspace changes too
+    PlayerOfficerNoteEditBox:SetScript ( "OnKeyDown" , function ( self , text )  -- While technically this one script handler could do all, this is more processor efficient to have 2.
+        if text == "BACKSPACE" then
+            local charCount = #PlayerOfficerNoteEditBox:GetText();
+            charCount = charCount - 1;
+            if charCount == -1 then
+                charCount = 0;
+            end
+            officerNoteCount:SetText( charCount .. "/31");
+        end
+    end);
+
+     -- Updating the new information to Public Note
+    PlayerOfficerNoteEditBox:SetScript ( "OnEnterPressed" , function ( self ) 
+        local newNote = PlayerOfficerNoteEditBox:GetText();
+        local name = GR_MemberDetailName:GetText();
+        local guildName = GetGuildInfo("player");
+        
+        for i = 1 , #GR_GuildMemberHistory_Save do
+            if GR_GuildMemberHistory_Save[i][1] == guildName then
+                for j = 2 , #GR_GuildMemberHistory_Save[i] do
+                    if GR_GuildMemberHistory_Save[i][j][1] == name then         -- Player Found and Located.
+                        -- -- First, let's add the change to the official server-sde note
+                        for h = 1,GetNumGuildies() do
+                            local playerName,_,_,_,_,_,_,officerNote = GetGuildRosterInfo( h );
+                            if SlimName(playerName) == name and officerNote ~= newNote and CanEditOfficerNote() then      -- No need to update old note if it is the same.
+                                GuildRosterSetOfficerNote ( h , newNote );
+                                -- To metadata save
+                                RecordChanges ( 6 , { name , nil , nil , nil , nil , newNote } , GR_GuildMemberHistory_Save[i][j] , guildName );
+                                GR_GuildMemberHistory_Save[i][j][8] = newNote;
+                                if #newNote == 0 then
+                                    noteFontString2:SetText ( defaultONote );
+                                else
+                                    noteFontString2:SetText ( newNote );
+                                end
+                                PlayerOfficerNoteEditBox:SetText( newNote );
+                                break;
+                            end
+                        end
+                        break;
+                    end
+                end            
+                break;
+            end
+        end
+        PlayerOfficerNoteEditBox:Hide();
+        noteFontString2:Show();
+        if DateSubmitButton:IsVisible() ~= true then            -- Does not unpause if the date still needs to be selected or canceled.
+            pause = false;
+        end
+    end);
+
+
+
+
 end
 
 -- Method:              SetRosterTooltip(self,event,msg)
@@ -2128,22 +2467,43 @@ local function SetRosterTooltip(self,event,msg)
        
         -- Roster Positions
         GuildRosterFrame:HookScript("OnUpdate",GR_RosterFrame);
-        GuildRosterContainerButton1:HookScript("OnClick",GR_Roster_Click)
-        GuildRosterContainerButton2:HookScript("OnClick",GR_Roster_Click)
-        GuildRosterContainerButton3:HookScript("OnClick",GR_Roster_Click)
-        GuildRosterContainerButton4:HookScript("OnClick",GR_Roster_Click)
-        GuildRosterContainerButton5:HookScript("OnClick",GR_Roster_Click)
-        GuildRosterContainerButton6:HookScript("OnClick",GR_Roster_Click)
-        GuildRosterContainerButton7:HookScript("OnClick",GR_Roster_Click)
-        GuildRosterContainerButton8:HookScript("OnClick",GR_Roster_Click)
-        GuildRosterContainerButton9:HookScript("OnClick",GR_Roster_Click)
-        GuildRosterContainerButton10:HookScript("OnClick",GR_Roster_Click)
-        GuildRosterContainerButton11:HookScript("OnClick",GR_Roster_Click)
-        GuildRosterContainerButton12:HookScript("OnClick",GR_Roster_Click)
-        GuildRosterContainerButton13:HookScript("OnClick",GR_Roster_Click)
-        GuildRosterContainerButton14:HookScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton1:SetScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton2:SetScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton3:SetScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton4:SetScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton5:SetScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton6:SetScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton7:SetScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton8:SetScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton9:SetScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton10:SetScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton11:SetScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton12:SetScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton13:SetScript("OnClick",GR_Roster_Click)
+        GuildRosterContainerButton14:SetScript("OnClick",GR_Roster_Click)
     end
 end
+
+
+
+
+
+
+
+
+
+------------------------------------------------
+------------------------------------------------
+----- INITIALIZATION AND LIVE TRACKING ---------
+------------------------------------------------
+------------------------------------------------
+
+
+
+
+
+
+
 
 -- Method:          Tracking()
 -- What it Does:    Checks the Roster once in a repeating time interval as long as player is in a guild
@@ -2286,8 +2646,15 @@ Initialization:SetScript("OnEvent",ActivateAddon);
     -- Remaining Characters Count on Notes when Editing (and possibly Message of the Day).
     -- NEED TO TEST NEW MEMBER THAT IT AUTO-POPULATES RANK PROMOTION DATE, WHILST OTHERS IT DOES NOT.
     -- Check for Guild Name Change
-
-    -- FEATURES ADDED
+    -- Unable to view Officer Note check on UI
+    -- Create unpause function that removes highlights too.
+    -- Public Note cannot edit logic as well.
+    -- Upon selecting which rank, immediately set the date and then hide the "Date Promoted?" button.
+    -- Fix date select mechanic so player cannot choose a month or day that is in the future (maybe an error message on a quick IsDateAfterToday())
+    -- remove weird count up on officer note change if unable to view them.
+    -- Change position of the Drop down so the day > month > year, not month > year > day
+    -- Add method to wipe a player's metadata 
+    -- Add method to wipe all and start over...
 
     -------- UI MODIFICATIONS ----------
     
