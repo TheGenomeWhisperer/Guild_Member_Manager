@@ -99,6 +99,13 @@ local function ParseLevel ( level )
     return result;
 end
 
+-- Method           Trim ( string )
+-- What it Does:    Removes the white space at front and at tail of string.
+-- Purpose:         Cleanup strings for ease of logic control, as needed.
+local function Trim ( str )
+    return ( str:gsub ( "^%s*(.-)%s*$" , "%1" ) );
+end
+
 -- Method:          GetNumGuildies()
 -- What it Does:    Returns the int number of total toons within the guild, including main/alts
 -- Purpose:         For book-keeping and tracking total guild membership.
@@ -506,7 +513,6 @@ local function AddMemberRecord(memberInfo,isReturningMember,oldMemberInfo,guildN
     -- Pieces info that were added on later-- from index 24 of metaData array, so as not to mess with previous code
     local lastOnline = 0;                                                                           -- Stores it in number of HOURS since last online.
     local rankHistory = {};
-    table.insert ( rankHistory , { rank , strsub ( joinDate , 1 , string.find ( joinDate , "'" ) + 2 ) , joinDateMeta } );
 
     if isReturningMember then
         dateOfLastPromotion = oldMemberInfo[12];
@@ -518,11 +524,16 @@ local function AddMemberRecord(memberInfo,isReturningMember,oldMemberInfo,guildN
         reasonBanned = oldMemberInfo[18];
         oldRank = oldMemberInfo[19];
         oldJoinDate = oldMemberInfo[20];
+        table.insert ( oldJoinDate , joinDate );                -- Add the new join date to history
         oldJoinDateMeta = oldMemberInfo[21];
+        table.insert ( oldJoinDateMeta , joinDateMeta );        -- likewise, add the meta seconds.
         privateNotes = oldMemberInfo[22];
         custom = oldMemberInfo[23];
         rankHistory = oldMemberInfo[25];
     end
+
+    -- For both returning players and new adds
+    table.insert ( rankHistory , { rank , strsub ( joinDate , 1 , string.find ( joinDate , "'" ) + 2 ) , joinDateMeta } );
 
     for i = 1,#GR_GuildMemberHistory_Save do
         if guildName == GR_GuildMemberHistory_Save[i][1] then
@@ -825,7 +836,7 @@ local function RecordChanges(indexOfInfo,memberInfo,memberOldInfo,guildName)
                             for h = 1,GetNumGuildies() do
                                 local name,_,_,_,_,_,_,oNote = GetGuildRosterInfo( h );
                                 if SlimName(name) == memberInfo[1] and oNote == "" then
-                                    GuildRosterSetOfficerNote(h,("Rejoined: " .. strsub(GetTimestamp(),1,10)));
+                                    GuildRosterSetOfficerNote( h , ("Rejoined: " .. Trim ( strsub( GetTimestamp() , 1 , 10 ) ) ) );
                                     break;
                                 end
                             end
@@ -840,28 +851,36 @@ local function RecordChanges(indexOfInfo,memberInfo,memberOldInfo,guildName)
         end -- MemberHistory guild search
         if rejoin ~= true then
             -- New Guildie. NOT a rejoin!
+            local timestamp = GetTimestamp();
+            local timeEpoch = time();
             logReport = string.format( timestamp .. " : " .. memberInfo[1] .. " has Joined the guild! (LVL: " .. memberInfo[4] .. ")");
-            for i = 1,#GR_PlayersThatLeftHistory_Save do
-                if (GR_PlayersThatLeftHistory_Save[i][1] == guildName) then -- guild Identified in position 'i'
-                    for j = 2,#GR_PlayersThatLeftHistory_Save[i] do -- Number of players that have left the guild.
-                        if memberInfo[1] == GR_PlayersThatLeftHistory_Save[i][j][1] then
-                            local timestamp = GetTimestamp();
-                            GR_GuildMemberHistory_Save[i][j][12] = strsub ( timestamp , 1 , string.find ( timestamp , "'" ) + 2 );
-                            GR_GuildMemberHistory_Save[i][j][13] = time();
+
+            -- Adding to global saved array, adding to report 
+            AddMemberRecord( memberInfo , false , nil , guildName );
+            table.insert(TempNewMember,{8,logReport,false,8,logReport});
+           
+            -- adding join date to history and rank date.
+            for i = 1,#GR_GuildMemberHistory_Save do
+                if (GR_GuildMemberHistory_Save[i][1] == guildName) then             -- guild Identified in position 'i'
+                    for j = 2,#GR_GuildMemberHistory_Save[i] do                     -- Number of players that have left the guild.
+                        if memberInfo[1] == GR_GuildMemberHistory_Save[i][j][1] then
+                            GR_GuildMemberHistory_Save[i][j][12] = strsub ( timestamp , 1 , string.find ( timestamp , "'" ) + 2 );  -- Date of Last Promotion
+                            GR_GuildMemberHistory_Save[i][j][13] = timeEpoch;                                                       -- Date of Last Promotion Epoch time.
+                            table.insert ( GR_GuildMemberHistory_Save[i][j][20] , timestamp );
+                            table.insert ( GR_GuildMemberHistory_Save[i][j][21] , timeEpoch );
                             break;
                         end
                     end
                     break;
                 end
             end
-            AddMemberRecord(memberInfo,false,nil,guildName);
-            table.insert(TempNewMember,{8,logReport,false,8,logReport});
+
             -- Adding timestamp to new Player.
             if AddTimestampOnJoin and CanEditOfficerNote() then
                 for s = 1,GetNumGuildies() do
                     local name,_,_,_,_,_,_,oNote = GetGuildRosterInfo(s);
                     if SlimName(name) == memberInfo[1] and oNote == "" then
-                        GuildRosterSetOfficerNote(s,("Joined: " .. strsub(GetTimestamp(),1,10)));
+                        GuildRosterSetOfficerNote( s , ( "Joined: " .. Trim ( strsub( GetTimestamp() , 1 , 10 ) ) ) );
                         break;
                     end
                 end
@@ -878,17 +897,19 @@ local function RecordChanges(indexOfInfo,memberInfo,memberOldInfo,guildName)
                 for j = 2,#GR_GuildMemberHistory_Save[i] do  -- Scanning through all entries
                     if memberInfo[1] == GR_GuildMemberHistory_Save[i][j][1] then -- Matching member leaving to guild saved entry
                         -- Found!
-                        table.insert(GR_GuildMemberHistory_Save[i][j][15], timestamp );   -- leftGuildDate
-                        table.insert(GR_GuildMemberHistory_Save[i][j][16], time());           -- leftGuildDateMeta
-                        GR_GuildMemberHistory_Save[i][j][19] = GR_GuildMemberHistory_Save[i][j][4];                -- oldRank on leaving.
-                        table.insert(GR_GuildMemberHistory_Save[i][j][20],GR_GuildMemberHistory_Save[i][j][2]);    -- oldJoinDate
-                        table.insert(GR_GuildMemberHistory_Save[i][j][21],GR_GuildMemberHistory_Save[i][j][3]);    -- oldJoinDateMeta
-                        
+                        table.insert(GR_GuildMemberHistory_Save[i][j][15], timestamp );                                 -- leftGuildDate
+                        table.insert(GR_GuildMemberHistory_Save[i][j][16], time());                                     -- leftGuildDateMeta
+                        table.insert( GR_GuildMemberHistory_Save[i][j][25] , { "|CFFC41F3BLeft Guild" , Trim ( strsub ( timestamp , 1 , 10 ) ) } );
+                        GR_GuildMemberHistory_Save[i][j][19] = GR_GuildMemberHistory_Save[i][j][4];                     -- oldRank on leaving.
+                        if #GR_GuildMemberHistory_Save[i][j][20] == 0 then                                              -- Let it default to date addon was installed if date joined was never given
+                            table.insert( GR_GuildMemberHistory_Save[i][j][20] , GR_GuildMemberHistory_Save[i][j][2] );     -- oldJoinDate
+                            table.insert( GR_GuildMemberHistory_Save[i][j][21] , GR_GuildMemberHistory_Save[i][j][3]) ;     -- oldJoinDateMeta
+                        end
                         -- Adding to LeftGuild Player history library
                         for r = 1, #GR_PlayersThatLeftHistory_Save do
                             if guildName == GR_PlayersThatLeftHistory_Save[r][1] then
                                 -- Guild Position Identified.
-                                table.insert(GR_PlayersThatLeftHistory_Save[r],GR_GuildMemberHistory_Save[i][j]);
+                                table.insert( GR_PlayersThatLeftHistory_Save[r] , GR_GuildMemberHistory_Save[i][j] );
                                 break;
                             end
                         end
@@ -1234,10 +1255,13 @@ local GR_JoinTitleTxtUnderline = MemberDetailMetaData:CreateFontString ( "GR_Joi
 local GR_MemberDetailJoinTxt = MemberDetailMetaData:CreateFontString ( "GR_MemberDetailJoinTxt" , "OVERYALY" , "GameFontWhiteTiny" );
 local MemberDetailJoinDateButton = CreateFrame ( "Button" , "GR_MemberDetailJoinDateButton" , MemberDetailMetaData , "UIPanelButtonTemplate" );
 local GR_JoinDateButtonText = MemberDetailJoinDateButton:CreateFontString ( "GR_JoinDateButtonText" , "OVERLAY" , "GameFontWhiteTiny" );
+local GR_JoinDateText = MemberDetailMetaData:CreateFontString ( "GR_JoinDateText" , "OVERLAY" , "GameFontWhiteTiny" );
 
 -- Tooltips
 local MemberDetailRankToolTip = CreateFrame ( "GameTooltip" , "GR_MemberDetailRankToolTip" , MemberDetailMetaData , "GameTooltipTemplate" );
 MemberDetailRankToolTip:Hide();
+local MemberDetailJoinDateToolTip = CreateFrame ( "GameTooltip" , "GR_MemberDetailJoinDateToolTip" , MemberDetailMetaData , "GameTooltipTemplate" );
+MemberDetailJoinDateToolTip:Hide();
 
 -- Useful UI Local Globals
 local timer = 0;
@@ -1355,56 +1379,54 @@ local function InitializeDropDownMonth ( self , level )
 
 end
 
--- local function SetOfficerNoteDate ( self , button , down )
---     local name = GuildMemberDetailName:GetText();
---     local dayJoined = UIDropDownMenu_GetSelectedID ( DayDropDownMenu );
---     local monthJoined = UIDropDownMenu_GetSelectedID ( MonthDropDownMenu );
---     local yearJoined = tonumber( UIDropDownMenu_GetText ( YearDropDownMenu ) );
---     local isLeapYearSelected = IsLeapYear ( yearJoined );
+local function SetJoinDate ( self , button , down )
+    local name = GR_MemberDetailName:GetText();
+    local dayJoined = UIDropDownMenu_GetSelectedID ( DayDropDownMenu );
+    local monthJoined = UIDropDownMenu_GetSelectedID ( MonthDropDownMenu );
+    local yearJoined = tonumber( UIDropDownMenu_GetText ( YearDropDownMenu ) );
+    local isLeapYearSelected = IsLeapYear ( yearJoined );
 
---     local closeButtons = true;
---     if monthJoined % 2 == 0 then
---         if monthJoined == 2 then 
---             if ( dayJoined > 29 and isLeapYearSelected ) or ( dayJoined > 28 and isLeapYearSelected ~= true ) then
---                 print("Please choose a valid Day!");
---                 closeButtons = false;
---             end
---         elseif dayJoined == 31 then
---             print("Please choose a valid DAY");
---             closeButtons = false;
---         end
---     end
+    if IsValidSubmitDate ( dayJoined , monthJoined , yearJoined, isLeapYearSelected ) then
+        local guildName = GetGuildInfo("player");
+        local rankButton = false;
+        for j = 1,#GR_GuildMemberHistory_Save do
+            if GR_GuildMemberHistory_Save[j][1] == guildName then
+                for r = 2,#GR_GuildMemberHistory_Save[j] do
+                    if GR_GuildMemberHistory_Save[j][r][1] == name then
 
---     if closeButtons then
---         local guildName = GetGuildInfo("player");
---         for i = 1,GetNumGuildies() do
---             local handle = GetGuildRosterInfo(i);
---             if handle == name then
---                 handle = SlimName(handle);
---                 local resetJoinDate = ( "Joined: " .. dayJoined .. " " ..  strsub ( UIDropDownMenu_GetText ( MonthDropDownMenu ) , 1 , 3 ) .. " '" ..  strsub ( UIDropDownMenu_GetText ( YearDropDownMenu ) , 3 ) );
---                 GuildRosterSetOfficerNote ( i , resetJoinDate ); -- Changing Officer Note
---                 -- Update Guildmember Details
---                 for j = 1,#GR_GuildMemberHistory_Save do
---                     if GR_GuildMemberHistory_Save[j][1] == guildName then
---                         for r = 2,#GR_GuildMemberHistory_Save[j] do
---                             if GR_GuildMemberHistory_Save[j][r][1] == handle then
---                                 GR_GuildMemberHistory_Save[j][r][2] = resetJoinDate;           --- INCONSISTENT... THIS TIME IS LACKING THE MINUTES AND HOURS WHILST THE OTHER HAS IT
---                                 GR_GuildMemberHistory_Save[j][r][3] = TimeStampToEpoch(resetJoinDate);
---                                 break;
---                             end
---                         end
---                         break;
---                     end
---                 end
---                 break;
---             end
---         end
---         DayDropDownMenu:Hide();
---         MonthDropDownMenu:Hide();
---         YearDropDownMenu:Hide();
---     end
--- end
+                        local joinDate = ( "Joined: " .. dayJoined .. " " ..  strsub ( UIDropDownMenu_GetText ( MonthDropDownMenu ) , 1 , 3 ) .. " '" ..  strsub ( UIDropDownMenu_GetText ( YearDropDownMenu ) , 3 ) );
+                        local finalTimeStamp = ( strsub ( joinDate , 9) .. " 12:01am" );
+                        local finalEpochStamp = TimeStampToEpoch ( joinDate );
+                        
+                        table.insert( GR_GuildMemberHistory_Save[j][r][20] , finalTimeStamp );     -- oldJoinDate
+                        table.insert( GR_GuildMemberHistory_Save[j][r][21] , finalEpochStamp ) ;   -- oldJoinDateMeta
+                        GR_GuildMemberHistory_Save[j][r][2] = finalTimeStamp;
+                        GR_GuildMemberHistory_Save[j][r][3] = finalEpochStamp;
+                        GR_JoinDateText:SetText ( strsub ( joinDate , 9 ) );
 
+                        if GR_GuildMemberHistory_Save[j][r][12] == nil then
+                            rankButton = true;
+                        end
+                    break;
+                    end
+                end
+                break;
+            end
+        end
+        DayDropDownMenu:Hide();
+        MonthDropDownMenu:Hide();
+        YearDropDownMenu:Hide();
+        DateSubmitCancelButton:Hide();
+        DateSubmitButton:Hide();
+        GR_JoinDateText:Show();
+        if rankButton then
+            SetPromoDateButton:Show();
+        else
+            GR_MemberDetailRankDateTxt:Show();
+        end
+    end
+    pause = false;
+end
 
 local function SetPromoDate ( self , button , down )
     local name = GR_MemberDetailName:GetText();
@@ -1432,7 +1454,7 @@ local function SetPromoDate ( self , button , down )
                             GR_MemberDetailRankDateTxt:SetPoint ( "TOP" , 0 , -70 );
                         end
                         GR_MemberDetailRankDateTxt:SetTextColor ( 1 , 1 , 1 , 1.0 );
-                        GR_MemberDetailRankDateTxt:SetText ( "PROMOTED: " .. strsub ( GR_GuildMemberHistory_Save[j][r][12] , 1 , 10) );
+                        GR_MemberDetailRankDateTxt:SetText ( "PROMOTED: " .. Trim ( strsub ( GR_GuildMemberHistory_Save[j][r][12] , 1 , 10) ) );
                         break;
                     end
                 end
@@ -1527,7 +1549,7 @@ local function SetDateSelectFrame ( position, frame, buttonName )
     elseif buttonName == "JoinDate" then
 
         GR_DateSubmitButtonTxt:SetText ( joinDateText );
-        DateSubmitButton:SetScript("OnClick" , SetPromoDate );
+        DateSubmitButton:SetScript("OnClick" , SetJoinDate );
         
         xPosDay = -82;
         yPosDay = -80;
@@ -1572,7 +1594,7 @@ local function OnRankDropMenuClick ( self )
             -- Now, let's make the changes immediate for the button date.
             if SetPromoDateButton:IsVisible() then
                 SetPromoDateButton:Hide();
-                GR_MemberDetailRankDateTxt:SetText ( "PROMOTED: " .. strsub(GetTimestamp() , 1 , 10 ) );
+                GR_MemberDetailRankDateTxt:SetText ( "PROMOTED: " .. Trim ( strsub(GetTimestamp() , 1 , 10 ) ) );
                 GR_MemberDetailRankDateTxt:Show();
             end
             pause = false;
@@ -1693,18 +1715,29 @@ local function PopulateMemberDetails( handle )
                         end
                         rankDateSet = true;
                         GR_MemberDetailRankDateTxt:SetTextColor ( 1 , 1 , 1 , 1.0 );
-                        GR_MemberDetailRankDateTxt:SetText ( "PROMOTED: " .. strsub ( GR_GuildMemberHistory_Save[j][r][12] , 1 , 10) );
+                        GR_MemberDetailRankDateTxt:SetText ( "PROMOTED: " .. Trim ( strsub ( GR_GuildMemberHistory_Save[j][r][12] , 1 , 10) ) );
                         GR_MemberDetailRankDateTxt:Show();
                     end
 
                     -- Date Player Joined the Guild.
                     -- GR_MemberDetailJoinTxt
                     if #GR_GuildMemberHistory_Save[j][r][20] == 0 then
+                        GR_JoinDateText:Hide();
                         MemberDetailJoinDateButton:Show();
                     -- On date join it just changes the default date [2] timestamp() [3] epoch
-                    elseif #GR_GuildMemberHistory_Save[j][r][20] == 1 then
-                        -- No Need to trigger tooltip.
+                    -- elseif #GR_GuildMemberHistory_Save[j][r][20] == 1 then
+                    --     -- No Need to trigger tooltip.
+                    --     -- Just show join date.
                     else
+                        MemberDetailJoinDateButton:Hide();
+                        local finalText = "";
+                        if #GR_GuildMemberHistory_Save[j][r][20][#GR_GuildMemberHistory_Save[j][r][20]] == 17 then
+                            finalText = " " .. strsub ( GR_GuildMemberHistory_Save[j][r][20][#GR_GuildMemberHistory_Save[j][r][20]] , 1 , 10 ); -- Purely for Allignment purposes!
+                        else
+                            finalText = strsub ( GR_GuildMemberHistory_Save[j][r][20][#GR_GuildMemberHistory_Save[j][r][20]] , 1 , 10 );
+                        end
+                        GR_JoinDateText:SetText ( finalText );
+                        GR_JoinDateText:Show();
                         -- Trigger tooltip activation
                         -- Original Join Date [20][1] > Date Left [15][1] > End of for loop ... now add >> Date Rejoined [5] as last line.
                     end
@@ -2080,24 +2113,24 @@ local function SetCloseBoolean( self , button , down )
     end
 end
 
-
 -- tooltipLogic
-
-local function rankHistoryTT ( self , elapsed )
+local function MemberDetailToolTips ( self , elapsed )
     timer2 = timer2 + elapsed;
     if timer2 >= 0.075 then
+        local name = GR_MemberDetailName:GetText();
+        local guildName = GetGuildInfo("player");
+
+        -- Rank Text
         -- Only populate and show tooltip if mouse is over text frame and it is not already visible.
         if MemberDetailRankToolTip:IsVisible() ~= true and GR_MemberDetailRankDateTxt:IsVisible() == true and GR_MemberDetailRankDateTxt:IsMouseOver(1,-1,-1,1) == true then
-            local name = GR_MemberDetailName:GetText();
-            local guildName = GetGuildInfo("player");
-
+            
             MemberDetailRankToolTip:SetOwner( GR_MemberDetailRankDateTxt , "ANCHOR_CURSOR" );
             MemberDetailRankToolTip:AddLine( "|cFFFFFFFF Rank History");
             for i = 1 , #GR_GuildMemberHistory_Save do
                 if GR_GuildMemberHistory_Save[i][1] == guildName then
                     for j = 2,#GR_GuildMemberHistory_Save[i] do
                         if GR_GuildMemberHistory_Save[i][j][1] == name then   --- Player Found in MetaData Logs
-
+                            -- Now, let's build the tooltip
                             for k = #GR_GuildMemberHistory_Save[i][j][25] , 1 , -1 do
                                 MemberDetailRankToolTip:AddDoubleLine( GR_GuildMemberHistory_Save[i][j][25][k][1] .. ":" , GR_GuildMemberHistory_Save[i][j][25][k][2] , 0.38 , 0.67 , 1.0 );
                             end
@@ -2111,6 +2144,42 @@ local function rankHistoryTT ( self , elapsed )
         elseif MemberDetailRankToolTip:IsVisible() == true and GR_MemberDetailRankDateTxt:IsMouseOver(1,-1,-1,1) ~= true then
             MemberDetailRankToolTip:Hide();
         end
+
+        -- JOIN DATE TEXT
+        if MemberDetailJoinDateToolTip:IsVisible() ~= true and GR_JoinDateText:IsVisible() == true and GR_JoinDateText:IsMouseOver(1,-1,-1,1) == true then
+           
+            MemberDetailJoinDateToolTip:SetOwner( GR_JoinDateText , "ANCHOR_CURSOR" );
+            MemberDetailJoinDateToolTip:AddLine( "|cFFFFFFFF Membership History");
+            local joinedHeader;
+
+            for i = 1 , #GR_GuildMemberHistory_Save do
+                if GR_GuildMemberHistory_Save[i][1] == guildName then
+                    for j = 2,#GR_GuildMemberHistory_Save[i] do
+                        if GR_GuildMemberHistory_Save[i][j][1] == name then   --- Player Found in MetaData Logs
+                            -- Ok, let's build the tooltip now.
+                            for r = #GR_GuildMemberHistory_Save[i][j][20] , 1 , -1 do                                       -- Starting with most recent join which will be at end of array.
+                                if r > 1 then
+                                    joinedHeader = "Rejoined: ";
+                                else
+                                    joinedHeader = "Joined: ";
+                                end
+                                if GR_GuildMemberHistory_Save[i][j][15][r] ~= nil then
+                                    MemberDetailJoinDateToolTip:AddDoubleLine( "|CFFC41F3BLeft:    " ,  Trim ( strsub ( GR_GuildMemberHistory_Save[i][j][15][r] , 1 , 10 ) ) , 1 , 0 , 0 );
+                                end
+                                MemberDetailJoinDateToolTip:AddDoubleLine( joinedHeader , Trim ( strsub ( GR_GuildMemberHistory_Save[i][j][20][r] , 1 , 10 ) ) , 0.38 , 0.67 , 1.0 );
+                                -- If player once left, then this will add the line for it.
+                            end
+                        break;
+                        end
+                    end
+                    break;
+                end
+            end
+            MemberDetailJoinDateToolTip:Show();
+        elseif MemberDetailJoinDateToolTip:IsVisible() == true and GR_JoinDateText:IsMouseOver(1,-1,-1,1) ~= true then
+            MemberDetailJoinDateToolTip:Hide();
+        end
+
         timer2 = 0;
     end
 end
@@ -2131,7 +2200,7 @@ local function GR_MetaDataInitializeUI()
     MemberDetailMetaData:SetHeight(330);
     MemberDetailMetaData:SetWidth(285);
     MemberDetailMetaData:SetScript( "OnShow", function() MemberDetailMetaDataCloseButton:SetPoint("TOPRIGHT" , MemberDetailMetaData , 3, 3 ); MemberDetailMetaDataCloseButton:Show() end );
-    MemberDetailMetaData:SetScript ( "OnUpdate" , rankHistoryTT );
+    MemberDetailMetaData:SetScript ( "OnUpdate" , MemberDetailToolTips );
 
     -- Keyboard Control for easy ESC closeButtons
     tinsert(UISpecialFrames, "GR_MemberDetails");
@@ -2174,6 +2243,8 @@ local function GR_MetaDataInitializeUI()
     GR_MemberDetailJoinTxt:SetPoint ( "TOPLEFT" , MemberDetailMetaData , 18 , -27 );
     GR_MemberDetailJoinTxt:SetFont ( "Fonts\\FRIZQT__.TTF" , 8 );
     GR_MemberDetailJoinTxt:SetTextColor ( 1.0 , 1.0 , 1.0 , 1.0 );
+    GR_JoinDateText:SetPoint ( "TOPLEFT" , MemberDetailMetaData , 21 , - 33 );
+    GR_JoinDateText:SetFont ( "Fonts\\FRIZQT__.TTF" , 8 );
 
     MemberDetailJoinDateButton:SetPoint ( "TOPLEFT" , MemberDetailMetaData , 16 , - 33 );
     MemberDetailJoinDateButton:SetWidth ( 58 );
@@ -2181,7 +2252,6 @@ local function GR_MetaDataInitializeUI()
     GR_JoinDateButtonText:SetText ( "Join Date?" );
     GR_JoinDateButtonText:SetFont ( "Fonts\\FRIZQT__.TTF" , 8 );
     GR_JoinDateButtonText:SetPoint ( "CENTER" , MemberDetailJoinDateButton , 0 , 0 );
-    MemberDetailJoinDateButton:Hide();
     MemberDetailJoinDateButton:SetScript ( "OnClick" , function ( self , button , down )
         if button == "LeftButton" then
             MemberDetailJoinDateButton:Hide();
@@ -2218,6 +2288,7 @@ local function GR_MetaDataInitializeUI()
     PlayerNoteEditBox:SetTextInsets( 8 , 9 , 9 , 8 );
     PlayerNoteEditBox:SetMaxLetters ( 31 );
     PlayerNoteEditBox:SetFont( "Fonts\\FRIZQT__.TTF" , 10 );
+    PlayerNoteEditBox:EnableMouse( true );
     NoteCount:SetPoint ("TOPRIGHT" , PlayerNoteEditBox , -6 , 8 );
     NoteCount:SetFont ( "Fonts\\FRIZQT__.TTF" , 8 );
 
@@ -2243,6 +2314,7 @@ local function GR_MetaDataInitializeUI()
     PlayerOfficerNoteEditBox:SetTextInsets( 8 , 9 , 9 , 8 );
     PlayerOfficerNoteEditBox:SetMaxLetters ( 31 );
     PlayerOfficerNoteEditBox:SetFont( "Fonts\\FRIZQT__.TTF" , 10 );
+    PlayerOfficerNoteEditBox:EnableMouse( true );
     officerNoteCount:SetPoint ("TOPRIGHT" , PlayerOfficerNoteEditBox , -6 , 8 );
     officerNoteCount:SetFont ( "Fonts\\FRIZQT__.TTF" , 8 );
 
@@ -2448,11 +2520,11 @@ local function GR_MetaDataInitializeUI()
 
 end
 
--- Method:              SetRosterTooltip(self,event,msg)
+-- Method:              InitiateMemberDetailFrame(self,event,msg)
 -- What it Does:        Event Listener, it activates when the Guild Roster window is opened and interface is queried/triggered
 --                      "GuildRoster()" needs to fire for this to activate as it creates the following 4 listeners this is looking for: GUILD_NEWS_UPDATE, GUILD_RANKS_UPDATE, GUILD_ROSTER_UPDATE, and GUILD_TRADESKILL_UPDATE
 -- Purpose:             Create an Event Listener for the Guild Roster Frame in the guild window ('J' key)
-local function SetRosterTooltip(self,event,msg)
+local function InitiateMemberDetailFrame(self,event,msg)
     -- So when you click the lower Roster Tab
     if GuildFrame:IsVisible() and GuildRosterFrame:IsVisible() ~= true then
         -- Do nothing... Queryof these frames is all it needs to kickstart internal GuildRoster() query.
@@ -2533,7 +2605,7 @@ local function GR_LoadAddon()
     UI_Events:RegisterEvent("GUILD_RANKS_UPDATE");
     UI_Events:RegisterEvent("GUILD_NEWS_UPDATE");
     UI_Events:RegisterEvent("GUILD_TRADESKILL_UPDATE");
-    UI_Events:SetScript("OnEvent",SetRosterTooltip)
+    UI_Events:SetScript("OnEvent",InitiateMemberDetailFrame)
     Tracking();
 end
 
@@ -2655,6 +2727,10 @@ Initialization:SetScript("OnEvent",ActivateAddon);
     -- Change position of the Drop down so the day > month > year, not month > year > day
     -- Add method to wipe a player's metadata 
     -- Add method to wipe all and start over...
+    -- Review how to check if it is a namechange by checking metadata.
 
-    -------- UI MODIFICATIONS ----------
-    
+    -- Add method that increments up by 1 a tracker on num events attended, the date, total events attended, for each person that is in the raid 100group.
+    -- "Click Here to set a public note" should not be an option if player does not have ability to.
+    -- On rank promotion, change the text right away!
+    -- "Date Promoted?" button does not need to be there when someone joins the guild.
+    -- Fix logic on returning to old guild it refreshes data.
