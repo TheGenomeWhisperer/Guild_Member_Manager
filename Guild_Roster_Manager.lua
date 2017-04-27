@@ -48,10 +48,15 @@ local TempNameChanged = {};
 -- What it Does:    Removes the server name after character name.
 -- Purpose:         Server name is not important in a guild since all will be server name.
 local function SlimName ( name )
-    return strsub ( name , 1 , string.find ( name ,"-" ) - 1 );
+    if string.find ( name , "-" , 1 ) ~= nil then
+        return strsub ( name , 1 , string.find ( name ,"-" ) - 1 );
+    else
+        return name;
+    end
 end
 
--- Method:          ParseClass(string)
+-- Method:          ParseClass(string) 
+-- DEPRECATED for now as a result of custom UI being built
 -- What it Does:    Takes a line of text from GuildMemberDetailFrame and parses out the Class
 -- Purpose:         While a call can be made to the server after parsing the index number in a built-in API lookup, that is resource hungry.
 --                  Since the server has already pulled the info in text form, this saves a lot of resources from querying the server for player class.
@@ -75,6 +80,7 @@ local function ParseClass ( class )
 end
 
 -- Method:          ParseLevel(string)
+-- DEPRECATED for now...
 -- What it Does:    Takes the same text line from GuildmemberDetailFrame and parses out the Level
 -- Purpose:         To obtain a player's level one needs to query the server. Since the string is already available, this just grabs the string simply.
 local function ParseLevel ( level )
@@ -109,6 +115,9 @@ end
 -- Method:          GetNumGuildies()
 -- What it Does:    Returns the int number of total toons within the guild, including main/alts
 -- Purpose:         For book-keeping and tracking total guild membership.
+--                  Overall, this is mostly redundant as a simple GetNumGuildMembers() call is the same thing, however, this is just a tech Demo
+--                  as a coding example of how to pull info and return it in your own function.
+--                  A simple "return GetNumGuildMembers()" would result in the same result in less steps. This is just more explicit.
 local function GetNumGuildies()
     local numMembers = GetNumGuildMembers();
     return numMembers;
@@ -135,13 +144,13 @@ end
 -- Method:          ModifyCustomNote(string,string)
 -- What it Does:    Adds a new note to the custom notes string
 -- Purpose:         For expanded information on players to create in-game notes or tracking.
-local function ModifyCustomNote(newNote,playerName)
+local function ModifyCustomNote ( newNote , playerName )
     local guildName = GetGuildInfo("player");
-    for i = 1,#GR_GuildMemberHistory_Save do                                 -- scanning through guilds
-        if GR_GuildMemberHistory_Save[i][1] == guildName then                -- guild identified
-            for j = 2,#GR_GuildMemberHistory_Save[i] do                      -- Scanning through guild Roster
-                if GR_GuildMemberHistory_Save[i][j][1] == playerName then    -- Player Found
-                    GR_GuildMemberHistory_Save[i][j][23] = newNote;          -- Storing new note.
+    for i = 1 , #GR_GuildMemberHistory_Save do                                  -- scanning through guilds
+        if GR_GuildMemberHistory_Save [i][1] == guildName then                  -- guild identified
+            for j = 2 , #GR_GuildMemberHistory_Save[i] do                       -- Scanning through guild Roster
+                if GR_GuildMemberHistory_Save[i][j][1] == playerName then       -- Player Found
+                    GR_GuildMemberHistory_Save[i][j][23] = newNote;             -- Storing new note.
                     break;
                 end
             end
@@ -150,16 +159,32 @@ local function ModifyCustomNote(newNote,playerName)
     end
 end
 
+------------------------------------
+------ TIME TRACKING TOOLS ---------
+--- TIMESTAMPS , TIMEPASSED, ETC. --
+------------------------------------
+
 -- Useful Lookup Tables for Epoch Time.
 local monthEnum = { Jan=1 , Feb=2 , Mar=3 , Apr=4 , May=5 , Jun=6 , Jul=7 , Aug=8 , Sep=9 , Oct=10 , Nov=11 , Dec=12 };
 local daysBeforeMonthEnum = { ['1']=0 , ['2']=31 , ['3']=31+28 , ['4']=31+28+31 , ['5']=31+28+31+30 , ['6']=31+28+31+30+31 , ['7']=31+28+31+30+31+30 , 
                                 ['8']=31+28+31+30+31+30+31 , ['9']=31+28+31+30+31+30+31+31 , ['10']=31+28+31+30+31+30+31+31+30 ,['11']=31+28+31+30+31+30+31+31+30+31, ['12']=31+28+31+30+31+30+31+31+30+31+30 };
 
--- Method:          GetLastOnline(int)
+-- Method:          IsLeapYear(int)
+-- What it Does:    Returns true if the given year is a leapYear
+-- Purpose:         For this addon, the calendar date selection, allows it to know to produce 29 days on leap year.
+local function IsLeapYear ( yearDate )
+    if ( ( ( yearDate % 4 == 0 ) and ( yearDate % 100 ~= 0 ) ) or ( yearDate % 400 == 0 ) ) then
+        return true;
+    else
+        return false;
+    end
+end
+
+-- Method:          GetHoursSinceLastOnline(int)
 -- What it Does:    Returns the total numbner of hours since the player last logged in at given index position of guild roster
 -- Purpose:         For player management to notify addon user of too much time has passed, for recommendation to kick,
-local function GetLastOnline(index)
-    local years, months, days, hours = GetGuildRosterLastOnline(index);
+local function GetHoursSinceLastOnline ( index )
+    local years , months, days, hours = GetGuildRosterLastOnline ( index );
     if years == nil then
         years = 0;
     end
@@ -172,30 +197,17 @@ local function GetLastOnline(index)
     if hours == nil then
         hours = 0;
     end
-    if (years == 0) and (months == 0) and (days == 0) then
-        if hours == 0 then
-            hours = 0.5;    -- This can be any value less than 1, but must be between 0 and 1, to just make the point that total number of hrs since last login is < 1
-        end
+    if ( years == 0 ) and ( months == 0 ) and ( days == 0 ) and ( hours == 0) then
+        hours = 0.5;    -- This can be any value less than 1, but must be between 0 and 1, to just make the point that total number of hrs since last login is < 1
     end
-    local totalHours = (years * 8760) + (months * 730) + (days * 24) + hours;
+    local totalHours = math.floor ( ( years * 8766 ) + ( months * 730.5 ) + ( days * 24 ) + hours );
     return totalHours;
-end
-
--- Method:          IsLeapYear(int)
--- What it Does:    Returns true if the given year is a leapYear
--- Purpose:         For this addon, the calendar date selection, allows it to know to produce 29 days on leap year.
-local function IsLeapYear(yearDate)
-    if ( ( ( yearDate % 4 == 0 ) and ( yearDate % 100 ~= 0 ) ) or ( yearDate % 400 == 0 ) ) then
-        return true;
-    else
-        return false;
-    end
 end
 
 -- Method:          IsValidSubmitDate ( int , int , boolean )
 -- What it Does:    Returns true if the submission date is valid (not an untrue day or in the future)
 -- Purpose:         Check to ensure the wrong date is not submitted on accident.
-local function IsValidSubmitDate( dayJoined , monthJoined , yearJoined , isLeapYearSelected )
+local function IsValidSubmitDate ( dayJoined , monthJoined , yearJoined , isLeapYearSelected )
     local closeButtons = true;
     local timeEnum = date ( "*t" );
     local currentYear = timeEnum [ "year" ];
@@ -218,13 +230,13 @@ local function IsValidSubmitDate( dayJoined , monthJoined , yearJoined , isLeapY
     
     if closeButtons then
         if ( currentYear < yearJoined ) or ( currentYear == yearJoined and currentMonth < monthJoined ) or ( currentYear == yearJoined and currentMonth == monthJoined and currentDay < dayJoined ) then
-            print("Player Does Not Have a Time Machine!")
+            print ( "Player Does Not Have a Time Machine!" );
             closeButtons = false;
         end
     end
 
     if closeButtons == false then
-        print("Please choose a valid DAY");
+        print ( "Please choose a valid DAY" );
     end
     
     return closeButtons;
@@ -233,10 +245,10 @@ end
 -- Method:          TimeStampToEpoch(timestamp)
 -- What it Does:    Converts a given timestamp: "22 Mar '17" into Epoch Seconds time.
 -- Purpose:         On adding notes, epoch time is considered when calculating how much time has passed, for exactness and custom dates need to include it.
-local function TimeStampToEpoch(timestamp)
+local function TimeStampToEpoch ( timestamp )
     -- Parsing Timestamp to useful data.
-    local year = tonumber ( strsub ( timestamp , string.find ( timestamp , "'" )  + 1 ) ) + 2000
-    local leapYear = IsLeapYear(year);
+    local year = tonumber ( strsub ( timestamp , string.find ( timestamp , "'" )  + 1 ) ) + 2000;
+    local leapYear = IsLeapYear ( year );
     -- Find second index of spaces
     local count = 0;
     local index = 0;
@@ -263,10 +275,10 @@ local function TimeStampToEpoch(timestamp)
     -- calculate the number of seconds passed since 1970 based on number of years that have passed.
     local totalSeconds = 0;
     for i = year - 1 , 1970 , -1 do
-        if IsLeapYear(i) then
-            totalSeconds = totalSeconds + (366 * 24 * 3600); -- leap year = 366 days
+        if IsLeapYear ( i ) then
+            totalSeconds = totalSeconds + ( 366 * 24 * 3600 ); -- leap year = 366 days
         else
-            totalSeconds = totalSeconds + (365 * 24 * 3600); -- 365 days in normal year
+            totalSeconds = totalSeconds + ( 365 * 24 * 360 ); -- 365 days in normal year
         end
     end
     
@@ -276,7 +288,7 @@ local function TimeStampToEpoch(timestamp)
         monthDays = monthDays + 1;
     end
     -- adding month days so far this year to result so far.
-    totalSeconds = totalSeconds + (monthDays * 24 * 3600);
+    totalSeconds = totalSeconds + ( monthDays * 24 * 3600);
 
     -- The rest is easy... as of now, I will not import hours/minutes/seconds, but I will leave the calculations in place in case need arises.
     totalSeconds = totalSeconds + ( ( day - 1 ) * 24 * 3600 );  -- days
@@ -287,24 +299,83 @@ local function TimeStampToEpoch(timestamp)
     return totalSeconds;
 end
 
+
+-- Method:          TotalTimeInGuild(string)
+-- What it Does:    Returns to combined total time in the guild, based on accumulated seconds from the 1970 clock of only
+--                  the time the player was in the guild. It sums ALL times player was in, including times player left the guild, times player returned.
+-- Purpose:         Just misc. tracking info to keep track of the "true" value of time players are in the guild.   
+local function TotalTimeInGuild ( name )
+    -- To be added eventually :D
+end
+
+-- Method:          AddLog(int,string)
+-- What it Does:    This adds a size 2 array to the Log including an index to be referenced for color coding, and the log entry
+-- Purpose:         Building the Log that will be displayed to the Log window that shows a history of all changes in guild since addon was activated.
+
+-- Method:          GetTimestamp()
+-- What it Does:    Reports the current moment in time in a much more clear, concise, pretty way. Example: "9 Feb '17 1:36pm" instead of 09/02/2017/13:36
+-- Purpose:         Just for cleaner presentation of the results.
+local function GetTimestamp()
+    -- Time Variables
+    local morning = true;
+    local timestamp = date( "*t" );
+    local months = { "Jan" , "Feb" , "Mar" , "Apr" , "May" , "Jun" , "Jul" , "Aug" , "Sep" , "Oct" , "Nov" , "Dec" };
+    local year , days , minutes , hour , month = 0;
+    for x,y in pairs(timestamp) do
+        if x == "hour" then
+            hour = y;
+        elseif x == "min" then
+            minutes = y;
+            if minutes < 10 then
+                minutes = string.format ( "0" .. minutes ); -- Example, if it was 6:09, the minutes would only be "9" not "09" - so this looks better.
+            end
+        elseif x == "day" then
+            days = y;
+        elseif x == "month" then
+            month = y;
+        elseif x == "year" then
+            year = string.format ( y );
+            year = strsub ( year , 3 );
+        end
+    end
+    
+    -- Swap from military time
+    if hour > 12 then
+        hour = hour - 12;
+        morning = false;
+    elseif hour == 12 then
+        morning = false;
+    elseif hour == 0 then
+        hour = 12;
+    end
+    -- Establishing proper format
+    local time = "";
+    if morning then
+        time = (days .. " " .. months[month] .. " '" .. year .. " " .. hour .. ":" .. minutes .. "am");
+    else
+        time = (days .. " " .. months[month] .. " '" .. year .. " " .. hour .. ":" .. minutes .. "pm");
+    end
+    return string.format ( time );
+end
+
 -- Method:          GetTimePassed(oldTimestamp)
 -- What it Does:    Reports back the elapsed, in English, since the previous given timestamp, based on the 1970 seconds count.
 -- Purpose:         Time tracking to keep track of elapsed time since previous action.
-local function GetTimePassed(oldTimestamp)
+local function GetTimePassed ( oldTimestamp )
 
     -- Need to consider Leap year, but for now, no biggie. 24hr differentiation only in 4 years.
     local totalSeconds = time() - oldTimestamp;
-    local year = math.floor(totalSeconds/31536000); -- seconds in a year
+    local year = math.floor ( totalSeconds / 31536000 ); -- seconds in a year
     local yearTag = "year";
-    local month = math.floor((totalSeconds % 31536000)/2592000); -- etc. 
+    local month = math.floor ( ( totalSeconds % 31536000 ) / 2592000 ); -- etc. 
     local monthTag = "month";
-    local days = math.floor(((totalSeconds % 31536000) % 2592000) / 86400);
+    local days = math.floor ( ( totalSeconds % 2592000) / 86400 );
     local dayTag = "day";
-    local hours = math.floor((((totalSeconds % 31536000) % 2592000) % 86400) / 3600);
+    local hours = math.floor ( ( totalSeconds % 86400 ) / 3600 );
     local hoursTag = "hour";
-    local minutes = math.floor(((((totalSeconds % 31536000) % 2592000) % 86400) % 3600) / 60);
+    local minutes = math.floor ( ( totalSeconds % 3600 ) / 60 );
     local minutesTag = "minute";
-    local seconds = math.floor((((((totalSeconds % 31536000) % 2592000) % 86400) % 3600) % 60) / 1);
+    local seconds = math.floor ( ( totalSeconds % 60) );
     local secondsTag = "second";
     
     local timestamp = "";
@@ -354,88 +425,16 @@ local function GetTimePassed(oldTimestamp)
     return timestamp;
 end
 
--- Method:          TotalTimeInGuild(string)
--- What it Does:    Returns to combined total time in the guild, based on accumulated seconds from the 1970 clock of only
---                  the time the player was in the guild. It sums ALL times player was in, including times player left the guild, times player returned.
--- Purpose:         Just misc. tracking info to keep track of the "true" value of time players are in the guild.   
-local function TotalTimeInGuild(name)
-
-end
-
--- Method:          AddLog(int,string)
--- What it Does:    This adds a size 2 array to the Log including an index to be referenced for color coding, and the log entry
--- Purpose:         Building the Log that will be displayed to the Log window that shows a history of all changes in guild since addon was activated.
-local function AddLog(indexCode, logEntry)
-  local entry = {indexCode, logEntry}
-  table.insert(GR_LogReport_Save, entry);
-end
-
--- Method:          GetTimestamp()
--- What it Does:    Reports the current moment in time in a much more clear, concise, pretty way. Example: "9 Feb '17 1:36pm" instead of 09/02/2017/13:36
--- Purpose:         Just for cleaner presentation of the results.
-local function GetTimestamp()
-    -- Time Variables
-    local morning = true;
-    local timestamp = date("*t");
-    local months = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-    local year,days,minutes,hour,month = 0;
-    for x,y in pairs(timestamp) do
-        if x == "hour" then
-            hour = y;
-        elseif x == "min" then
-            minutes = y;
-            if minutes < 10 then
-                minutes = string.format("0" .. minutes); -- Example, if it was 6:09, the minutes would only be "9" not "09" - so this looks better.
-            end
-        elseif x == "day" then
-            days = y;
-        elseif x == "month" then
-            month = y;
-        elseif x == "year" then
-            year = string.format(y);
-            year = strsub(year,3);
-        end
-    end
-    
-    -- Swap from military time
-    if hour > 12 then
-        hour = hour - 12;
-        morning = false;
-    elseif hour == 12 then
-        morning = false;
-    elseif hour == 0 then
-        hour = 12;
-    end
-    -- Establishing proper format
-    local time = "";
-    if morning then
-        time = (days .. " " .. months[month] .. " '" .. year .. " " .. hour .. ":" .. minutes .. "am");
-    else
-        time = (days .. " " .. months[month] .. " '" .. year .. " " .. hour .. ":" .. minutes .. "pm");
-    end
-    return string.format(time);
-end
-
 -- Method:          HoursReport(int)
 -- What it Does:    Reports as a string the time passed since player last logged on.
--- Purpose:         Cleaner reporting to the log.
-local function HoursReport(hours)
+-- Purpose:         Cleaner reporting to the log, and it just reports the lesser info, no seconds and so on.
+local function HoursReport ( hours )
     local result = "";
     -- local _,month,_,currentYear = CalendarGetDate();
 
-    local years = math.floor(hours / 8760);
-    local months = math.floor((hours % 8760) / 730);
-    local days = math.floor(((hours % 8760) % 730) / 24);
-
-    -- Check for Leap Years.
-    -- for i = currentYear - 1 , currentYear - years, -1 dateOfLastPromotion
-    --     if IsLeapYear(i) then
-    --         days = days + 1;
-    --     end
-    -- end
-    -- if month > 2 and IsLeapYear(currentYear) then
-    --     days = days + 1;
-    -- end
+    local years = math.floor ( hours / 8766 );
+    local months = math.floor ( ( hours % 8766 ) / 730.5 );
+    local days = math.floor ( ( hours % 730.5 ) / 24 );
 
     -- Continue calculations.
     local hours = math.floor(((hours % 8760) % 730) % 24);
@@ -443,21 +442,27 @@ local function HoursReport(hours)
     
     if (years >= 1) then
         if years > 1 then
-            result = result .. "" .. years .. " years ";
+            result = result .. "" .. years .. " yrs ";
         else
-            result = result .. "" .. years .. " year ";
+            result = result .. "" .. years .. " yr ";
         end
     end
 
     if (months >= 1) then
+        if years > 0 then
+            result = Trim ( result ) .. ", ";
+        end
         if months > 1 then
-            result = result .. "" .. months .. " months ";
+            result = result .. "" .. months .. " mos ";
         else
-            result = result .. "" .. months .. " month ";
+            result = result .. "" .. months .. " mo ";
         end
     end
 
     if (days >= 1) then
+        if months > 0 then
+            result = Trim ( result ) .. ", ";
+        end
         if days > 1 then
             result = result .. "" .. days .. " days ";
         else
@@ -465,16 +470,33 @@ local function HoursReport(hours)
         end
     end
 
-    if (hours >= 1) then
-        if hours > 1 then
-            result = result .. "" .. hours .. " hours.";
-        else
-            result = result .. "" .. hours .. " hour.";
+    if (hours >= 1 and years < 1 and months < 1 ) then  -- No need to give exact hours on anything over than a month, just the day is good enough.
+        if days > 0 then
+            result = Trim ( result ) .. ", ";
         end
+        if hours > 1 then
+            result = result .. "" .. hours .. " hrs";
+        else
+            result = result .. "" .. hours .. " hr";
+        end
+    end
+
+    if result == "" or result == nil then
+        result = result .. "< 1 hour"
     end
 
     return result;
 end
+
+------------------------------------
+------ END OF TIME METHODS ---------
+------------------------------------
+
+
+------------------------------------
+------ METADATA TRACKING LOGIC -----
+--- Reporting, Live Tracking, Etc --
+------------------------------------
 
 -- Method:          AddMemberRecord()
 -- What it Does:    Builds Member Record into Guild History with various metadata
@@ -487,7 +509,7 @@ local function AddMemberRecord(memberInfo,isReturningMember,oldMemberInfo,guildN
     local joinDateMeta = time();  -- Saved in Seconds since Jan 1, 1970, to be parsed later
     local rank = memberInfo[2];
     local rankIndex = memberInfo[3];
-    local playerLevelOnJoining = memberInfo[4];
+    local currentLevel = memberInfo[4];
     local note = memberInfo[5];
     local officerNote = memberInfo[6];
     local class = memberInfo[7]; 
@@ -498,14 +520,14 @@ local function AddMemberRecord(memberInfo,isReturningMember,oldMemberInfo,guildN
     local birthday = nil;
 
     --Custom Tracking + private
-    local privateNotes = {};
-    local custom = ""; -- special tagline for certain things, like data tracking <date> "" or achievement <achiev> "" etc setCustomTracker()
+    local specialTrackers = {};  -- Feature to be built, for custom event trackers or reminders.
+    local customNote = ""; -- Extra note space, for GM to add futher info.
 
     -- Info nil now, but to be populated on leaving the guild
     local leftGuildDate = {};
     local leftGuildDateMeta = {};
     local bannedFromGuild = false;
-    local reasonBanned = "<None Given>";
+    local reasonBanned = "";
     local oldRank = nil;
     local oldJoinDate = {}; -- filled upon player leaving the guild.
     local oldJoinDateMeta = {};
@@ -513,6 +535,7 @@ local function AddMemberRecord(memberInfo,isReturningMember,oldMemberInfo,guildN
     -- Pieces info that were added on later-- from index 24 of metaData array, so as not to mess with previous code
     local lastOnline = 0;                                                                           -- Stores it in number of HOURS since last online.
     local rankHistory = {};
+    local playerLevelOnJoining = currentLevel;
 
     if isReturningMember then
         dateOfLastPromotion = oldMemberInfo[12];
@@ -527,22 +550,30 @@ local function AddMemberRecord(memberInfo,isReturningMember,oldMemberInfo,guildN
         table.insert ( oldJoinDate , joinDate );                -- Add the new join date to history
         oldJoinDateMeta = oldMemberInfo[21];
         table.insert ( oldJoinDateMeta , joinDateMeta );        -- likewise, add the meta seconds.
-        privateNotes = oldMemberInfo[22];
-        custom = oldMemberInfo[23];
+        specialTrackers = oldMemberInfo[22];
+        customNote = oldMemberInfo[23];
         rankHistory = oldMemberInfo[25];
+        playerLevelOnJoining = oldMemberInfo[26];
     end
 
     -- For both returning players and new adds
     table.insert ( rankHistory , { rank , strsub ( joinDate , 1 , string.find ( joinDate , "'" ) + 2 ) , joinDateMeta } );
 
-    for i = 1,#GR_GuildMemberHistory_Save do
+    for i = 1 , #GR_GuildMemberHistory_Save do
         if guildName == GR_GuildMemberHistory_Save[i][1] then
-            table.insert(GR_GuildMemberHistory_Save[i],{name,joinDate,joinDateMeta,rank,rankIndex,playerLevelOnJoining,note,officerNote,class,isMainToon,
-                listOfAltsInGuild,dateOfLastPromotion,dateOfLastPromotionMeta,birthday,leftGuildDate,leftGuildDateMeta,bannedFromGuild,reasonBanned,oldRank,
-                    oldJoinDate,oldJoinDateMeta,privateNotes,custom,lastOnline,rankHistory});  -- 25 so far.
+            table.insert ( GR_GuildMemberHistory_Save[i] , { name , joinDate , joinDateMeta , rank , rankIndex , currentLevel , note , officerNote , class , isMainToon ,
+                listOfAltsInGuild , dateOfLastPromotion , dateOfLastPromotionMeta , birthday , leftGuildDate , leftGuildDateMeta , bannedFromGuild , reasonBanned , oldRank ,
+                    oldJoinDate , oldJoinDateMeta , specialTrackers , customNote , lastOnline , rankHistory , playerLevelOnJoining } );  -- 26 so far.
             break;
         end
     end
+end
+
+-- Method:          AddLog(int , string)
+-- What it Does:    Adds a simple array to the Logreport that includes the indexcode for color, and the included changes as a string
+-- Purpose:         For ease in adding to the core log.
+local function AddLog ( indexCode , logEntry )
+  table.insert ( GR_LogReport_Save , { indexCode , logEntry } );
 end
 
 -- Method:          PrintLog(index)
@@ -802,8 +833,12 @@ local function RecordChanges(indexOfInfo,memberInfo,memberOldInfo,guildName)
                         local timeStamp = GetTimestamp();
                         if GR_PlayersThatLeftHistory_Save[i][j][17] == true then
                             -- Player was banned! WARNING!!!
+                            local reasonBanned = GR_PlayersThatLeftHistory_Save[i][j][18];
+                            if reasonBanned == nil or reasonBanned == "" then
+                                reasonBanned = "<None Given>";
+                            end
                             local warning = string.format(timeStamp .. " :\n---------- WARNING! WARNING! WARNING! WARNING! ----------\n" .. memberInfo[1] .. " has REJOINED the guild but was previously BANNED!");
-                            logReport = string.format("     Date of Ban:                     " .. GR_PlayersThatLeftHistory_Save[i][j][15][#GR_PlayersThatLeftHistory_Save[i][j][15]] .. " (" .. GetTimePassed(GR_PlayersThatLeftHistory_Save[i][j][16][#GR_PlayersThatLeftHistory_Save[i][j][16]]) .. " ago)\nReason:                           " .. GR_PlayersThatLeftHistory_Save[i][j][18] .. "\nDate Originally Joined:    " .. GR_PlayersThatLeftHistory_Save[i][j][20][1] .. "\nOld Guild Rank:               " .. GR_PlayersThatLeftHistory_Save[i][j][19] .. "\n" .. numTimesString);
+                            logReport = string.format("     Date of Ban:                     " .. GR_PlayersThatLeftHistory_Save[i][j][15][#GR_PlayersThatLeftHistory_Save[i][j][15]] .. " (" .. GetTimePassed(GR_PlayersThatLeftHistory_Save[i][j][16][#GR_PlayersThatLeftHistory_Save[i][j][16]]) .. " ago)\nReason:                           " .. reasonBanned .. "\nDate Originally Joined:    " .. GR_PlayersThatLeftHistory_Save[i][j][20][1] .. "\nOld Guild Rank:               " .. GR_PlayersThatLeftHistory_Save[i][j][19] .. "\n" .. numTimesString);
                             local custom = "";
                             local toReport = {9,warning,false,12,logReport,false,9,warning,12,logReport,false,13,custom}
                             -- Extra Custom Note added for returning players.
@@ -941,7 +976,7 @@ local function ReportLastOnline(name,guildName,index)
         if GR_GuildMemberHistory_Save[i][1] == guildName then                   -- Saved guild Found!
             for j = 2,#GR_GuildMemberHistory_Save[1] do                         -- Scanning through roster so can check changes (position 1 is guild name, so no need to rescan)
                 if GR_GuildMemberHistory_Save[i][j][1] == name then             -- Player matched.
-                    local hours = GetLastOnline(index);
+                    local hours = GetHoursSinceLastOnline(index);
                     if GR_GuildMemberHistory_Save[i][j][24] > InactiveMemberReturnsTimer and GR_GuildMemberHistory_Save[i][j][24] > hours then  -- Player has logged in after having been inactive for greater than 2 weeks!
                         RecordChanges(13,name,GR_GuildMemberHistory_Save[i][j][24],guildName);      -- Recording the change in hours to log
                     end
@@ -1153,12 +1188,12 @@ local function BuildNewRoster()
         end
 
         roster[i][7] = class;
-        roster[i][8] = GetLastOnline(i); -- Time since they last logged in in hours.
+        roster[i][8] = GetHoursSinceLastOnline ( i ); -- Time since they last logged in in hours.
 
         -- Items to check One time check on login
         -- Check players who have not been on a long time only on login or addon reload.
         if guildNotFound ~= true then
-            ReportLastOnline(slim,guildName,i);
+            ReportLastOnline ( slim , guildName , i );
         end
 
     end
@@ -1185,17 +1220,76 @@ local function BuildNewRoster()
 end
 
 
--- END OF BASIC METADATE TRACKING LOGIC...
+--------------------------------------
+------ END OF METADATA LOGIC ---------
+--------------------------------------
 
 
 
 --------------------------------------
---- UI FEATURES ----------------------
+------ MISC METHODS AND LOGIC --------
 --------------------------------------
 
-----------------------
--- FRAMES ------------
-----------------------
+-- Method:          IsGuildieInSameGroup ( string )  -- proper format of the name should be "PlayerName-ServerName"
+-- What it Does:    Returns true if the given guildie is grouped with you.
+-- Purpose:         To determine if you are grouped with a guildie!
+local function IsGuildieInSameGroup ( guildMember )
+    local result = false;
+    for i = 1 , GetNumGroupMembers() do
+        local raidPlayer = GetRaidRosterInfo ( i );
+        if raidPlayer == guildMember then
+            result = true;
+            break;
+        end
+    end
+    return result;
+end
+
+-- Method:          GetGroupUnitsOfflineOrAFK()
+-- What it Does:    Returns a 2D array of the names of the players (not including server names) that are offline and afk in group
+-- Purpose:         Mainly to notify the group leader who is AFK, possibly to make room for others in raid by informing leader of offline members.
+local function GetGroupUnitsOfflineOrAFK ()
+    local offline = {};
+    local afkMembers = {};
+    
+    for i = 1 , GetNumGroupMembers() do
+        local raidPlayer , _ , _ , _ , _ , _ , _ , isOnline = GetRaidRosterInfo ( i );
+        if isOnline ~= true then
+            table.insert ( offline , SlimName ( raidPlayer ) );
+        end
+        if isOnline and UnitIsAFK( raidPlayer ) then
+            table.insert ( afkMembers , SlimName ( raidPlayer ) );
+        end        
+    end
+    local result = { offline , afkMembers };
+    return result;
+end
+
+-- Alt Management Functions
+local function AddAlt ( playerName , altName )
+
+end
+
+local function RemoveAlt ( playerName , altName )
+
+end
+
+local function SetMain ( playerName , mainName )
+
+end
+
+local function SortToons ( playerName )
+
+end
+
+local function SetRole ( playerName , isMain )
+
+end
+
+--------------------------------------
+---- UI BUILDING COMPLETELY IN LUA ---
+---- FRAMES, FONTS, STYLES, ETC. -----
+--------------------------------------
 
 -- Core Frame
 local MemberDetailMetaData = CreateFrame( "Frame" , "GR_MemberDetails" , GuildRosterFrame , "TranslucentFrameTemplate" );
@@ -1210,7 +1304,6 @@ local YearDropDownMenu = CreateFrame("Frame","GR_YearDropDownMenu",MemberDetailM
 local MonthDropDownMenu = CreateFrame("Frame","GR_MonthDropDownMenu",MemberDetailMetaData,"UIDropDownMenuTemplate");
 local DayDropDownMenu = CreateFrame("Frame","GR_DayDropDownMenu",MemberDetailMetaData,"UIDropDownMenuTemplate");
 local SetPromoDateButton = CreateFrame("Button","GR_SetPromoDateButton",MemberDetailMetaData,"UIPanelButtonTemplate");
-
 
 -- SUBMIT BUTTONS
 local DateSubmitButton = CreateFrame("Button","GR_DateSubmitButton",MemberDetailMetaData,"UIPanelButtonTemplate");
@@ -1257,11 +1350,46 @@ local MemberDetailJoinDateButton = CreateFrame ( "Button" , "GR_MemberDetailJoin
 local GR_JoinDateButtonText = MemberDetailJoinDateButton:CreateFontString ( "GR_JoinDateButtonText" , "OVERLAY" , "GameFontWhiteTiny" );
 local GR_JoinDateText = MemberDetailMetaData:CreateFontString ( "GR_JoinDateText" , "OVERLAY" , "GameFontWhiteTiny" );
 
+-- LAST ONLINE
+local GR_MemberDetailLastOnlineTitleTxt = MemberDetailMetaData:CreateFontString ( "GR_MemberDetailLastOnlineTitleTxt" , "OVERYALY" , "GameFontNormalSmall" );
+local GR_MemberDetailLastOnlineUnderline = MemberDetailMetaData:CreateFontString ( "GR_MemberDetailLastOnlineUnderline" , "OVERYALY" , "GameFontNormalSmall" );
+local GR_MemberDetailLastOnlineTxt = MemberDetailMetaData:CreateFontString ( "GR_MemberDetailLastOnlineTxt" , "OVERYALY" , "GameFontWhiteTiny" );
+
+-- STATUS TEXT
+local GR_MemberDetailPlayerStatus = MemberDetailMetaData:CreateFontString (" GR_MemberDetailLastOnlineUnderline" , "OVERYALY" , "GameFontNormalSmall" );
+
+-- GROUP INVITE and REMOVE from Guild BUTTONS
+local groupInviteButton = CreateFrame ( "Button" , "GR_GroupInviteButton" , MemberDetailMetaData , "UIPanelButtonTemplate" );
+local GR_GroupInviteButtonText = groupInviteButton:CreateFontString ("GR_GroupInviteButton" , "OVERLAY" , "GameFontWhiteTiny" );
+local removeGuildieButton = CreateFrame ( "Button" , "GR_RemoveGuildieButton" , MemberDetailMetaData , "UIPanelButtonTemplate" );
+local GR_RemoveGuildieButtonText = removeGuildieButton:CreateFontString ("GR_RemoveGuildieButtonText" , "OVERLAY" , "GameFontWhiteTiny" );
+
 -- Tooltips
 local MemberDetailRankToolTip = CreateFrame ( "GameTooltip" , "GR_MemberDetailRankToolTip" , MemberDetailMetaData , "GameTooltipTemplate" );
 MemberDetailRankToolTip:Hide();
 local MemberDetailJoinDateToolTip = CreateFrame ( "GameTooltip" , "GR_MemberDetailJoinDateToolTip" , MemberDetailMetaData , "GameTooltipTemplate" );
 MemberDetailJoinDateToolTip:Hide();
+
+-- CUSTOM POPUPBOX FOR REUSE -- Avoids all possibility of UI Taint by just building my own, for those that use a lot of addons.
+local GR_PopupWindow = CreateFrame ( "Frame" , "GR_PopupWindow" , MemberDetailMetaData , "TranslucentFrameTemplate" );
+GR_PopupWindow:Hide() -- Prevents it from autopopping up on load like it sometimes will.
+local GR_PopupWindowButton1 = CreateFrame ( "Button" , "GR_PopupWindowButton1" , GR_PopupWindow , "UIPanelButtonTemplate" );
+local GR_PopupWindowButton2 = CreateFrame ( "Button" , "GR_PopupWindowButton2" , GR_PopupWindow , "UIPanelButtonTemplate" );
+local GR_PopupWindowCheckButton1 = CreateFrame ( "CheckButton" , "GR_PopupWindowCheckButton1" , GR_PopupWindow , "OptionsSmallCheckButtonTemplate" );
+local GR_PopupWindowCheckButtonText = GR_PopupWindowCheckButton1:CreateFontString ( "GR_PopupWindowCheckButtonText" , "OVERLAY" , "GameFontNormalSmall" );
+local GR_PopupWindowConfirmText = GR_PopupWindow:CreateFontString ( "GR_PopupWindowConfirmText" , "OVERLAY" , "GameFontNormal" );
+
+-- EDIT BOX FOR ANYTHING ( like banned player note );
+local GR_MemberDetailEditBoxFrame = CreateFrame ( "Frame" , "GR_MemberDetailEditBoxFrame" , GR_PopupWindow , "TranslucentFrameTemplate" );
+GR_MemberDetailEditBoxFrame:Hide();
+local MemberDetailPopupEditBox = CreateFrame ( "EditBox" , "GR_PlayerNoteEditBox" , GR_MemberDetailEditBoxFrame );
+
+-- Banned Fontstring and Buttons
+local GR_MemberDetailBannedText1 = MemberDetailMetaData:CreateFontString ( "GR_MemberDetailBannedText1" , "OVERLAY" , "GameFontNormalSmall");
+local GR_MemberDetailBannedText2 = MemberDetailMetaData:CreateFontString ( "GR_MemberDetailBannedText2" , "OVERLAY" , "GameFontNormalSmall");
+local GR_MemberDetailBannedIgnoreButton = CreateFrame ( "Button" , "GR_MemberDetailBannedIgnoreButton" , MemberDetailMetaData , "UIPanelButtonTemplate" );
+local GR_MemberDetailBannedIgnoreButtonText = GR_MemberDetailBannedIgnoreButton:CreateFontString ( "GR_MemberDetailBannedIgnoreButtonText" , "OVERLAY" , "GameFontWhiteTiny");
+
 
 -- Useful UI Local Globals
 local timer = 0;
@@ -1280,6 +1408,12 @@ local addonPlayerName = GetUnitName("PLAYER",false);
 local monthIndex;
 local yearIndex;
 local dayIndex;
+
+------------------------------------
+---- BEGIN OF FRAME LOGIC ----------
+---- General Framebuild Methods ----
+------------------------------------
+
 
 -- Method:          OnDropMenuClickDay(self)
 -- What it Does:    Upon clicking any item in a drop down menu, this sets the ID of that item as defaulted choice
@@ -1446,7 +1580,7 @@ local function SetPromoDate ( self , button , down )
                         
                         GR_GuildMemberHistory_Save[j][r][12] = strsub ( promotionDate , 9 );
                         GR_GuildMemberHistory_Save[j][r][25][#GR_GuildMemberHistory_Save[j][r][25]][2] = strsub ( promotionDate , 9 );
-                        GR_GuildMemberHistory_Save[j][r][13] = TimeStampToEpoch(promotionDate);
+                        GR_GuildMemberHistory_Save[j][r][13] = TimeStampToEpoch ( promotionDate );
 
                         if rankIndex > playerIndex then
                             GR_MemberDetailRankDateTxt:SetPoint ( "TOP" , 0 , -82 ); -- slightly varied positioning due to drop down window or not.
@@ -1579,27 +1713,35 @@ end
 
 local function OnRankDropMenuClick ( self )
     local rankIndex2 = self:GetID();
-    local numRanks = GuildControlGetNumRanks();
-    local numChoices = (numRanks - playerIndex - 1);
-    local solution = rankIndex2 + numRanks - numChoices;
-    local guildName = GetGuildInfo("player");
+    local currentRankIndex = UIDropDownMenu_GetSelectedID( guildRankDropDownMenu );
 
-    UIDropDownMenu_SetSelectedID ( guildRankDropDownMenu , rankIndex2 );
-        
-    for i = 1 , GetNumGuildies() do
-        local name = GetGuildRosterInfo ( i );
-        
-        if SlimName ( name ) == tempName then
-            SetGuildMemberRank ( i , solution );
-            -- Now, let's make the changes immediate for the button date.
-            if SetPromoDateButton:IsVisible() then
-                SetPromoDateButton:Hide();
-                GR_MemberDetailRankDateTxt:SetText ( "PROMOTED: " .. Trim ( strsub(GetTimestamp() , 1 , 10 ) ) );
-                GR_MemberDetailRankDateTxt:Show();
+    if ( rankIndex2 > currentRankIndex and CanGuildDemote() ) or ( rankIndex2 < currentRankIndex and CanGuildPromote() ) then
+        local numRanks = GuildControlGetNumRanks();
+        local numChoices = (numRanks - playerIndex - 1);
+        local solution = rankIndex2 + numRanks - numChoices;
+        local guildName = GetGuildInfo("player");
+
+        UIDropDownMenu_SetSelectedID ( guildRankDropDownMenu , rankIndex2 );
+            
+        for i = 1 , GetNumGuildies() do
+            local name = GetGuildRosterInfo ( i );
+            
+            if SlimName ( name ) == tempName then
+                SetGuildMemberRank ( i , solution );
+                -- Now, let's make the changes immediate for the button date.
+                if SetPromoDateButton:IsVisible() then
+                    SetPromoDateButton:Hide();
+                    GR_MemberDetailRankDateTxt:SetText ( "PROMOTED: " .. Trim ( strsub(GetTimestamp() , 1 , 10 ) ) );
+                    GR_MemberDetailRankDateTxt:Show();
+                end
+                pause = false;
+                break;
             end
-            pause = false;
-            break;
         end
+    elseif rankIndex2 > currentRankIndex and CanGuildDemote() ~= true then
+        print("Player Does Not Have Permission to Demote!");
+    elseif rankIndex2 < currentRankIndex and CanGuildPromote() ~= true then
+        print("Player Does Not Have Permission to Promote!");
     end
 end
 
@@ -1628,6 +1770,7 @@ end
 
 -------------------------------
 ----- UI SCRIPTING LOGIC ------
+----- ALL THINGS UX ARE HERE --
 -------------------------------
 
 local function PopulateMemberDetails( handle )
@@ -1638,12 +1781,16 @@ local function PopulateMemberDetails( handle )
         if GR_GuildMemberHistory_Save[j][1] == guildName then
             for r = 2,#GR_GuildMemberHistory_Save[j] do
                 if GR_GuildMemberHistory_Save[j][r][1] == handle then   --- Player Found in MetaData Logs
-                    
+                    -- Trigger Check for Any Changes
+                    GuildRoster(); 
+
                     ------ Populating the UI Window ------
                     local class = GR_GuildMemberHistory_Save[j][r][9];
                     local level = GR_GuildMemberHistory_Save[j][r][6];
+                    local isOnlineNow = false;
+                    local statusNow = 0;      -- 0 = active, 1 = Away, 2 = DND (busy)
 
-                    --- NAME
+                    --- CLASS
                     GR_MemberDetailNameText:SetPoint( "TOP" , 0 , -20 );
                     if class == "DEATH KNIGHT" then
                         GR_MemberDetailNameText:SetTextColor ( 0.77 , 0.12 , 0.23 , 1.0 );
@@ -1670,6 +1817,7 @@ local function PopulateMemberDetails( handle )
                     elseif class == "WARRIOR" then
                         GR_MemberDetailNameText:SetTextColor ( 0.78 , 0.61 , 0.43 , 1.0 );
                     end
+                    -- PLAYER NAME
                     GR_MemberDetailNameText:SetText ( handle );
 
                     --- LEVEL
@@ -1679,16 +1827,35 @@ local function PopulateMemberDetails( handle )
                     -- RANK
                     tempName = handle;
                     rankIndex = GR_GuildMemberHistory_Save[j][r][5];
-
+                    -- Getting live server status info of player.
+                    local count = 0;
                     for i = 1 , GetNumGuildies() do
-                        local name,_,indexOfRank = GetGuildRosterInfo ( i );
-                        if addonPlayerName == SlimName ( name ) then
-                            playerIndex = indexOfRank;
-                            break;
+                        local name,_,indexOfRank,_,_,_,_,_,isOnline,status = GetGuildRosterInfo ( i );
+                        
+                        if count < 2 then
+                            name = SlimName ( name );
+                            if addonPlayerName == name then
+                                playerIndex = indexOfRank;
+                                count = count + 1;
+                            end
+                            if handle == name then
+                                if isOnline then
+                                    isOnlineNow = true;
+                                end
+                                if ( status ~= nil or handle == addonPlayerName ) and ( status == 1 or status == 2) then
+                                    statusNow = status;
+                                end
+                                count = count + 1;
+                            end
+                            if count == 2 then
+                                break;
+                            end
                         end
-                    end 
-
-                    if rankIndex > playerIndex then
+                    end
+                    
+                    local canPromote = CanGuildPromote();
+                    local canDemote = CanGuildDemote();
+                    if rankIndex > playerIndex and ( canPromote or canDemote ) then
                         GR_MemberDetailRankTxt:Hide();
                         CreateRankDropDown();
                     else
@@ -1697,10 +1864,27 @@ local function PopulateMemberDetails( handle )
                         GR_MemberDetailRankTxt:Show();
                     end
 
+                    -- STATUS TEXT
+                    if isOnlineNow or handle == addonPlayerName then
+                        if statusNow == 0 then
+                            GR_MemberDetailPlayerStatus:SetTextColor ( 0.12 , 1.0 , 0.0 , 1.0 );
+                            GR_MemberDetailPlayerStatus:SetText ( "( Active )" );
+                        elseif statusNow == 1 then
+                            GR_MemberDetailPlayerStatus:SetTextColor ( 1.0 , 0.96 , 0.41 , 1.0 );
+                            GR_MemberDetailPlayerStatus:SetText ( "( AFK )" );
+                        else
+                            GR_MemberDetailPlayerStatus:SetTextColor ( 0.77 , 0.12 , 0.23 , 1.0 );
+                            GR_MemberDetailPlayerStatus:SetText ( "( Busy )" );
+                        end
+                        GR_MemberDetailPlayerStatus:Show();
+                    else
+                        GR_MemberDetailPlayerStatus:Hide();
+                    end
+
                     --RANK PROMO DATE
                     if GR_GuildMemberHistory_Save[j][r][12] == nil then      --- Promotion has never been recorded!
                         GR_MemberDetailRankDateTxt:Hide();
-                        if rankIndex > playerIndex then
+                        if rankIndex > playerIndex and ( canPromote or canDemote ) then
                             SetPromoDateButton:SetPoint ( "TOP" , MemberDetailMetaData , 0 , -80 ); -- slightly varied positioning due to drop down window or not.
                         else
                             SetPromoDateButton:SetPoint ( "TOP" , MemberDetailMetaData , 0 , -67 );
@@ -1708,7 +1892,7 @@ local function PopulateMemberDetails( handle )
                         SetPromoDateButton:Show();
                     else
                         SetPromoDateButton:Hide();
-                        if rankIndex > playerIndex then
+                        if rankIndex > playerIndex and ( canPromote or canDemote ) then
                             GR_MemberDetailRankDateTxt:SetPoint ( "TOP" , 0 , -82 ); -- slightly varied positioning due to drop down window or not.
                         else
                             GR_MemberDetailRankDateTxt:SetPoint ( "TOP" , 0 , -70 );
@@ -1719,27 +1903,13 @@ local function PopulateMemberDetails( handle )
                         GR_MemberDetailRankDateTxt:Show();
                     end
 
-                    -- Date Player Joined the Guild.
-                    -- GR_MemberDetailJoinTxt
                     if #GR_GuildMemberHistory_Save[j][r][20] == 0 then
                         GR_JoinDateText:Hide();
                         MemberDetailJoinDateButton:Show();
-                    -- On date join it just changes the default date [2] timestamp() [3] epoch
-                    -- elseif #GR_GuildMemberHistory_Save[j][r][20] == 1 then
-                    --     -- No Need to trigger tooltip.
-                    --     -- Just show join date.
                     else
                         MemberDetailJoinDateButton:Hide();
-                        local finalText = "";
-                        if #GR_GuildMemberHistory_Save[j][r][20][#GR_GuildMemberHistory_Save[j][r][20]] == 17 then
-                            finalText = " " .. strsub ( GR_GuildMemberHistory_Save[j][r][20][#GR_GuildMemberHistory_Save[j][r][20]] , 1 , 10 ); -- Purely for Allignment purposes!
-                        else
-                            finalText = strsub ( GR_GuildMemberHistory_Save[j][r][20][#GR_GuildMemberHistory_Save[j][r][20]] , 1 , 10 );
-                        end
-                        GR_JoinDateText:SetText ( finalText );
+                        GR_JoinDateText:SetText ( strsub ( GR_GuildMemberHistory_Save[j][r][20][#GR_GuildMemberHistory_Save[j][r][20]] , 1 , 10 ) );
                         GR_JoinDateText:Show();
-                        -- Trigger tooltip activation
-                        -- Original Join Date [20][1] > Date Left [15][1] > End of for loop ... now add >> Date Rejoined [5] as last line.
                     end
 
                     -- PLAYER NOTE AND OFFICER NOTE EDIT BOXES
@@ -1778,11 +1948,174 @@ local function PopulateMemberDetails( handle )
                     end
                     noteFontString2:Show();
                     noteFontString1:Show();
-                    -- GR_GuildRosterHistory:Show();
 
+                    -- Last Online
+                    if isOnlineNow then
+                        GR_MemberDetailLastOnlineTxt:SetText ( "Online" );
+                    else
+                        GR_MemberDetailLastOnlineTxt:SetText ( HoursReport ( GR_GuildMemberHistory_Save[j][r][24] ) );
+                    end
 
+                    -- Group Invite Button -- Setting script here
+                    if isOnlineNow and handle ~= addonPlayerName then
+                        if GetNumGroupMembers() > 0  then            -- If > 0 then player is in either a raid or a party. (1 will show if in an instance by oneself)
+                            local isGroupLeader = UnitIsGroupLeader ( "PLAYER" );                                       -- Party or Group
+                            local isInRaidWithAssist = UnitIsGroupAssistant ( "PLAYER" , LE_PARTY_CATEGORY_HOME );      -- Player Has Assist in Raid group
 
+                            if IsGuildieInSameGroup ( handle ) then
+                                -- Player is already in group!
+                                GR_GroupInviteButtonText:SetText ( "In Group" );
+                                groupInviteButton:SetScript ("OnClick" , function ( self , button , down )
+                                    if button == "LeftButton" then
+                                        print ( handle .. " is Already in Your Group!" );
+                                    end
+                                end);
+                            elseif isGroupLeader or isInRaidWithAssist then                                         -- Player has the ability to invite to group
+                                GR_GroupInviteButtonText:SetText ( "Group Invite" );
+                                groupInviteButton:SetScript ("OnClick" , function ( self , button , down )
+                                    if button == "LeftButton" then
+                                        if IsInRaid() and GetNumGroupMembers() == 40 then                               -- Helpful reporting to cleanup the raid in case players are offline and no room to invite.
+                                            local afkList = GetGroupUnitsOfflineOrAFK();
+                                            local report = ( "\nROSTER NOTIFICATION!!!\n40 players have already been invited to this Raid!" );
+                                            if #afkList[1] > 0 then
+                                                report = ( report .. "\nPlayers Offline: " );
+                                                for i = 1 , #afkList[1]  do
+                                                    report = ( report .. "" .. afkList[1][i] );
+                                                    if i ~= #afkList[1] then
+                                                        report = ( report .. ", ");
+                                                    end
+                                                end
+                                            end
 
+                                            if #afkList[2] > 0 then
+                                                report = ( report .. "\nPlayers AFK:     " );
+                                                for i = 1 , #afkList[2]  do
+                                                    report = ( report .. "" .. afkList[2][i] );
+                                                    if i ~= #afkList[2] then
+                                                        report = ( report .. ", ");
+                                                    end
+                                                end
+                                            end
+                                            print ( report );
+
+                                        else
+                                            InviteUnit ( handle );
+                                        end
+                                    end
+                                end);
+                            else            -- Player is in a group but does not have invite privileges
+                                GR_GroupInviteButtonText:SetText ( "No Invite" );
+                                groupInviteButton:SetScript ("OnClick" , function ( self , button , down )
+                                    if button == "LeftButton" then
+                                        print ( "Player must obtain group invite privileges." );
+                                    end
+                                end);
+                            end
+                        else
+                            -- Player is not in any group, thus inviting them will create new group.
+                            GR_GroupInviteButtonText:SetText ( "Group Invite" );
+                            groupInviteButton:SetScript ("OnClick" , function ( self , button , down )
+                                if button == "LeftButton" then
+                                    InviteUnit ( handle );
+                                end
+                            end);
+                        end
+
+                        groupInviteButton:Show();
+                    else
+                        groupInviteButton:Hide();
+                    end
+
+                    -- REMOVE SOMEONE FROM GUILD BUTTON.
+                    local isGuildieBanned = GR_GuildMemberHistory_Save[j][r][17];
+                    if handle ~= addonPlayerName and rankIndex > playerIndex and CanGuildRemove() then
+                        local isGuildieBanned = GR_GuildMemberHistory_Save[j][r][17];
+                        if isGuildieBanned then
+                            GR_RemoveGuildieButtonText:SetText ( "Re-Kick" );
+                        else
+                            GR_RemoveGuildieButtonText:SetText ( "Remove" );
+                        end
+                        removeGuildieButton:Show();
+                        GR_RemoveGuildieButton:SetScript ( "OnClick" , function ( _ , button )
+                            -- Inital check is to ensure clean UX - ensuring the next time window is closed on reload, but if already open, no need to close it.
+                            if button == "LeftButton" then
+                                pause = true
+                                if GR_PopupWindow:IsVisible() ~= true then
+                                    GR_MemberDetailEditBoxFrame:Hide();
+                                    GR_PopupWindowCheckButton1:SetChecked ( false ); -- Ensures it is always unchecked on load.
+                                end
+                                if GR_RemoveGuildieButtonText:GetText() == "Re-Kick" then
+                                    GR_PopupWindowConfirmText:SetText ( "Are you sure you want to Re-Gkick " .. handle .. "?" );
+                                else
+                                    GR_PopupWindowConfirmText:SetText ( "Are you sure you want to Gkick " .. handle .. "?" );
+                                end
+                                if GR_RemoveGuildieButtonText:GetText() ~= "Re-Kick" then
+                                    GR_PopupWindowCheckButtonText:SetTextColor ( 1.0 , 0.0 , 0.0 , 1.0 );
+                                    GR_PopupWindowCheckButtonText:SetText ( "Ban Player" );
+                                    GR_PopupWindowCheckButtonText:Show();
+                                    GR_PopupWindowCheckButton1:Show();
+                                else
+                                    GR_PopupWindowCheckButtonText:Hide();
+                                    GR_PopupWindowCheckButton1:Hide();
+                                end
+                                GR_PopupWindow:Show();
+
+                                -- Create Button Logic
+                                GR_PopupWindowButton1:SetScript ( "OnClick" , function( _ , button )
+                                    if button == "LeftButton" then
+                                        if GR_PopupWindowCheckButton1:IsVisible() and GR_PopupWindowCheckButton1:GetChecked() then          -- Box is checked, so YES player should be banned.
+                                            GR_GuildMemberHistory_Save[j][r][17] = true;      -- Banning Player.
+                                            -- Popup edit box
+                                            local instructionNote = "Reason Banned? (Press ENTER when done)"
+                                            MemberDetailPopupEditBox:SetText ( instructionNote );
+                                            MemberDetailPopupEditBox:HighlightText ( 0 );
+                                            MemberDetailPopupEditBox:SetScript ( "OnEnterPressed" , function ( _ ) 
+                                                local result = MemberDetailPopupEditBox:GetText();
+                                                if result ~= instructionNote and result ~= "" and result ~= nil then
+                                                    GR_GuildMemberHistory_Save[j][r][18] = result;
+                                                elseif result == nil then
+                                                    GR_GuildMemberHistory_Save[j][r][18] = "";
+                                                end
+                                                -- Now let's kick the member
+                                                GuildUninvite ( handle );
+                                                GR_MemberDetailEditBoxFrame:Hide();
+                                                pause = false;                                                
+                                            end);
+
+                                            GR_MemberDetailEditBoxFrame:Show();
+
+                                        else    -- Kicking the player ( not a ban )
+                                            GR_PopupWindow:Hide();
+                                            GuildUninvite ( handle );
+                                            pause = false;
+                                        end
+                                    end
+                                end);
+                            end
+                        end);
+                    else
+                        removeGuildieButton:Hide();
+                    end
+
+                    -- Player was previous banned and rejoined logic! This will unban the player.
+                    if isGuildieBanned then
+                        GR_MemberDetailBannedIgnoreButton:SetScript ( "OnClick" , function ( _ , button ) 
+                            if button == "LeftButton" then
+                                GR_GuildMemberHistory_Save[j][r][17] = false;
+                                GR_GuildMemberHistory_Save[j][r][18] = "";
+                                GR_RemoveGuildieButtonText:SetText( "Remove" );
+                                GR_MemberDetailBannedText1:Hide();
+                                GR_MemberDetailBannedIgnoreButton:Hide();
+                                GR_PopupWindow:Hide();
+                            end
+                        end);
+                        
+                        GR_MemberDetailBannedText1:Show();
+                        GR_MemberDetailBannedIgnoreButton:Show();
+                    else
+                        GR_MemberDetailBannedText1:Hide();
+                        GR_MemberDetailBannedIgnoreButton:Hide();
+                    end
 
 
 
@@ -2055,6 +2388,7 @@ local function GR_RosterFrame(self,elapsed)
                     guildRankDropDownMenu:Hide();
                     DateSubmitButton:Hide();
                     DateSubmitCancelButton:Hide();
+                    GR_PopupWindow:Hide();
                     MemberDetailMetaData:Hide();
                 end
             end
@@ -2066,6 +2400,7 @@ local function GR_RosterFrame(self,elapsed)
             guildRankDropDownMenu:Hide();
             DateSubmitButton:Hide();
             DateSubmitCancelButton:Hide();
+            GR_PopupWindow:Hide();
             MemberDetailMetaData:Hide();
         end
         timer = 0;
@@ -2202,6 +2537,19 @@ local function GR_MetaDataInitializeUI()
     MemberDetailMetaData:SetScript( "OnShow", function() MemberDetailMetaDataCloseButton:SetPoint("TOPRIGHT" , MemberDetailMetaData , 3, 3 ); MemberDetailMetaDataCloseButton:Show() end );
     MemberDetailMetaData:SetScript ( "OnUpdate" , MemberDetailToolTips );
 
+    -- Logic handling: If pause is set, this unpauses it. If it is not paused, this will then hide the window.
+    MemberDetailMetaData:SetScript ( "OnKeyDown" , function ( _ , key )
+        MemberDetailMetaData:SetPropagateKeyboardInput ( true );
+        if key == "ESCAPE" then
+            MemberDetailMetaData:SetPropagateKeyboardInput ( false );
+            if pause then
+                pause = false;
+            else
+                MemberDetailMetaData:Hide();
+            end
+        end
+    end);
+
     -- Keyboard Control for easy ESC closeButtons
     tinsert(UISpecialFrames, "GR_MemberDetails");
 
@@ -2234,19 +2582,40 @@ local function GR_MetaDataInitializeUI()
     GR_MemberDetailRankTxt:SetTextColor ( 0.90 , 0.80 , 0.50 , 1.0 );
 
     -- "MEMBER SINCE"
-    GR_MemberDetailJoinTitleTxt:SetPoint ( "TOPLEFT" , MemberDetailMetaData , 18 , -20 );
+    GR_MemberDetailJoinTitleTxt:SetPoint ( "TOPRIGHT" , MemberDetailMetaData , -18 , -20 );
     GR_MemberDetailJoinTitleTxt:SetText ("Date Joined");
     GR_MemberDetailJoinTitleTxt:SetFont ( "Fonts\\FRIZQT__.TTF" , 9 );
-    GR_JoinTitleTxtUnderline:SetPoint ( "TOPLEFT" , MemberDetailMetaData , 20 , -22 );
+    GR_JoinTitleTxtUnderline:SetPoint ( "TOPRIGHT" , MemberDetailMetaData , -18 , -22 );
     GR_JoinTitleTxtUnderline:SetText ("__________");
     GR_JoinTitleTxtUnderline:SetFont ( "Fonts\\FRIZQT__.TTF" , 9 );
-    GR_MemberDetailJoinTxt:SetPoint ( "TOPLEFT" , MemberDetailMetaData , 18 , -27 );
+    GR_MemberDetailJoinTxt:SetPoint ( "TOPRIGHT" , MemberDetailMetaData , -18 , -27 );
     GR_MemberDetailJoinTxt:SetFont ( "Fonts\\FRIZQT__.TTF" , 8 );
     GR_MemberDetailJoinTxt:SetTextColor ( 1.0 , 1.0 , 1.0 , 1.0 );
-    GR_JoinDateText:SetPoint ( "TOPLEFT" , MemberDetailMetaData , 21 , - 33 );
+    GR_JoinDateText:SetPoint ( "TOPRIGHT" , MemberDetailMetaData , -20 , - 33 );
     GR_JoinDateText:SetFont ( "Fonts\\FRIZQT__.TTF" , 8 );
+    GR_JoinDateText:SetWidth ( 55 );
+    GR_JoinDateText:SetJustifyH ( "CENTER" );
 
-    MemberDetailJoinDateButton:SetPoint ( "TOPLEFT" , MemberDetailMetaData , 16 , - 33 );
+    -- "LAST ONLINE" 
+    GR_MemberDetailLastOnlineTitleTxt:SetPoint ( "TOPLEFT" , MemberDetailMetaData , 19 , -20 );
+    GR_MemberDetailLastOnlineTitleTxt:SetText ( "Last Online" );
+    GR_MemberDetailLastOnlineTitleTxt:SetFont ( "Fonts\\FRIZQT__.TTF" , 9 );
+    GR_MemberDetailLastOnlineUnderline:SetPoint ( "TOPLEFT" , MemberDetailMetaData , 21, -22 );
+    GR_MemberDetailLastOnlineUnderline:SetText ( "__________" );
+    GR_MemberDetailLastOnlineUnderline:SetFont ( "Fonts\\FRIZQT__.TTF" , 9 );
+    GR_MemberDetailLastOnlineTxt:SetPoint ( "TOPLEFT" , MemberDetailMetaData , 14 , -32 );
+    GR_MemberDetailLastOnlineTxt:SetFont ( "Fonts\\FRIZQT__.TTF" , 9 );
+    GR_MemberDetailLastOnlineTxt:SetWidth ( 65 );
+    GR_MemberDetailLastOnlineTxt:SetJustifyH ( "CENTER" );
+    
+    -- PLAYER STATUS
+    GR_MemberDetailPlayerStatus:SetPoint ( "TOPLEFT" , MemberDetailMetaData , 21 , - 48 );
+    GR_MemberDetailPlayerStatus:SetWidth ( 50 );
+    GR_MemberDetailPlayerStatus:SetJustifyH ( "CENTER" );
+    GR_MemberDetailPlayerStatus:SetFont ( "Fonts\\FRIZQT__.TTF" , 9 );
+
+    -- Join Date Button Logic for visibility
+    MemberDetailJoinDateButton:SetPoint ( "TOPRIGHT" , MemberDetailMetaData , -18 , - 33 );
     MemberDetailJoinDateButton:SetWidth ( 58 );
     MemberDetailJoinDateButton:SetHeight ( 17 );
     GR_JoinDateButtonText:SetText ( "Join Date?" );
@@ -2265,6 +2634,21 @@ local function GR_MetaDataInitializeUI()
         end
     end);
 
+    -- GROUP INVITE BUTTON
+    groupInviteButton:SetPoint ( "BOTTOMLEFT" , MemberDetailMetaData , 16, 13 )
+    groupInviteButton:SetWidth ( 58 );
+    groupInviteButton:SetHeight ( 17 );
+    GR_GroupInviteButtonText:SetFont ( "Fonts\\FRIZQT__.TTF" , 7.8 );
+    GR_GroupInviteButtonText:SetPoint ( "CENTER" , groupInviteButton , 0 , 0 );
+        
+    -- REMOVE GUILDIE BUTTON
+    removeGuildieButton:SetPoint ( "BOTTOMRIGHT" , MemberDetailMetaData , -15, 13 )
+    removeGuildieButton:SetWidth ( 58 );
+    removeGuildieButton:SetHeight ( 17 );
+    GR_RemoveGuildieButtonText:SetFont ( "Fonts\\FRIZQT__.TTF" , 7.8 );
+    GR_RemoveGuildieButtonText:SetText ( "Remove" );
+    GR_RemoveGuildieButtonText:SetPoint ( "CENTER" , removeGuildieButton , 0 , 0 );
+
     -- player note edit box and font string (31 characters)
     GR_MemberDetailNoteTitle:SetPoint ( "LEFT" , MemberDetailMetaData , 21 , 32 );
     GR_MemberDetailNoteTitle:SetText ( "Note:" );
@@ -2274,7 +2658,7 @@ local function GR_MetaDataInitializeUI()
     PlayerNoteWindow:SetPoint( "LEFT" , MemberDetailMetaData , 15 , 10 );
     noteFontString1:SetPoint ( "TOPLEFT" , PlayerNoteWindow , 9 , -11 );
     noteFontString1:SetWordWrap ( true );
-    noteFontString1:SetWidth ( 110 );
+    noteFontString1:SetWidth ( 108 );
     noteFontString1:SetJustifyH ( "LEFT" );
 
     PlayerNoteWindow:SetBackdrop ( noteBackdrop );
@@ -2300,7 +2684,7 @@ local function GR_MetaDataInitializeUI()
     PlayerOfficerNoteWindow:SetPoint( "RIGHT" , MemberDetailMetaData , -15 , 10 );
     noteFontString2:SetPoint ( "TOPLEFT" , PlayerOfficerNoteWindow , 9 , -11 );
     noteFontString2:SetWordWrap ( true );
-    noteFontString2:SetWidth ( 110 );
+    noteFontString2:SetWidth ( 108 );
     noteFontString2:SetJustifyH ( "LEFT" );
 
     PlayerOfficerNoteWindow:SetBackdrop ( noteBackdrop );
@@ -2317,6 +2701,84 @@ local function GR_MetaDataInitializeUI()
     PlayerOfficerNoteEditBox:EnableMouse( true );
     officerNoteCount:SetPoint ("TOPRIGHT" , PlayerOfficerNoteEditBox , -6 , 8 );
     officerNoteCount:SetFont ( "Fonts\\FRIZQT__.TTF" , 8 );
+
+    -- CUSTOM POPUP
+    GR_PopupWindow:SetPoint ( "CENTER" , UIParent );
+    GR_PopupWindow:SetWidth ( 240 );
+    GR_PopupWindow:SetHeight ( 120 );
+    GR_PopupWindow:SetFrameStrata ( HIGH );
+    GR_PopupWindow:EnableKeyboard ( true );
+    GR_PopupWindowButton1:SetPoint ( "BOTTOMLEFT" , GR_PopupWindow , 15 , 14 );
+    GR_PopupWindowButton1:SetWidth ( 75 );
+    GR_PopupWindowButton1:SetHeight ( 25 );
+    GR_PopupWindowButton1:SetText ( "YES" );
+    GR_PopupWindowButton2:SetPoint ( "BOTTOMRIGHT" , GR_PopupWindow , -15 , 14 );
+    GR_PopupWindowButton2:SetWidth ( 75 );
+    GR_PopupWindowButton2:SetHeight ( 25 );
+    GR_PopupWindowButton2:SetText ( "CANCEL" );
+    GR_PopupWindowConfirmText:SetPoint ( "TOP" , GR_PopupWindow , 0 , -25 );
+    GR_PopupWindowConfirmText:SetWidth ( 185 );
+    GR_PopupWindowConfirmText:SetJustifyH ( "CENTER" );
+    GR_PopupWindowCheckButton1:SetPoint ( "BOTTOMLEFT" , GR_PopupWindow , 15 , 40 );
+    GR_PopupWindowCheckButtonText:SetPoint ( "RIGHT" , GR_PopupWindowCheckButton1 , 54 , 0 );
+
+    GR_PopupWindowCheckButton1:HookScript ( "OnClick" , function ( _ , button )
+        if button == "LeftButton" then
+            if GR_PopupWindowCheckButton1:GetChecked() ~= true then
+                GR_MemberDetailEditBoxFrame:Hide();                 -- If editframe is up, and you uncheck the box, it hides the editbox too
+            end
+        end
+    end);
+
+    -- Popup logic
+    GR_PopupWindowButton2:SetScript ( "OnClick" , function ( _ , button )
+        if button == "LeftButton" then
+            GR_PopupWindow:Hide();
+        end
+    end);
+
+    -- Backup logic with Escape key
+    GR_PopupWindow:SetScript ( "OnKeyDown" , function ( _ , key )
+        GR_PopupWindow:SetPropagateKeyboardInput ( true );      -- Ensures keyboard access will default to the main chat window on / or Enter. UX feature.
+        if key == "ESCAPE" then
+            GR_PopupWindow:SetPropagateKeyboardInput ( false );
+            GR_PopupWindow:Hide();
+        end
+    end);
+
+    -- Popup EDIT BOX
+    GR_MemberDetailEditBoxFrame:SetPoint ( "TOP" , GR_PopupWindow , "BOTTOM" , 0 , 2 );
+    GR_MemberDetailEditBoxFrame:SetWidth ( 240 );
+    GR_MemberDetailEditBoxFrame:SetHeight ( 45 );
+
+    MemberDetailPopupEditBox:SetPoint( "CENTER" , GR_MemberDetailEditBoxFrame , 0 , 0 );
+    MemberDetailPopupEditBox:SetWidth ( 210 );
+    MemberDetailPopupEditBox:SetHeight ( 25 );
+    MemberDetailPopupEditBox:SetTextInsets( 2 , 3 , 3 , 2 );
+    MemberDetailPopupEditBox:SetMaxLetters ( 155 );
+    MemberDetailPopupEditBox:SetFont( "Fonts\\FRIZQT__.TTF" , 9 );
+    MemberDetailPopupEditBox:EnableMouse( true );
+
+    -- Script handler for General popup editbox.
+    MemberDetailPopupEditBox:SetScript ( "OnEscapePressed" , function ( _ )
+        GR_MemberDetailEditBoxFrame:Hide();
+    end);
+
+    -- Heads-up text if player was previously banned
+    GR_MemberDetailBannedText1:SetPoint ( "CENTER" , MemberDetailMetaData , 0 , -15 );
+    GR_MemberDetailBannedText1:SetWordWrap ( true );
+    GR_MemberDetailBannedText1:SetJustifyH ( "CENTER" );
+    GR_MemberDetailBannedText1:SetTextColor ( 1.0 , 0.0 , 0.0 , 1.0 );
+    GR_MemberDetailBannedText1:SetFont( "Fonts\\FRIZQT__.TTF" , 8.0 );
+    GR_MemberDetailBannedText1:SetText ( "WARNING -Rejoining player previously banned!- WARNING" );
+    GR_MemberDetailBannedIgnoreButton:SetPoint ( "CENTER" , MemberDetailMetaData , 0 , -30 );
+    GR_MemberDetailBannedIgnoreButton:SetWidth ( 70 );
+    GR_MemberDetailBannedIgnoreButton:SetHeight ( 17 );
+    GR_MemberDetailBannedIgnoreButtonText:SetPoint ( "CENTER" , GR_MemberDetailBannedIgnoreButton );
+    GR_MemberDetailBannedIgnoreButtonText:SetFont ( "Fonts\\FRIZQT__.TTF" , 8.0);
+    GR_MemberDetailBannedIgnoreButtonText:SetText ( "Ignore Ban" );
+    
+    
 
     -- Script handlers on Note Edit Boxes
     local defaultNote = "Click here to set a Public Note";
@@ -2531,7 +2993,7 @@ local function InitiateMemberDetailFrame(self,event,msg)
     end
 
     -- To Clear Frames
-    GuildFrameCloseButton:SetScript("OnClick",ClearAllRosterButtons);
+    -- GuildFrameCloseButton:SetScript("OnClick",ClearAllRosterButtons);
 
     if GuildRosterFrame:IsVisible() then
         -- Member Detail Frame Info
@@ -2539,20 +3001,20 @@ local function InitiateMemberDetailFrame(self,event,msg)
        
         -- Roster Positions
         GuildRosterFrame:HookScript("OnUpdate",GR_RosterFrame);
-        GuildRosterContainerButton1:SetScript("OnClick",GR_Roster_Click)
-        GuildRosterContainerButton2:SetScript("OnClick",GR_Roster_Click)
-        GuildRosterContainerButton3:SetScript("OnClick",GR_Roster_Click)
-        GuildRosterContainerButton4:SetScript("OnClick",GR_Roster_Click)
-        GuildRosterContainerButton5:SetScript("OnClick",GR_Roster_Click)
-        GuildRosterContainerButton6:SetScript("OnClick",GR_Roster_Click)
-        GuildRosterContainerButton7:SetScript("OnClick",GR_Roster_Click)
-        GuildRosterContainerButton8:SetScript("OnClick",GR_Roster_Click)
-        GuildRosterContainerButton9:SetScript("OnClick",GR_Roster_Click)
-        GuildRosterContainerButton10:SetScript("OnClick",GR_Roster_Click)
-        GuildRosterContainerButton11:SetScript("OnClick",GR_Roster_Click)
-        GuildRosterContainerButton12:SetScript("OnClick",GR_Roster_Click)
-        GuildRosterContainerButton13:SetScript("OnClick",GR_Roster_Click)
-        GuildRosterContainerButton14:SetScript("OnClick",GR_Roster_Click)
+        -- GuildRosterContainerButton1:SetScript("OnClick",GR_Roster_Click)
+        -- GuildRosterContainerButton2:SetScript("OnClick",GR_Roster_Click)
+        -- GuildRosterContainerButton3:SetScript("OnClick",GR_Roster_Click)
+        -- GuildRosterContainerButton4:SetScript("OnClick",GR_Roster_Click)
+        -- GuildRosterContainerButton5:SetScript("OnClick",GR_Roster_Click)
+        -- GuildRosterContainerButton6:SetScript("OnClick",GR_Roster_Click)
+        -- GuildRosterContainerButton7:SetScript("OnClick",GR_Roster_Click)
+        -- GuildRosterContainerButton8:SetScript("OnClick",GR_Roster_Click)
+        -- GuildRosterContainerButton9:SetScript("OnClick",GR_Roster_Click)
+        -- GuildRosterContainerButton10:SetScript("OnClick",GR_Roster_Click)
+        -- GuildRosterContainerButton11:SetScript("OnClick",GR_Roster_Click)
+        -- GuildRosterContainerButton12:SetScript("OnClick",GR_Roster_Click)
+        -- GuildRosterContainerButton13:SetScript("OnClick",GR_Roster_Click)
+        -- GuildRosterContainerButton14:SetScript("OnClick",GR_Roster_Click)
     end
 end
 
@@ -2670,9 +3132,8 @@ Initialization:SetScript("OnEvent",ActivateAddon);
 -- Long Term goals
     -- Guild Recognition
     -- Auto-adding guild events like anniversary dates of players
-    -- Being able to manually change guild join dates
     -- Export to excel or other formats, like PDF changes
-    -- Interesting stat recording with weekly updates
+    -- Interesting stat reporting with weekly updates
         -- Like number of legendaries collected this weekly
         -- Notable achievements, like Prestige advancements
         -- If players have obtained recent impressive titles (100k or 250k kills, battlemaster)
@@ -2680,7 +3141,6 @@ Initialization:SetScript("OnEvent",ActivateAddon);
         -- Total number of guildies with certain achievements
         -- Notable high ilvl notifications with adjustable threshold to trigger it
     -- Linking alts to mains  - MAYBE 
-    -- Data scanning of the note to create a date, and on failure or no note, to push result for user to update formats
     -- Auto setting officer note or player note for alts
     -- Anniversary and Birthday tracking, or other notable events "Custom data to track for reminder"
     -- Guild Bank log tracking as well -- Maybe, gbank log is SO SLOW!
@@ -2702,35 +3162,234 @@ Initialization:SetScript("OnEvent",ActivateAddon);
     -- WorldFrame > GuildMemberDetailFrame
     -- /roster will be the slash command
     -- Notable dates in History!
-    -- Fix Timestamp and Timepassed dating off Epoch clock... Calculations slightly off.
+
     -- Longest period of time player was inactive.
     -- Add slash command to ban player, which simultaneously gkicks them.
     -- Fix Player level when joining.
     -- On closeing MetaDetailFrame, unhighlight rosterbuttons if clicked.
     -- # times signed up for event. (attended?)
-    -- Previous ranks held, as well as dates of promotions.
     -- Search of the History Window
     -- Filters
     -- Export to PDF
     -- Export to TXT
     -- Export to Excel?
 
-    -- Remaining Characters Count on Notes when Editing (and possibly Message of the Day).
-    -- NEED TO TEST NEW MEMBER THAT IT AUTO-POPULATES RANK PROMOTION DATE, WHILST OTHERS IT DOES NOT.
+    -- Remaining Characters Count on Message of the Day).
     -- Check for Guild Name Change
-    -- Unable to view Officer Note check on UI
     -- Create unpause function that removes highlights too.
-    -- Public Note cannot edit logic as well.
-    -- Upon selecting which rank, immediately set the date and then hide the "Date Promoted?" button.
-    -- Fix date select mechanic so player cannot choose a month or day that is in the future (maybe an error message on a quick IsDateAfterToday())
+    -- Public Note cannot edit logic for players without access.
     -- remove weird count up on officer note change if unable to view them.
-    -- Change position of the Drop down so the day > month > year, not month > year > day
     -- Add method to wipe a player's metadata 
     -- Add method to wipe all and start over...
     -- Review how to check if it is a namechange by checking metadata.
+    -- Roster Screen Dropdown choice for different pages Box cannot select ones if howvering over a button.
+    -- Mark attendance for all in raid +1
+    -- Invite everyone online to guild group
+    -- Customize notifications for guild promotions!
+    -- If someone is banned, a reminder is given on their alts still in the guild.
+    -- Options to only track some features, not all...
+    -- Show the difference between left and kicked from the guild (will have to look at the actual guild log).
 
     -- Add method that increments up by 1 a tracker on num events attended, the date, total events attended, for each person that is in the raid 100group.
     -- "Click Here to set a public note" should not be an option if player does not have ability to.
     -- On rank promotion, change the text right away!
     -- "Date Promoted?" button does not need to be there when someone joins the guild.
     -- Fix logic on returning to old guild it refreshes data.
+
+    -- UI ADDITIONS TO BE ADDED
+    -- /ban "PlayerName"   >>> gkick player if they are still in the guild. Immediately bring up popup box to enter reason why.
+    -- if rejoin and player was banned, in Big letters across the bottom  -- >> "BANNED PLAYER HAS REJOINED THE GUILD!" >> Provide detailed metadata > Add Buttons "Ignore?" "Re-Kick"
+    --          If player hits ignore it wipes the "PreviouslyBanned" boolean to false and clears the banned reason note
+    -- Add tooltip to level hover "Leveling Milestones while in Guild!"  -- GUILD FIRSTS FOR EXPANSION LEVELS? First 3!
+    -- Add Professions info and their levels.
+    -- Remove / Group Invite Buttons
+    
+    -- Raid window - Number of guildies in current group
+    -- Request Assist Button  -- Requests assist from raid leader 
+    -- Shift-click to auto-copy character nam,e
+    -- Report if player was banned as well.
+    -- Clamp main window metadata to screen
+    -- Tooltip for Rejoin warning fontstring?
+    -- Change Date promoted as soon as I hit submit
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    -- function timeTest ( seconds )
+    --     -- Current Info right now
+    --     seconds = time() - seconds;
+
+    --     local timeEnum = date ( "*t" );
+    --     local currentYear = timeEnum [ "year" ];
+    --     local currentMonth = timeEnum [ "month" ];
+    --     local currentDay = timeEnum [ "day" ];
+    --     local currentHour = timeEnum [ "hour" ];
+    --     local currentMinute = timeEnum [ "min" ];
+    --     local currentSec = timeEnum [ "sec" ];
+    --     local yday = timeEnum [ "yday" ];
+        
+    --     -- Useful values, so one does not need to run additional calculations.
+    --     local secondsInHour = 3600
+    --     local secondsInDay = 86400
+    --     local secondsInYear = 31536000
+    --     local secondsInLeapYear = 31622400
+    --     local monthWith28 = 2419200
+    --     local monthWith29 = 2505600
+    --     local monthWith30 = 2592000
+    --     local monthWith31 = 2678400
+    --     local remainingSeconds = seconds;
+
+    --     -- For result reporting.
+    --     local yearsFinal = 0;
+    --     local monthsFinal = 0;
+    --     local hoursFinal = 0;
+    --     local daysFinal = 0;
+    --     local minutesFinal = 0;
+    --     local secondsFinal = 0;
+
+    --     -- First need to calculate how many seconds have passed so far this year.
+    --     local totalSeconds = ( yday - 1 ) * secondsInDay;
+    --     totalSeconds = totalSeconds + ( currentHour * secondsInHour );
+    --     totalSeconds = totalSeconds + ( currentMinute * 60 );
+    --     totalSeconds = totalSeconds + currentSec;
+        
+    --     if seconds - totalSeconds < 0 then
+    --         -- Logic to calculate this year.
+
+    --     else
+    --             -- Calculating the year exactly
+    --         totalSeconds = seconds;
+    --         local i = 0;
+    --         while ( totalSeconds > 0 ) do
+    --             if IsLeapYear( currentYear - 1 - i ) then
+    --                 totalSeconds = totalSeconds - secondsInLeapYear; -- leap year = 366 days
+    --             else
+    --                 totalSeconds = totalSeconds - secondsInYear;     -- 365 days in normal year
+    --             end
+    --             if totalSeconds > 0 then 
+    --                 i = i + 1;
+    --                 yearsFinal = yearsFinal + 1;
+    --                 seconds = totalSeconds;
+    --             end
+    --         end
+    --     end
+
+    --     -- Calculating the number of months now.
+    --     local numDays = daysBeforeMonthEnum [ tostring ( currentMonth ) ];
+    --     local secondsInMonthTemp = 0;
+
+    --     if IsLeapYear ( currentYear - yearsFinal ) and currentMonth > 2 then        -- Needed to calculate how many days.
+    --         totalSeconds = ( ( currentDay - 1 ) + numDays + 1 ) * secondsInDay;      -- Calculates how many seconds are left in that year. If this number is < seconds, then we will go into next year.
+    --     else
+    --         totalSeconds = ( ( currentDay - 1 ) + numDays ) * secondsInDay;
+    --     end
+
+    --     -- If so, this means that we will need to go into the next year as well.
+    --     if seconds > totalSeconds then
+    --         seconds = seconds - totalSeconds;
+    --         totalSeconds = seconds;
+    --         monthsFinal = monthsFinal + ( currentMonth - 1 );
+
+    --         --Now need to isolate the months backwards down the calendar
+    --         i = 12;
+    --         while ( totalSeconds > 0 ) do
+    --             secondsInMonthTemp = secondsInMonth [ tostring ( i ) ];
+    --                 if i == 2 and ( IsLeapYear ( currentYear - yearsFinal - 1 ) ) then  -- adding one day for leap year.
+    --                 secondsInMonthTemp = secondsInMonthTemp + secondsInDay;
+    --             end
+                
+    --             if secondsInMonthTemp < totalSeconds then                           -- We are not yet at the final month!
+    --                 i = i - 1;
+    --                 monthsFinal = monthsFinal + 1;
+    --                 seconds = totalSeconds - secondsInMonthTemp;
+    --             else                                                                -- Final month found!
+    --                 local tempDay = math.floor ( ( secondsInMonthTemp - totalSeconds ) / secondsInDay ); 
+    --                 local tempSec = seconds - ( ( ( secondsInMonthTemp / secondsInDay ) - currentDay- 1 ) * secondsInDay);
+    --                 if tempDay < currentDay then                            -- In other words, if today is Jan 5th. If date elapsed is Dec 4th, then yes, 1 month, if Dec. 6th, it will be false
+    --                     monthsFinal = monthsFinal + 1;
+    --                     seconds = tempSec;
+    --                 elseif tempDay == currentDay then                       -- Need to check the hour, minutes, and seconds -- Hour first!
+    --                     local tempHour = math.floor ( seconds % secondsInDay ) / secondsInHour );
+    --                     if tempHour < currentHour then                      -- The Hour is less, thus it is the next month!
+    --                         monthsFinal = monthsFinal + 1;
+    --                         seconds = tempSec;
+    --                     elseif tempHour == currentHour then                 -- Since we are in the same hour, we need to check the minutes.
+    --                         local tempMin = math.floor ( ( seconds % secondsInHour ) / 60 );
+    --                         if tempMin < currentMinute then                 -- The minute is less, thus it is the next month!
+    --                             monthsFinal = monthsFinal + 1;
+    --                             seconds = tempSec;
+    --                         elseif tempMin == currentMinute then            -- minutes are matching on the month
+    --                             local tempSeconds = math.floor ( seconds % 60 );
+    --                             if tempSeconds <= currentSec then           -- if equal or below, it will be 100% exactly 1 month to the second.
+    --                                 monthsFinal = monthsFinal + 1;
+    --                                 seconds = tempSec;
+    --                             end
+    --                         end
+    --                     end
+    --                 end
+    --             end
+    --             totalSeconds = totalSeconds - secondsInMonthTemp;
+    --         end
+    --     else
+    --         -- Remaining months will be found
+    --         totalSeconds = ( currentDay - 1 ) * secondsInDay;
+    --         if seconds > totalSeconds then     -- Moving on to next month
+    --             seconds = seconds - totalSeconds;
+    --             totalSeconds = seconds;
+
+    --             i = currentMonth - 1;
+    --             while ( totalSeconds > 0 ) do
+    --                 secondsInMonthTemp = secondsInMonth [ tostring ( i ) ];
+    --                 if i == 2 and ( IsLeapYear ( currentYear - yearsFinal - 1 ) ) then  -- adding one day for leap year.
+    --                     secondsInMonthTemp = secondsInMonthTemp + secondsInDay;
+    --                 end
+                    
+    --                 if secondsInMonthTemp < totalSeconds then                           -- Checking if month should be added.
+    --                     i = i - 1;
+    --                     monthsFinal = monthsFinal + 1;
+    --                     seconds = totalSeconds - secondsInMonthTemp;
+    --                 elseif math.floor ( ( secondsInMonthTemp - seconds ) / secondsInDay ) < currentDay then  -- In other words, if today is Jan 5th. If date elapsed is Dec 4th, then yes, 1 month, if Dec. 6th, it will be false
+    --                     monthsFinal = monthsFinal + 1;
+    --                     seconds = seconds - ( ( ( secondsInMonthTemp / secondsInDay ) - currentDay - 1 ) * secondsInDay);
+    --                 end
+    --                 totalSeconds = totalSeconds - secondsInMonthTemp;
+    --             end
+
+    --         end
+    --     end
+    --     -- Must I add deeper days logic?
+    --     -- Calculating the Remaining Days
+    --     -- The rest is easy from here!
+    --     daysFinal = math.floor ( seconds / secondsInDay ) - 1;
+    --     hoursFinal = math.floor ( ( seconds % secondsInDay ) / secondsInHour );
+    --     minutesFinal = math.floor ( ( seconds % secondsInHour ) / 60 );
+    --     secondsFinal = math.floor ( seconds % 60 );
+        
+    --     --logic cleanup for ease.
+    --     if monthsFinal == 12 then
+    --         yearsFinal = yearsFinal + 1;
+    --         monthsFinal = 0;
+    --     end
+
+    --     local result = yearsFinal .. " Years , " .. monthsFinal .. " Months , " .. daysFinal .. " Days , " .. hoursFinal .. " Hours , " .. minutesFinal .. " minutes , " .. secondsFinal .. " seconds.";
+    --     print(result);
+
+
+    -- end
