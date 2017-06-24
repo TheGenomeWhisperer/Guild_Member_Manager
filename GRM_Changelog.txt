@@ -1,0 +1,131 @@
+**VERSION 7.2.5b500 - DATE: 19 Jun, 2017**
+
+* **FEATURE:** Player zone is now displayed in playerwindow, along with the time duration they have been in the zone. Of note, the player cannot know how long they were in that zone prior to logging, so the time is reset upon logging, but from there on, any zone changes are automatically swept up with timer started for each online player. I am finding it extremely useful for things like not having to ask a player if they just got into that BG, or shouting out when they are in a long arena match, and so on.
+
+* QOL: Fixed some text scaling issues. Ooo, ugly text on some machines. Normalizes all to same static font. Should not be weird now. Let me know if I missed any!
+
+* QOL: Code Cleaned up a little more in a couple of places, which makes it even leaner with less server calls.
+
+* QOL: Wrote some new methods for checking how much time has elapsed from given event, both from epoch time, and from a string timestamp. Much cleaner reporting now.
+
+* QOL: Rearranged the positioning of the Day/Month dropdown as I think it makes more sense to have the month first.
+
+* Bug Fix1: Issue with "mobile" players using armory app, it would screw up alt management. Text name parsed correctly from mobile icon now.
+
+* Bug Fix2: Addon could fail in some circumstances if a player quit the guild and was linked as an alt. Not anymore!
+
+
+
+**VERSION 7.2.5b450 - DATE: 19 Jun, 2017**
+
+*Lots of misc. quality of life fixes here. Went through a few requests and got them added, and also worked a little more on the backend on a few things I am working on in a future update.
+
+* Feature: On Mouseover of promotion date, it now includes "how long" a player has been at the promoted rank.
+
+* QOL: Tooltips are now scaled down a little. They were almost obnoxiously large, imo.
+
+* QOL: Note and officer note boxes are better designed. Word wrapping/spacing/etc... Just better
+
+* Bug Fix1: Serious issue with timestamps I had not noticed, as server time was my local time. Apparently I was pulling local, not server, and not realizing it. This could cause issues with people playing in different time-zones than server time... potentially. Resolved
+
+* Bug Fix2: Some issues related to the timstamp problem had to be resolved.
+
+* Bug FixX: There was actually a LOT of behind-the-scenes labor on this one. Much more than you would realized, but there were just so many "little" things not worth mentioning here, but minor QoL stuff I made sure was taken care of.
+
+
+**VERSION 7.2.5b410 - DATE: 18 Jun, 2017**
+
+* BUG FIX!!! If a player was returning from inactity, I typo'd a bug, but didn't notice it until I was put under the circumstance of a guildie inactive returning. TY @k1ck3r for poinint this out!
+
+
+**VERSION 7.2.5b400 - DATE: 17 Jun, 2017**
+
+* TONS of work went into this update, even if on the front end the additions seem minimal. In the long run, it will have been worth it for you guys, but also for me as a developer. I won't get into it more. Just know that the x-realm solution was not as easy as I'd hoped because I had to dig into all of my frames and change the approach to how I pulled data. The good thing is it gave me the opportunity to go back and refactor much of my code and it is significantly more efficient now! One downside is your alt/main data needed to be reset. Sorry!*
+
+* **MAJOR FEATURE:** The addon is now compatible with x-realm guilds and should successfully be able to handle multiple people of the same name in a guild, but of different servers. This was a surprisingly HUGE amount of work, even though the solution seemed rather simple. Please let me know if it is working. You MAY need to do a '/roster clearall' and reset your data if you are in a x-realm guild, but I am hoping the addon just sees it as a new person joining the guild. Please let me know how it works as I have not tested it.
+
+*Additionally...*
+
+* Feature: Chat message filtering options now provided for all events.
+
+* Feature: Example, you can now disable leveling notifications to the chat window.
+
+* QOL: Options Panel now opens and closes in a significantly better, and faster, transition
+
+* QOL: Mousing over the roster at times felt a little "sluggish." I sped it up a little.
+
+* QOL: The position you place the Roster Event Log is now saved between sessions.
+
+* QOL: '/roster reset' will reset the window back to its original, centered position.
+
+* QOL: Some text styling has changed, like "PROMOTED" is now "Promoted" and so on...
+
+* Bug Fix1: Log events tracking now should ONLY trigger when updated from the server.
+
+* Bug Fix1: Before, it could do a check before server returned data, thus you would get generic message rather than full details on who did what.
+
+* Bug Fix2: "Clearing" the Rank Promotion history, the "Date Promoted?" button was not returning to proper position.
+
+* Bug Fix3: "Guild Log" button will now seat properly if frame is dragged over it.
+
+* Bug Fix4: Demoting from Main to alt would bug out due to a code typo I introduced last patch and didn't notice. FIXED
+
+
+**VERSION 7.2.5b300 - DATE: 15 Jun, 2017**
+
+*There was some confusion that was 100% my fault. This IS a BETA release. I mistakenly set it as release. I apologize for that rather serious distinction. As such, it should be noted that THIS IS A MASSIVE RELEASE! HUGE UPDATES!!! Sadly, due to major overhaul of data management and data merging techniques, far more efficient now, it was not backwards compatible. SO SORRY!*
+
+* **MAJOR FEATURE:** Guild data is now stored per faction, and per guild. Are you in a guild that has the same name on both Alliance and Horde side? This should no longer have any issues... Seemless loading as you hop between toons and guilds and factions.
+
+
+* Bug fix1: Officer Note Editbox was broken last patch. OOPS! Re-fixed
+
+* Bug fix2: Fixed error that *could* happen if player loads addon not in guild, but then joins one. Caused various weird problems. FIXED
+
+* Bug fix3: Namechange detection could error and report incorrectly under various conditions. Tightened to 100% detection.
+
+* Bug fix4: Officer note change spam fixed! Such an annoying bug! Sorry about that one!
+
+* Bug fix5: No merge merge issues!
+
+* QOL: Slash command '/roster' should now open your Log window Properly
+
+* QOL: Grey out options that do not pertain to player if they do not have permissions.
+
+* QOL: Proper error message if player tries to add invalid alt name.
+
+* QOL: Add Event Frame now updates live if events trigger and window is open
+
+* MISC1: Player now can see if a player is on the mobile chat with "Is Mobile" indication
+
+* MISC2: Add Event Calendar now restricts the player to adding 1 event to calendar per 5 seconds, due to internal Blizz server limit.
+
+* MISC3: Several more things being tracked in the background... to be implemented in future patch 
+
+* MISC4: And several other minor things not worth mentioning...
+
+
+**VERSION 1.02 - DATE: 13 Jun, 2017**
+
+* Feature1: You can now right click player name in main window for additional options
+
+* Feature2: You can now reset an individual's saved data, if needed.
+
+* Feature3: Better main/alt management - ability to set player as main, even without alts
+
+* Feature3: This allows any subsequent alts added to auto-be tagged as "alt" instad of main. Minor QoL.
+
+* Bug fix1: TAINT issues have been resolved (by building my own Dropdowns) - HUGE JOB
+
+* Buf fix1: You no longer should be unable to enter a BG without disabling addon, for example!
+
+* Bug fix2: Scaling issue (yes, not ALL scaling issues are resolved yet)
+
+**VERSION: 1.01 - DATE: 11 Jun, 2017**
+
+* Bug fix: On player namechange detection, it now changes the name in the alts lists as well!
+
+
+**VERSION: 1.00 - DATE: 11 Jun, 2017**
+
+* Initial Release
