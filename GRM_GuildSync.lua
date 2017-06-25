@@ -17,7 +17,12 @@ GRMsync.listOfPrefixes = {
 
     "GRM_JD",               -- Join Date
     "GRM_PD",               -- Recent Promo Date
-    "GRM_AC"                -- Added to Calendar (triggers other players to remove from their que);
+    "GRM_AC",               -- Added to Calendar (triggers other players to remove from their que);
+    "GRM_BAN",
+    "GRM_ADDALT",
+    "GRM_RMVALT",
+    "GRM_MAIN",
+    "GRM_RMVMAIN"
 
 };
 
@@ -70,6 +75,20 @@ GRMsync.RegisterPrefixes = function( listOfPrefixes )
     end
 end
 
+-- Method:          GRMsync.IsPrefixVerified ( string )
+-- What it Does:    Returns true if received prefix is listed in this addon's
+-- Purpose:         Control the spam in case of other prefixes received from other addons in guild channel.
+GRMsync.IsPrefixVerified = function( prefix )
+    local result = false;
+    for i = 1 , #GRMsync.listOfPrefixes do
+        if GRMsync.listOfPrefixes[i] == prefix then
+            result = true;
+            break;
+        end
+    end
+    return result;
+end
+
 -------------------------------
 ---- MESSAGE SENDING ----------
 -------------------------------
@@ -96,7 +115,6 @@ GRMsync.CheckJoinDateChange = function( msg , sender )
     local finalTimeStamp = string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 );
     local finalEpochStamp = tonumber ( string.sub ( msg , string.find ( msg , "?" ) + 1 ) );
 
-
     for r = 2 , #GRM_GuildMemberHistory_Save[ GR_AddonGlobals.FID ][ GR_AddonGlobals.saveGID ] do
         if playerName == GRM_GuildMemberHistory_Save[ GR_AddonGlobals.FID ][ GR_AddonGlobals.saveGID ][r][1] then
             -- Let's see if there was a change
@@ -110,38 +128,84 @@ GRMsync.CheckJoinDateChange = function( msg , sender )
                 table.insert( GRM_GuildMemberHistory_Save[ GR_AddonGlobals.FID ][ GR_AddonGlobals.saveGID ][r][21] , finalEpochStamp ) ;   -- oldJoinDateMeta
                 GRM_GuildMemberHistory_Save[ GR_AddonGlobals.FID ][ GR_AddonGlobals.saveGID ][r][2] = finalTimeStamp;
                 GRM_GuildMemberHistory_Save[ GR_AddonGlobals.FID ][ GR_AddonGlobals.saveGID ][r][3] = finalEpochStamp;
-                GR_JoinDateText:SetText ( strsub ( joinDate , 9 ) );
-                
+               
                 -- Update timestamp to officer note.
                 if GRM_AddonSettings_Save[GR_AddonGlobals.FID][GR_AddonGlobals.setPID][2][7] and CanEditOfficerNote() then
                     for h = 1 , GRM.GetNumGuildies() do
                         local guildieName ,_,_,_,_,_,_, oNote = GetGuildRosterInfo( h );
                         if guildieName == name and oNote == "" then
                             GuildRosterSetOfficerNote ( h , joinDate );
-                            noteFontString2:SetText ( joinDate );
-                            PlayerOfficerNoteEditBox:SetText ( joinDate );
                             break;
                         end
                     end
                 end
 
+                if MemberDetailMetaData:IsVisible() and GRM.GetMobileFreeName ( GuildMemberDetailName:GetText() ) == playerName then
+                    GRM_noteFontString2:SetText ( joinDate );
+                    GRM_PlayerOfficerNoteEditBox:SetText ( joinDate );
+                end
                 -- Gotta update the event tracker date too!
                 GRM_GuildMemberHistory_Save[ GR_AddonGlobals.FID ][ GR_AddonGlobals.saveGID ][r][22][1][2] = strsub ( joinDate , 9 ); -- Remember, position 1 of the events tracker for anniversary tracking is always position 1 of the array, with date being pos 1 of table too.
                 GRM_GuildMemberHistory_Save[ GR_AddonGlobals.FID ][ GR_AddonGlobals.saveGID ][r][22][1][3] = false;  -- Gotta Reset the "reported already" boolean!
                 GRM.RemoveFromCalendarQue ( GRM_GuildMemberHistory_Save[ GR_AddonGlobals.FID ][ GR_AddonGlobals.saveGID ][r][1] , GRM_GuildMemberHistory_Save[ GR_AddonGlobals.FID ][ GR_AddonGlobals.saveGID ][r][22][1][1] );
-                if GRM_GuildMemberHistory_Save[ GR_AddonGlobals.FID ][ GR_AddonGlobals.saveGID ][r][12] == nil then
-                    rankButton = true;
-                end
 
+                -- Report the updates!
                 if GRM_AddonSettings_Save[GR_AddonGlobals.FID][GR_AddonGlobals.setPID][2][16] then
                     chat:AddMessage ( GRM.SlimName ( sender ) .. " updated " .. GRM.SlimName ( playerName ) .. "'s Join Date." , 1.0 , 0.84 , 0 );
                 end
-                break;
+                
+                if MemberDetailMetaData:IsVisible() and GRM.GetMobileFreeName ( GuildMemberDetailName:GetText() ) == playerName then
+                     GRM_JoinDateText:SetText ( strsub ( joinDate , 9 ) );
+                     if GRM_MemberDetailJoinDateButton:IsVisible() then
+                        GRM_MemberDetailJoinDateButton:Hide();                
+                    end
+                    GRM_JoinDateText:Show();
+                end
+                
             end
+            break;
         end
     end
 end
 
+-- Method           GRMsync.CheckPromotionDateChange ( string , string )
+-- What it Does:    Checks if received info is different than current, then updates it
+-- Purpose:         Data sharing between guildies carrying the addon
+GRMsync.CheckPromotionDateChange = function ( msg , sender )
+    local name = string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 );
+    local promotionDate = string.sub ( msg , string.find ( msg , "?" ) + 1 );
+
+    for r = 2 , #GRM_GuildMemberHistory_Save[ GR_AddonGlobals.FID ][ GR_AddonGlobals.saveGID ] do
+        if GRM_GuildMemberHistory_Save[ GR_AddonGlobals.FID ][ GR_AddonGlobals.saveGID ][r][1] == name then
+            
+            GRM_GuildMemberHistory_Save[ GR_AddonGlobals.FID ][ GR_AddonGlobals.saveGID ][r][12] = strsub ( promotionDate , 9 );
+            GRM_GuildMemberHistory_Save[ GR_AddonGlobals.FID ][ GR_AddonGlobals.saveGID ][r][25][#GRM_GuildMemberHistory_Save[ GR_AddonGlobals.FID ][ GR_AddonGlobals.saveGID ][r][25]][2] = strsub ( promotionDate , 9 );
+            GRM_GuildMemberHistory_Save[ GR_AddonGlobals.FID ][ GR_AddonGlobals.saveGID ][r][13] = GRM.TimeStampToEpoch ( promotionDate );
+
+            -- Report the updates!
+            if GRM_AddonSettings_Save[GR_AddonGlobals.FID][GR_AddonGlobals.setPID][2][16] then
+                chat:AddMessage ( GRM.SlimName ( sender ) .. " updated " .. GRM.SlimName ( name ) .. "'s Promotion Date." , 1.0 , 0.84 , 0 );
+            end
+
+            -- If the player is on the same frames, update them too!
+            if MemberDetailMetaData:IsVisible() and GRM.GetMobileFreeName ( GuildMemberDetailName:GetText() ) == name then
+                if GRM_SetPromoDateButton:IsVisible() then
+                    GRM_SetPromoDateButton:Hide();
+                end
+
+                if GR_AddonGlobals.rankIndex > GR_AddonGlobals.playerIndex then
+                    GRM_MemberDetailRankDateTxt:SetPoint ( "TOP" , 0 , -80 ); -- slightly varied positioning due to drop down window or not.
+                else
+                    GRM_MemberDetailRankDateTxt:SetPoint ( "TOP" , 0 , -68 );
+                end
+                GRM_MemberDetailRankDateTxt:SetTextColor ( 1 , 1 , 1 , 1.0 );
+                GRM_MemberDetailRankDateTxt:SetText ( "Promoted: " .. GRM.Trim ( strsub ( GRM_GuildMemberHistory_Save[ GR_AddonGlobals.FID ][ GR_AddonGlobals.saveGID ][r][12] , 1 , 10) ) );
+                GRM_MemberDetailRankDateTxt:Show();
+            end
+            break;
+        end
+    end
+end
 
 -- Method:          GRMsync.EventAddedToCalendarCheck ( string , string )
 -- What it Does:    Checks to see if player has the event already in que. If it is, then remove it.
@@ -161,6 +225,102 @@ GRMsync.EventAddedToCalendarCheck = function ( msg , sender )
     end
 end
 
+-------------------------------------------
+-------- ALT UPDATE COMMS -----------------
+-------------------------------------------
+
+
+-- Method:          GRMsync.CheckAddAltChange ( string , string )
+-- What it Does:    Adds the alt as well to your list, if it is not already added
+-- Purpose:         Additional chcecks required to avoid message spamminess, but basically to sync alt lists on adding.
+GRMsync.CheckAddAltChange = function ( msg , sender )
+    local name = string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 );
+    local altName = string.sub ( msg , string.find ( msg , "?" ) + 1 );
+
+    if name ~= altName then         -- To avoid spam message to all players...
+       
+        -- Verify player is not already on someone else's list...
+        local isFound = false;
+        local isFound2 = false;
+        for s = 2 , #GRM_GuildMemberHistory_Save[ GR_AddonGlobals.FID ][ GR_AddonGlobals.saveGID ] do
+            if GRM_GuildMemberHistory_Save[ GR_AddonGlobals.FID ][ GR_AddonGlobals.saveGID ][s][1] == altName then
+                
+                if #GRM_GuildMemberHistory_Save[ GR_AddonGlobals.FID ][ GR_AddonGlobals.saveGID ][s][11] > 0 then
+                    local listOfAlts = GRM_GuildMemberHistory_Save[ GR_AddonGlobals.FID ][ GR_AddonGlobals.saveGID ][s][11];
+            
+                    for m = 1 , #listOfAlts do                                              -- Let's quickly verify that this is not a repeat alt add.
+                        if listOfAlts[m][1] == name then                              -- Is that supposed to be "altName" ??
+                            isFound = true;
+                            break;
+                        end
+                    end
+                else
+                    for r = 2 , #GRM_GuildMemberHistory_Save[ GR_AddonGlobals.FID ][ GR_AddonGlobals.saveGID ] do
+                        if GRM_GuildMemberHistory_Save[ GR_AddonGlobals.FID ][ GR_AddonGlobals.saveGID ][r][1] == name then
+                            local listOfAlts = GRM_GuildMemberHistory_Save[ GR_AddonGlobals.FID ][ GR_AddonGlobals.saveGID ][r][11];
+                            if #listOfAlts > 0 then                                                                 -- There is more than 1 alt for new alt to be added to
+                                for i = 1 , #listOfAlts do                                                          -- Cycle through previously known alt names to add new on each, one by one.
+                                    for j = 2 , #GRM_GuildMemberHistory_Save[ GR_AddonGlobals.FID ][ GR_AddonGlobals.saveGID ] do                             -- Need to now cycle through all toons in the guild to set the alt
+                                        if listOfAlts[i][1] == GRM_GuildMemberHistory_Save[ GR_AddonGlobals.FID ][ GR_AddonGlobals.saveGID ][j][1] then       -- name on current focus altList found in the metadata!
+                                            -- Now, make sure it is not a repeat add!
+                                            
+                                            for m = 1 , #listOfAlts do                                              -- Let's quickly verify that this is not a repeat alt add.
+                                                if listOfAlts[m][1] == altName then
+                                                    isFound2 = true;
+                                                    break;
+                                                end
+                                            end
+                                            break;
+                                        end
+                                    end
+                                    if isFound2 then
+                                        break;
+                                    end
+                                end
+                            end
+
+                            break;
+                        end
+                    end
+                end
+                break;
+            end
+        end
+
+        if not isFound and not isFound2 then
+            GRM.AddAlt ( name , altName , GR_AddonGlobals.guildName );
+        
+            if GRM_AddonSettings_Save[GR_AddonGlobals.FID][GR_AddonGlobals.setPID][2][16] then
+                chat:AddMessage ( GRM.SlimName ( sender ) .. " updated " .. GRM.SlimName ( name ) .. "'s list of Alts." , 1.0 , 0.84 , 0 );
+            end
+        end
+    end
+end
+
+
+-- Method:          GRMsync.CheckRemoveAltChange ( string , string )
+-- What it Does:    Syncs the removal of an alt between all ONLINE players
+-- Purpose:         Sync data between online players.
+GRMsync.CheckRemoveAltChange = function ( msg , sender )
+    local name = string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 );
+    local altName = string.sub ( msg , string.find ( msg , "?" ) + 1 );
+
+    GRM.RemoveAlt ( name , altName , GR_AddonGlobals.guildName );
+
+    
+    if GRM_AddonSettings_Save[GR_AddonGlobals.FID][GR_AddonGlobals.setPID][2][16] then
+        chat:AddMessage ( GRM.SlimName ( sender ) .. " removed " .. GRM.SlimName ( altName ) .. " from " .. name .. "'s list of Alts." , 1.0 , 0.84 , 0 );
+    end
+end
+
+
+
+
+
+
+
+
+
 -------------------------------
 ------ INITIALIZING -----------
 -------------------------------
@@ -177,18 +337,46 @@ GRMsync.RegisterCommunicationProtocols = function()
     GRMsync.MessageTracking:SetScript ( "OnEvent" , function( self , event , prefix , msg , channel , sender )
         if event == "CHAT_MSG_ADDON" and channel == GRMsyncGlobals.channelName and sender ~= GR_AddonGlobals.addonPlayerName then     -- Don't need to register my own sends.
 
-            -- Need to do a rank check here to accept the send or not.
-            -- GRM.GetGuildMemberRankID ( sender )
-            
-            -- Varuious Prefix Logic handling now...
-            if prefix == "GRM_JD" then
-                GRMsync.CheckJoinDateChange ( msg , sender );
+            if GRMsync.IsPrefixVerified ( prefix ) then
+                -- Need to do a rank check here to accept the send or not. -- VERIFY PREFIX BEFORE CHECKING!
+                if GRM.GetGuildMemberRankID ( sender ) >= GRM_AddonSettings_Save[GR_AddonGlobals.FID][GR_AddonGlobals.setPID][2][15] then        -- If player's rank is below settings threshold, ignore message.
+                    return
+                end
                 
-            elseif prefix == "GRM_PD" then
+                -- Varuious Prefix Logic handling now...
+                if prefix == "GRM_JD" then
+                    GRMsync.CheckJoinDateChange ( msg , sender );
+                
+                -- On a Promotion Date Edit
+                elseif prefix == "GRM_PD" then
+                    GRMsync.CheckPromotionDateChange ( msg , sender );
 
-            -- If person added to Calendar... this event occurs.
-            elseif prefix == "GRM_AC" then
-                GRMsync.EventAddedToCalendarCheck ( msg , sender );
+                -- If person added to Calendar... this event occurs.
+                elseif prefix == "GRM_AC" then
+                    GRMsync.EventAddedToCalendarCheck ( msg , sender );
+                
+                -- For adding an alt!
+                elseif prefix == "GRM_ADDALT" then
+                    GRMsync.CheckAddAltChange ( msg , sender );
+            
+                -- For Removing an alt!
+                elseif prefix == "GRM_RMVALT" then
+                    GRMsync.CheckRemoveAltChange ( msg , sender );
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+                end
+                      
+            
             end
         end
     end);
@@ -214,6 +402,13 @@ GRMsync.BuildSyncNetwork = function()
             GRMsync.RegisterCommunicationProtocols();
             chat:AddMessage ( "Sync Fully Registered and Working!" , 1.0 , 0.84 , 0 );
         end
+
+        -- Redundancy in case it fails to load.
+        if GRMsync.DatabaseLoaded and not GRMsync.RulesSet then
+            C_Timer.After ( 2 , GRMsync.BuildSyncNetwork );
+        end
+    else
+        print("not in guild");
     end
 end
 
@@ -221,5 +416,9 @@ end
 
 -- ON LOADING!!!!!!!
 -- Event Tracking
-GRMsync.MessageTracking = GRMsync.MessageTracking or CreateFrame ( "Frame" , "GRMsyncMessageTracking" );
-GRMsync.BuildSyncNetwork();
+GRMsync.Initialize = function()
+    if GRM_AddonSettings_Save[GR_AddonGlobals.FID][GR_AddonGlobals.setPID][2][14] then
+        GRMsync.MessageTracking = GRMsync.MessageTracking or CreateFrame ( "Frame" , "GRMsyncMessageTracking" );
+        GRMsync.BuildSyncNetwork();
+    end
+end
