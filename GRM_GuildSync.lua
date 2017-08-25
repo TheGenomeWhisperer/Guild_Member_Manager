@@ -1,17 +1,20 @@
 -- For Sync controls!
+-- Author: Arkaan... aka "TheGenomeWhisperer"
 
 
 -- To hold all Sync Methods/Functions
 GRMsync = {};
 
 
--- Sync Globals
+-- All Sync Globals
 GRMsyncGlobals = {};
 
 GRMsyncGlobals.channelName = "GUILD";
 GRMsyncGlobals.DatabaseLoaded = false;
 GRMsyncGlobals.RulesSet = false;
 GRMsyncGlobals.LeadSyncProcessing = false;
+GRMsyncGlobals.SyncOK = true;
+GRMsyncGlobals.Locale = GetLocale();
 
 -- Establishing leadership controls.
 GRMsyncGlobals.IsLeaderRequested = false;
@@ -23,6 +26,9 @@ GRMsyncGlobals.LeaderShipChanged = false;
 GRMsyncGlobals.ElectionProcessing = false;
 
 -- For players queing to by sync'd to share data!
+-- If a player requests a leader sync, they are added to this que. This is so the leader can just add them to que
+-- in the case that they may be syncing with another player already. Depending on the amount of data transferring, and the size of the guild, sync can take anywhere from 1-5 seconds
+-- Based on server response time, per person. At least, initially. Live Sync updates happen near instantly.
 GRMsyncGlobals.SyncQue = {};
 
 -- Collected Tables of Data when received from the player
@@ -34,6 +40,7 @@ GRMsyncGlobals.AltRemReceivedTemp = {};
 GRMsyncGlobals.MainReceivedTemp = {};
 
 -- Tables of the changes -- Leader will collect and store them here from all players before broadcasting the changes out, and then resetting them.
+-- By compiling all changes first, and THEN checking, it saves an insane amount of resources rather than passing on every new piece received.
 GRMsyncGlobals.JDChanges = {};
 GRMsyncGlobals.PDChanges = {};
 GRMsyncGlobals.BanChanges = {};
@@ -42,6 +49,7 @@ GRMsyncGlobals.AltRemoveChanges = {};
 GRMsyncGlobals.AltMainChanges = {};
 
 -- SYNC START AND STOP CONTROLS
+-- These are used to verify the expected number of packets of info arrived.
 GRMsyncGlobals.ReceivingData = false;
 GRMsyncGlobals.NumPlayerDataExpected = 0;
 
@@ -49,9 +57,20 @@ GRMsyncGlobals.NumPlayerDataExpected = 0;
 GRMsyncGlobals.CurrentSyncPlayer = "";
 GRMsyncGlobals.currentlySyncing = false;
 GRMsyncGlobals.JDSyncComplete = false;
+GRMsyncGlobals.SyncCount = 2;               -- 2 because index begins at 2 in the table, as index 1 is the guild name
+GRMsyncGlobals.SyncCount2 = 2;              -- For alt add and remove
+GRMsyncGlobals.SyncCount3 = 1;              -- Controlling the number alts sync'd, for players with LARGE numbers of alts.
+GRMsyncGlobals.SyncCount4 = 1;              -- same for 3-6
+GRMsyncGlobals.SyncCount5 = 1;              
+GRMsyncGlobals.SyncCount6 = 1;
+GRMsyncGlobals.syncTempDelay = false;
+GRMsyncGlobals.syncTempDelay2 = false;
+GRMsyncGlobals.finalSyncDataCount = 1;
+GRMsyncGlobals.finalSyncProgress = { false , false , false , false , false , false };        -- on eahc of the tables, if submitted fully
+GRMsyncGlobals.syncCap = 50;
 
-
--- For sync control measures on player details, so leader can be determined on who has been online the longest.
+-- For sync control measures on player details, so leader can be determined on who has been online the longest. In other words, for the leadership selecting algorithm
+-- when determining the tiers for syncing, it is ideal to select the leader who has been online the longest, as they most-likely have encountered the most current amount of information.
 GRMsyncGlobals.timeAtLogin = 0;           -- A simple new time() - timeAtLogin will determine the exact amount of time that has passed since login.
 
 
@@ -110,8 +129,10 @@ GRMsyncGlobals.listOfPrefixes = {
     "GRM_BANSYNCUP",
     "GRM_ALTSYNCUP",
     "GRM_REMSYNCUP",
-    "GRM_MAINSYNCUP"
+    "GRM_MAINSYNCUP",
 
+    -- To announce that final sync with all guildies online is complete, and the most current data has been pushed to all
+    "GRM_COMPLETE"
 };
 
 -- Chat/print properties.
@@ -120,7 +141,7 @@ local chat = DEFAULT_CHAT_FRAME;
 
 -- Method:          GRMsync.ResetDefaultValuesOnSyncReEnable()
 -- What it Does:    Sets values to default, as if just logging back in.
--- Purpose:         For sync to properly work, default startup values need to be set.
+-- Purpose:         For sync to properly work, default startup values need to be reset.
 GRMsync.ResetDefaultValuesOnSyncReEnable = function()
     GRMsyncGlobals.DatabaseLoaded = false;
     GRMsyncGlobals.RulesSet = false;
@@ -183,16 +204,64 @@ GRMsync.SlimDate  = function ( date )
 end
 
 
+-- Method:          GRMsync.SyncName ( string , string )
+-- What it Does:    Adds the white spaces in comm name to reflect real player-server name
+-- Purpose:         Unable to sync otherwise, on servers that have more than 1 word in the name
+GRMsync.SyncName = function ( name , lang )
+    local result = "";
+    if string.find ( name , " " ) == nil then
+        -- For English localization!
+        if lang == "enUS" or lang == "enGB" then
+            local rawServer = string.sub ( name , string.find ( name , "-" ) + 1 );
+            local count = 0;
+            local char = "";
+            for i = 1 , #rawServer do
+
+                -- parsing 1 letter at a time!
+                char = string.sub ( rawServer , i , i );
+                if char ~= "'" then
+                    if tonumber( char ) == nil then 
+                        if char == string.upper ( char ) then               -- We found a capital letter!
+                            count = count + 1;
+                            -- Likely Area52 server, let's add a space before 
+                            if count > 1 then
+                                if string.sub ( rawServer , i - 1 , i - 1 ) ~= " " and string.sub ( rawServer , i - 1 , i - 1 ) ~= "'" then
+                                    rawServer = string.sub ( rawServer , 1 , i - 1 ) .. " " .. string.sub ( rawServer , i );
+                                end
+                            end
+                        end
+                    else
+                        -- Likely Area52 server, let's add a space before 
+                        if string.sub ( rawServer , i - 1 , i - 1 ) ~= " " and tonumber ( string.sub ( rawServer , i - 1 , i - 1 ) ) == nil then
+                            count = count + 1;
+                            rawServer = string.sub ( rawServer , 1 , i - 1 ) .. " " .. string.sub ( rawServer , i );
+                        end
+                    end
+                end
+            end
+            result = string.sub ( name , 1 , string.find ( name , "-" ) ) .. rawServer;
+        -- For future localization issues!!!
+
+
+
+        end
+    else
+        result = name
+    end
+    return result;
+end
 
 -------------------------------
 ---- MESSAGE SENDING ----------
 -------------------------------
 
 -- Method:          GRMsync.SendMessage ( string , string , string , int )
--- What it Does:    Sends an invisible message to a channel that a player cannot see, but an addon can read.
+-- What it Does:    Sends an invisible message over a specified channel that a player cannot see, but an addon can read.
 -- Purpose:         Necessary function for cross-talk between players using addon.
-GRMsync.SendMessage = function ( prefix , msg , type , typeID ) 
-    SendAddonMessage ( prefix , msg , type , typeID );
+GRMsync.SendMessage = function ( prefix , msg , type , typeID )
+    if GRMsyncGlobals.SyncOK then
+        SendAddonMessage ( prefix , msg , type , typeID );
+    end
 end
 
 
@@ -203,6 +272,7 @@ end
 
 -- Method:          GRMsync.CheckJoinDataChange ( string )
 -- What it Does:    Parses the details of the message to be usable, and then uses that info to see if it is different than current info, and if it is, then enacts changes.
+-- Purpose:         To sync player join dates properly.
 GRMsync.CheckJoinDateChange = function( msg , sender , prefix )
     -- To avoid spamminess
     local isSyncUpdate = false;
@@ -233,7 +303,7 @@ GRMsync.CheckJoinDateChange = function( msg , sender , prefix )
                
                -- For sync
                 GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][35][1] = finalTStamp;
-                GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][35][2] = time();
+                GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][35][2] = finalEpochStamp;
 
                 -- Update timestamp to officer note.
                 if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][7] and CanEditOfficerNote() then
@@ -285,7 +355,9 @@ GRMsync.CheckPromotionDateChange = function ( msg , sender , prefix )
     end
 
     local name = string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 );
-    local promotionDate = string.sub ( msg , string.find ( msg , "?" ) + 1 );
+    msg = string.sub ( msg , string.find ( msg , "?" ) + 1 );
+    local promotionDate = string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 );
+    local promotionDateTimestamp = tonumber ( string.sub ( msg , string.find ( msg , "?" ) + 1 ) );
 
     for r = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
         if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][1] == name then
@@ -296,7 +368,7 @@ GRMsync.CheckPromotionDateChange = function ( msg , sender , prefix )
 
             -- For SYNC
                 GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][36][1] = GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][12];
-                GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][36][2] = time();
+                GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][36][2] = promotionDateTimestamp;
 
             -- Report the updates!
             if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][16] and not isSyncUpdate then
@@ -337,7 +409,10 @@ GRMsync.EventAddedToCalendarCheck = function ( msg , sender )
 
         -- Refresh the frame!
         GRM.RefreshAddEventFrame();
-        chat:AddMessage ( "\"" .. title .. "\" event added to the calendar by " .. GRM.SlimName ( sender ) , 1.0 , 0.84 , 0 );  
+        -- Send chat update info.
+        if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][16] then
+            chat:AddMessage ( "\"" .. title .. "\" event added to the calendar by " .. GRM.SlimName ( sender ) , 1.0 , 0.84 , 0 );
+        end
     end
 end
 
@@ -357,7 +432,9 @@ GRMsync.CheckAddAltChange = function ( msg , sender , prefix )
     end
 
     local name = string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 );
-    local altName = string.sub ( msg , string.find ( msg , "?" ) + 1 );
+    msg = string.sub ( msg , string.find ( msg , "?" ) + 1 );
+    local altName = string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 );
+    local altNameEpochTime = tonumber ( string.sub ( msg , string.find ( msg , "?" ) + 1 ) );
 
     if name ~= altName then         -- To avoid spam message to all players...
        
@@ -410,8 +487,12 @@ GRMsync.CheckAddAltChange = function ( msg , sender , prefix )
         end
 
         if not isFound and not isFound2 then
-            GRM.AddAlt ( name , altName , GRM_AddonGlobals.guildName );
-        
+            if isSyncUpdate then
+                GRM.AddAlt ( name , altName , GRM_AddonGlobals.guildName , true , altNameEpochTime );
+            else
+                GRM.AddAlt ( name , altName , GRM_AddonGlobals.guildName , false , 0 );
+            end
+
             if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][16] and not isSyncUpdate then
                 chat:AddMessage ( GRM.SlimName ( sender ) .. " updated " .. GRM.SlimName ( name ) .. "'s list of Alts." , 1.0 , 0.84 , 0 );
             end
@@ -431,7 +512,9 @@ GRMsync.CheckRemoveAltChange = function ( msg , sender , prefix )
     end
 
     local name = string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 );
-    local altName = string.sub ( msg , string.find ( msg , "?" ) + 1 );
+    msg = string.sub ( msg , string.find ( msg , "?" ) + 1 );
+    local altName = string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 );
+    local altChangeTimeStamp = tonumber ( string.sub ( msg , string.find ( msg , "?" ) + 1 ) );
     local count = 0;
     local index = 0;
 
@@ -443,8 +526,13 @@ GRMsync.CheckRemoveAltChange = function ( msg , sender , prefix )
             break;
         end
     end
-
-    GRM.RemoveAlt ( name , altName , GRM_AddonGlobals.guildName );
+    
+    if isSyncUpdate then
+        GRM.RemoveAlt ( name , altName , GRM_AddonGlobals.guildName , true , altChangeTimeStamp );
+    else
+        GRM.RemoveAlt ( name , altName , GRM_AddonGlobals.guildName , false , 0 );
+    end
+    
     
     if GRM_MemberDetailMetaData:IsVisible() and GRM.GetMobileFreeName ( GuildMemberDetailName:GetText() ) == altName then       -- If the alt being removed is being dumped from the list of alts, but the Sync person is on that frame...
         -- if main, we will hide this.
@@ -463,7 +551,7 @@ GRMsync.CheckRemoveAltChange = function ( msg , sender , prefix )
     -- alts are less, then you are ensuring that one was actually removed.
     if count == 0 or count > #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][index][11] then
         if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][16] and not isSyncUpdate then
-            chat:AddMessage ( GRM.SlimName ( sender ) .. " removed " .. GRM.SlimName ( altName ) .. " from " .. name .. "'s list of Alts." , 1.0 , 0.84 , 0 );
+            chat:AddMessage ( GRM.SlimName ( sender ) .. " removed " .. GRM.SlimName ( altName ) .. " from " .. GRM.SlimName ( name ) .. "'s list of Alts." , 1.0 , 0.84 , 0 );
         end
     end
 end
@@ -476,7 +564,7 @@ GRMsync.CheckAltMainChange = function ( msg , sender )
     local name = string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 );
     local mainName = string.sub ( msg , string.find ( msg , "?" ) + 1 );
 
-    GRM.SetMain ( name , mainName , GRM_AddonGlobals.guildName );
+    GRM.SetMain ( name , mainName , GRM_AddonGlobals.guildName , false , 0 );
 
     -- We need to add the timestamps our selves as well! In the main program, the timestamps are only triggered on manually clicking and adding/removing
     for j = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
@@ -506,11 +594,13 @@ end
 -- Purpose:         Keep player MAINS sync'd properly!
 GRMsync.CheckMainSyncChange = function ( msg )
     local mainName = string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 );
-    local mainStatus = string.sub ( msg , string.find ( msg , "?" ) + 1 );
+    msg = string.sub ( msg , string.find ( msg , "?" ) + 1 );
+    local mainStatus = string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 );
+    local mainChangeTimestamp = tonumber ( string.sub ( msg , string.find ( msg , "?" ) + 1 ) );
 
     if mainStatus == "true" then
         -- Set the player as Main
-        GRM.SetMain ( mainName , mainName , GRM_AddonGlobals.guildName );
+        GRM.SetMain ( mainName , mainName , GRM_AddonGlobals.guildName , true , mainChangeTimestamp );
         -- Need to ensure "main" tag populates correctly if window is open.
         if GRM_MemberDetailMetaData:IsVisible() then
             if not GRM_MemberDetailMainText:IsVisible() and GRM.GetMobileFreeName ( GuildMemberDetailName:GetText() ) == mainName then
@@ -519,7 +609,7 @@ GRMsync.CheckMainSyncChange = function ( msg )
         end
     else
         -- remove from being main.
-        GRM.DemoteFromMain ( mainName , mainName , GRM_AddonGlobals.guildName );
+        GRM.DemoteFromMain ( mainName , mainName , GRM_AddonGlobals.guildName , true , mainChangeTimestamp );
         -- Udate the UI!
         if GRM_MemberDetailMetaData:IsVisible() and GRM.GetMobileFreeName ( GuildMemberDetailName:GetText() ) == mainName then
             GRM_MemberDetailMainText:Hide();
@@ -535,7 +625,7 @@ GRMsync.CheckAltMainToAltChange = function ( msg , sender )
     local name = string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 );
     local mainName = string.sub ( msg , string.find ( msg , "?" ) + 1 );
 
-    GRM.DemoteFromMain ( name , mainName );
+    GRM.DemoteFromMain ( name , mainName , GRM_AddonGlobals.guildName , false , 0 );
 
     if GRM_MemberDetailMetaData:IsVisible() then
         if GRM_MemberDetailMainText:IsVisible() and GRM.GetMobileFreeName ( GuildMemberDetailName:GetText() ) == mainName then
@@ -748,19 +838,35 @@ end
 -- What it Does:    Broadcasts to the leader all join date information
 -- Purpose:         Data sync
 GRMsync.SendJDPackets = function()
-     if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][16] then
+
+     if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][16] and not GRMsyncGlobals.syncTempDelay then
         chat:AddMessage ( "GRM: Syncing Data With Guildies Now..."  , 1.0 , 0.84 , 0 );
     end
     -- Initiate Data sending
-    GRMsync.SendMessage ( "GRM_START" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. tostring ( #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] - 1 ) , GRMsyncGlobals.channelName );         -- MSG = number of expected values to be sent.
-
+    if GRMsyncGlobals.SyncOK and not GRMsyncGlobals.syncTempDelay then
+        GRMsync.SendMessage ( "GRM_START" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. tostring ( #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] - 1 ) , GRMsyncGlobals.channelName );         -- MSG = number of expected values to be sent.
+    end
     -- Send all values ( May need to be throttled for massive guilds? Not sure yet! );
-    for i = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
-        GRMsync.SendMessage ( "GRM_JDSYNC" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1] .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][35][2] .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][35][1] , GRMsyncGlobals.channelName )               --  "Name" .. "?" .. TimestampOfChange .. "?" .. JoinDate
+    for i = GRMsyncGlobals.SyncCount , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
+        if GRMsyncGlobals.SyncOK then
+            GRMsyncGlobals.SyncCount = GRMsyncGlobals.SyncCount + 1;
+            if GRMsyncGlobals.SyncCount % GRMsyncGlobals.syncCap == 0 then
+                GRMsyncGlobals.syncTempDelay = true;
+                GRMsync.SendMessage ( "GRM_JDSYNC" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1] .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][35][2] .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][35][1] , GRMsyncGlobals.channelName )               --  "Name" .. "?" .. TimestampOfChange .. "?" .. JoinDate
+                C_Timer.After ( 2 , GRMsync.SendJDPackets );       -- Add a 2 secon delay on packet sending.
+                return;
+            else
+                GRMsync.SendMessage ( "GRM_JDSYNC" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1] .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][35][2] .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][35][1] , GRMsyncGlobals.channelName )               --  "Name" .. "?" .. TimestampOfChange .. "?" .. JoinDate
+            end
+        end
     end
     
     -- Close the Data stream
-    GRMsync.SendMessage ( "GRM_STOP" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. "JD" , GRMsyncGlobals.channelName );
+    GRMsyncGlobals.SyncCount = 2;
+    GRMsyncGlobals.syncTempDelay = false;
+    if GRMsyncGlobals.SyncOK then
+        GRMsync.SendMessage ( "GRM_STOP" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. "JD" , GRMsyncGlobals.channelName );
+    end
 end
 
 -- Method:          GRMsync.SendPDPackets()
@@ -769,16 +875,30 @@ end
 GRMsync.SendPDPackets = function()
     -- Initiate Data sending
 
-    GRMsync.SendMessage ( "GRM_START" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. tostring ( #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] - 1 ) , GRMsyncGlobals.channelName );         -- MSG = number of expected values to be sent.
-
+    if GRMsyncGlobals.SyncOK and not GRMsyncGlobals.syncTempDelay then
+        GRMsync.SendMessage ( "GRM_START" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. tostring ( #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] - 1 ) , GRMsyncGlobals.channelName );         -- MSG = number of expected values to be sent.
+    end
     -- Send all values ( May need to be throttled for massive guilds? Not sure yet! );
-    for i = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
-        GRMsync.SendMessage ( "GRM_PDSYNC" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1] .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][36][2] .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][36][1] , GRMsyncGlobals.channelName )               --  "Name" .. "?" .. TimestampOfChange .. "?" .. PromoDate
+    for i = GRMsyncGlobals.SyncCount , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
+        if GRMsyncGlobals.SyncOK then
+            GRMsyncGlobals.SyncCount = GRMsyncGlobals.SyncCount + 1;
+            if GRMsyncGlobals.SyncCount % GRMsyncGlobals.syncCap == 0 then
+                GRMsyncGlobals.syncTempDelay = true;
+                    GRMsync.SendMessage ( "GRM_PDSYNC" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1] .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][36][2] .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][36][1] , GRMsyncGlobals.channelName )               --  "Name" .. "?" .. TimestampOfChange .. "?" .. PromoDate
+                C_Timer.After ( 2 , GRMsync.SendPDPackets );       -- Add a 2 secon delay on packet sending.
+                return;
+            else
+                GRMsync.SendMessage ( "GRM_PDSYNC" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1] .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][36][2] .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][36][1] , GRMsyncGlobals.channelName )               --  "Name" .. "?" .. TimestampOfChange .. "?" .. PromoDate
+            end
+        end
     end
     
     -- Close the Data stream
-    GRMsync.SendMessage ( "GRM_STOP" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. "PD" , GRMsyncGlobals.channelName );
-
+    GRMsyncGlobals.SyncCount = 2;
+    GRMsyncGlobals.syncTempDelay = false;
+    if GRMsyncGlobals.SyncOK then
+        GRMsync.SendMessage ( "GRM_STOP" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. "PD" , GRMsyncGlobals.channelName );
+    end
 end
 
 -- Method:          GRMsync.SendBANPackets()
@@ -787,10 +907,11 @@ end
 GRMsync.SendBANPackets = function()
     -- Initiate Data sending
 
-    GRMsync.SendMessage ( "GRM_START" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. tostring ( #GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] - 1 ) , GRMsyncGlobals.channelName );         -- MSG = number of expected values to be sent.
-
+    if GRMsyncGlobals.SyncOK and not GRMsyncGlobals.syncTempDelay then
+        GRMsync.SendMessage ( "GRM_START" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. tostring ( #GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] - 1 ) , GRMsyncGlobals.channelName );         -- MSG = number of expected values to be sent.
+    end
     -- Send all values ( May need to be throttled for massive guilds? Not sure yet! );
-    for i = 2 , #GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
+    for i = GRMsyncGlobals.SyncCount , #GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
         local timeStampOfBanChange = tostring ( GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][17][2] );
         local msgTag = "ban";
         -- Let's see if someone was unbanned.
@@ -800,87 +921,159 @@ GRMsync.SendBANPackets = function()
             msgTag = "noban";
         end
 
-        GRMsync.SendMessage ( "GRM_BANSYNC" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1] .. "?" .. timeStampOfBanChange .. "?" .. msgTag .. "?" .. GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][18] , GRMsyncGlobals.channelName );
+        if GRMsyncGlobals.SyncOK then
+            GRMsyncGlobals.SyncCount = GRMsyncGlobals.SyncCount + 1;
+            if GRMsyncGlobals.SyncCount % GRMsyncGlobals.syncCap == 0 then
+                GRMsyncGlobals.syncTempDelay = true;
+                GRMsync.SendMessage ( "GRM_BANSYNC" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1] .. "?" .. timeStampOfBanChange .. "?" .. msgTag .. "?" .. GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][18] , GRMsyncGlobals.channelName );
+                C_Timer.After ( 2 , GRMsync.SendBANPackets );       -- Add a 2 secon delay on packet sending.
+                return;
+            else
+                GRMsync.SendMessage ( "GRM_BANSYNC" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1] .. "?" .. timeStampOfBanChange .. "?" .. msgTag .. "?" .. GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][18] , GRMsyncGlobals.channelName );
+            end
+        end
     end
     
     -- Close the Data stream
-    GRMsync.SendMessage ( "GRM_STOP" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. "BAN" , GRMsyncGlobals.channelName );
-
+    GRMsyncGlobals.SyncCount = 2;
+    GRMsyncGlobals.syncTempDelay = false;
+    if GRMsyncGlobals.SyncOK then
+        GRMsync.SendMessage ( "GRM_STOP" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. "BAN" , GRMsyncGlobals.channelName );
+    end
 end
+-- /run for i=2,#GRM_GuildMemberHistory_Save[1][3] do local f=false;local n=GRM_GuildMemberHistory_Save[1][3][i][1];for j=1,#GRMsyncGlobals.AltReceivedTemp do if n==GRMsyncGlobals.AltReceivedTemp[j][1] then f=true;break;end;end;if not f then print(n);end;end
 
 -- Method:          GRMsync.SendAltPackets()
 -- What it Does:    Broadcasts to the leader all ALT information
 -- Purpose:         Data sync
 GRMsync.SendAltPackets = function()
+    print("sending alt");
+    local msg = "";
+    if not GRMsyncGlobals.syncTempDelay2  then
+        if GRMsyncGlobals.SyncOK and not GRMsyncGlobals.syncTempDelay then
+            GRMsync.SendMessage ( "GRM_START" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. tostring ( #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] - 1 ) , GRMsyncGlobals.channelName );         -- MSG = number of expected values to be sent.
+        end
+        -- Gonna send 2 tables... 1 of the alts, one of the removed alts.
+        for i = GRMsyncGlobals.SyncCount , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
+            -- Initiate rank restrictions at start of msg string.
+            -- If player has alts
+            if #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][11] > 0 then
+                for j = GRMsyncGlobals.SyncCount3 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][11] do
+                    msg = GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1];  
+                    if GRMsyncGlobals.SyncOK then
+                        GRMsyncGlobals.SyncCount3 = GRMsyncGlobals.SyncCount3 + 1;          -- Controlling the position of the alt in the list
+                        GRMsyncGlobals.SyncCount4 = GRMsyncGlobals.SyncCount4 + 1;          -- Number will not be reset until the end... this controls the overall sync number
+                        if GRMsyncGlobals.SyncCount4 % GRMsyncGlobals.syncCap == 0 then
+                            GRMsync.SendMessage ( "GRM_ALTADDSYNC" , msg .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][11][j][1] .. "?" .. tostring ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][11][j][6] ) , GRMsyncGlobals.channelName );
+                            C_Timer.After ( 2 , GRMsync.SendAltPackets );       -- Add a 2 second delay on packet sending.
+                            return;
+                        else
+                            GRMsync.SendMessage ( "GRM_ALTADDSYNC" , msg .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][11][j][1] .. "?" .. tostring ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][11][j][6] ) , GRMsyncGlobals.channelName );
+                        end
+                    end
+                end
+            else
+                GRMsync.SendMessage ( "GRM_ALTADDSYNC" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1] .. "?0" , GRMsyncGlobals.channelName );
+            end
 
-    GRMsync.SendMessage ( "GRM_START" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. tostring ( #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] - 1 ) , GRMsyncGlobals.channelName );         -- MSG = number of expected values to be sent.
+            if GRMsyncGlobals.SyncOK then
+                GRMsyncGlobals.SyncCount = GRMsyncGlobals.SyncCount + 1;
+                if GRMsyncGlobals.SyncCount % GRMsyncGlobals.syncCap == 0 then
+                    GRMsyncGlobals.SyncCount3 = 1;
+                    GRMsyncGlobals.syncTempDelay = true;
+                    C_Timer.After ( 2 , GRMsync.SendAltPackets );       -- Add a 2 secon delay on packet sending.
+                    return;
+                end
+            end
+            GRMsyncGlobals.SyncCount3 = 1;
+        end
+    end
 
-    -- Gonna send 2 tables... 1 of the alts, one of the removed alts.
-    for i = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
-        
-        -- Initiate rank restrictions at start of msg string.
-        local msg = GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1];        
+    -- -- Removed Alts Table...
+    for i = GRMsyncGlobals.SyncCount2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
 
         -- If player has alts
-        if #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][11] > 0 then
-            for j = 1 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][11] do
-                msg = msg .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][11][j][1] .. "?" .. tostring ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][11][j][6] );
-            end
-        else
-            msg = msg .. "?0";
-        end
-        -- Forwarding info to the SYNC LEADER
-        GRMsync.SendMessage ( "GRM_ALTADDSYNC" , msg , GRMsyncGlobals.channelName );
-    end
-
-    
-    -- -- Removed Alts Table...
-    for i = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
-
-        -- reset string and Initiate rank restrictions at start of msg string.
-        msg = GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1]; --  rank restriction level , playerName
-
-        -- The Removed Alt Data.
         if #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][37] > 0 then
-            -- if player has REMOVED alt info.
-            for j = 1 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][37] do
-                msg = msg .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][37][j][1] .. "?" .. tostring ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][37][j][6] );
+            for j = GRMsyncGlobals.SyncCount5 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][37] do
+                msg = GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1];  
+                if GRMsyncGlobals.SyncOK then
+                    GRMsyncGlobals.SyncCount5 = GRMsyncGlobals.SyncCount5 + 1;          -- Controlling the position of the alt in the list
+                    GRMsyncGlobals.SyncCount6 = GRMsyncGlobals.SyncCount6 + 1;          -- Number will not be reset until the end... this controls the overall sync number
+                    if GRMsyncGlobals.SyncCount6 % GRMsyncGlobals.syncCap == 0 then
+                        GRMsyncGlobals.syncTempDelay = true;
+                        GRMsync.SendMessage ( "GRM_ALTREMSYNC" , msg .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][37][j][1] .. "?" .. tostring ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][37][j][6] ) , GRMsyncGlobals.channelName );
+                        C_Timer.After ( 2 , GRMsync.SendAltPackets );       -- Add a 2 second delay on packet sending.
+                        return;
+                    else
+                        GRMsync.SendMessage ( "GRM_ALTREMSYNC" , msg .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][37][j][1] .. "?" .. tostring ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][37][j][6] ) , GRMsyncGlobals.channelName );
+                    end
+                end
             end
         else
-            msg = msg .. "?0";
+            GRMsync.SendMessage ( "GRM_ALTREMSYNC" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1] .. "?0" , GRMsyncGlobals.channelName );
         end
 
-        -- Forwarding the info to the SYNC LEADER
-        GRMsync.SendMessage ( "GRM_ALTREMSYNC" , msg , GRMsyncGlobals.channelName );
+        if GRMsyncGlobals.SyncOK then
+            GRMsyncGlobals.SyncCount2 = GRMsyncGlobals.SyncCount2 + 1;
+            if GRMsyncGlobals.SyncCount2 % GRMsyncGlobals.syncCap == 0 then
+                GRMsyncGlobals.SyncCount5 = 1;
+                GRMsyncGlobals.syncTempDelay = true;
+                C_Timer.After ( 2 , GRMsync.SendAltPackets );       -- Add a 2 secon delay on packet sending.
+                return;
+            end
+        end
+        GRMsyncGlobals.SyncCount5 = 1;
     end
 
-    GRMsync.SendMessage ( "GRM_STOPALTREM" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" , GRMsyncGlobals.channelName )
-
+    GRMsyncGlobals.SyncCount = 2;
+    GRMsyncGlobals.SyncCount2 = 2;
+    GRMsyncGlobals.SyncCount3 = 1;
+    GRMsyncGlobals.SyncCount4 = 1;
+    GRMsyncGlobals.SyncCount5 = 1;
+    GRMsyncGlobals.SyncCount6 = 1;
+    GRMsyncGlobals.syncTempDelay = false;
+    GRMsyncGlobals.syncTempDelay2 = false;
+    if GRMsyncGlobals.SyncOK then
+        GRMsync.SendMessage ( "GRM_STOPALTREM" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" , GRMsyncGlobals.channelName )
+    end
 end
 
 -- Method:          GRMsync.SendMainPackets()
 -- What it Does:    Broadcasts to the leader all MAIN information
 -- Purpose:         Data sync
 GRMsync.SendMainPackets = function()
-
-    GRMsync.SendMessage ( "GRM_START" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. tostring ( #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] - 1 ) , GRMsyncGlobals.channelName );         -- MSG = number of expected values to be sent.
-    
+    if GRMsyncGlobals.SyncOK and not GRMsyncGlobals.syncTempDelay then
+        GRMsync.SendMessage ( "GRM_START" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. tostring ( #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] - 1 ) , GRMsyncGlobals.channelName );         -- MSG = number of expected values to be sent.
+    end
     -- Send all values ( May need to be throttled for massive guilds? Not sure yet! );
     local isPlayerMain;
 
-    for i = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
+    for i = GRMsyncGlobals.SyncCount , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
         
         isPlayerMain = "false";                                                                                 -- Kept as a string rather than a boolean so it can be passed as a comm over the server without needing to cast it to a string.
         if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][10] then
             isPlayerMain = "true";
         end
 
-        GRMsync.SendMessage ( "GRM_MAINSYNC" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1]  .. "?" .. tostring ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][39] ) .. "?" .. isPlayerMain , GRMsyncGlobals.channelName );
+        if GRMsyncGlobals.SyncOK then
+            GRMsyncGlobals.SyncCount = GRMsyncGlobals.SyncCount + 1;
+            if GRMsyncGlobals.SyncCount % GRMsyncGlobals.syncCap == 0 then
+                GRMsyncGlobals.syncTempDelay = true;
+                GRMsync.SendMessage ( "GRM_MAINSYNC" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1]  .. "?" .. tostring ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][39] ) .. "?" .. isPlayerMain , GRMsyncGlobals.channelName );
+                C_Timer.After ( 2 , GRMsync.SendMainPackets );       -- Add a 2 secon delay on packet sending.
+                return;
+            else
+                GRMsync.SendMessage ( "GRM_MAINSYNC" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1]  .. "?" .. tostring ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][39] ) .. "?" .. isPlayerMain , GRMsyncGlobals.channelName );
+            end
+        end
     end
     
     -- Close the Data stream
-    GRMsync.SendMessage ( "GRM_STOP" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. "MAIN" , GRMsyncGlobals.channelName );
-
+    GRMsyncGlobals.SyncCount = 2;
+    GRMsyncGlobals.syncTempDelay = false;
+    if GRMsyncGlobals.SyncOK then
+        GRMsync.SendMessage ( "GRM_STOP" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. "MAIN" , GRMsyncGlobals.channelName );
+    end
 end
 
 -------------------------------
@@ -897,15 +1090,14 @@ GRMsync.InitiateDataSync = function ()
     if #GRMsyncGlobals.SyncQue > 0 then
         GRMsyncGlobals.currentlySyncing = true;
         GRMsyncGlobals.CurrentSyncPlayer = GRMsyncGlobals.SyncQue[1];
-        GRMsync.SendMessage ( "GRM_REQJDDATA" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRMsyncGlobals.SyncQue[1] , GRMsyncGlobals.channelName );
+        if GRMsyncGlobals.SyncOK then
+            GRMsync.SendMessage ( "GRM_REQJDDATA" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRMsyncGlobals.SyncQue[1] , GRMsyncGlobals.channelName );
+        end
         table.remove ( GRMsyncGlobals.SyncQue , 1 );
 
         -- If it fails to sync, after 30 seconds, it retries...
         C_Timer.After ( 30 , function()
             if GRMsyncGlobals.currentlySyncing and #GRMsyncGlobals.SyncQue > 0 then
-                if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][16] then
-                    chat:AddMessage ( "GRM Sync FAILED with " .. GRMsyncGlobals.CurrentSyncPlayer .. " ... Retrying!" , 1.0 , 0 , 0 );
-                end
                 GRMsync.InitiateDataSync();
             end
         end);
@@ -918,76 +1110,138 @@ end
 GRMsync.SubmitFinalSyncData = function()
 
     -- Ok send of the Join Date updates!
-    if #GRMsyncGlobals.JDChanges > 0 then
-        for i = 1 , #GRMsyncGlobals.JDChanges do
-            local joinDate = ( "Joined: " .. GRMsyncGlobals.JDChanges[i][3] );
-            local finalTStamp = ( string.sub ( joinDate , 9 ) .. " 12:01am" );
-            local finalEpochStamp = GRM.TimeStampToEpoch ( joinDate );
+    if #GRMsyncGlobals.JDChanges > 0 and not GRMsyncGlobals.finalSyncProgress[1] then
+        local joinDate = "";
+        local finalTStamp = "";
+        local finalEpochStamp = "";
+        for i = GRMsyncGlobals.finalSyncDataCount , #GRMsyncGlobals.JDChanges do
+            joinDate = ( "Joined: " .. GRMsyncGlobals.JDChanges[i][3] );
+            finalTStamp = ( string.sub ( joinDate , 9 ) .. " 12:01am" );
+            finalEpochStamp = GRM.TimeStampToEpoch ( joinDate );
             -- Send a change to everyone!
-            GRMsync.SendMessage ( "GRM_JDSYNCUP" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRMsyncGlobals.JDChanges[i][1] .. "?" .. joinDate .. "?" .. finalTStamp .. "?" .. finalEpochStamp , GRMsyncGlobals.channelName );
-            -- Do my own changes too!
-            GRMsync.CheckJoinDateChange ( GRMsyncGlobals.JDChanges[i][1] .. "?" .. joinDate .. "?" .. finalTStamp .. "?" .. finalEpochStamp , "" , "GRM_JDSYNCUP" );
+            if GRMsyncGlobals.SyncOK then
+                GRMsyncGlobals.finalSyncDataCount = GRMsyncGlobals.finalSyncDataCount + 1;
+                GRMsync.SendMessage ( "GRM_JDSYNCUP" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRMsyncGlobals.JDChanges[i][1] .. "?" .. joinDate .. "?" .. finalTStamp .. "?" .. finalEpochStamp , GRMsyncGlobals.channelName );
+                -- Do my own changes too!
+                GRMsync.CheckJoinDateChange ( GRMsyncGlobals.JDChanges[i][1] .. "?" .. joinDate .. "?" .. finalTStamp .. "?" .. finalEpochStamp , "" , "GRM_JDSYNCUP" );
+                if GRMsyncGlobals.finalSyncDataCount % GRMsyncGlobals.syncCap == 0 then
+                    C_Timer.After ( 2 , GRMsync.SubmitFinalSyncData );
+                    return;
+                end
+            end
         end
     end
+    GRMsyncGlobals.finalSyncProgress[1] = true;
 
     -- Promo date sync!
-    if #GRMsyncGlobals.PDChanges > 0 then
-        for i = 1 , #GRMsyncGlobals.PDChanges do
-            local promotionDate = ( "Joined: " .. GRMsyncGlobals.PDChanges[i][3] );
-            GRMsync.SendMessage ( "GRM_PDSYNCUP" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRMsyncGlobals.PDChanges[i][1] .. "?" .. promotionDate , "GUILD"); 
-            -- Need to change my own data too!
-            GRMsync.CheckPromotionDateChange ( GRMsyncGlobals.PDChanges[i][1] .. "?" .. promotionDate , "" , "GRM_PDSYNCUP" );
-
+    if #GRMsyncGlobals.PDChanges > 0 and not GRMsyncGlobals.finalSyncProgress[2] then
+        local promotionDate = "";
+        for i = GRMsyncGlobals.finalSyncDataCount , #GRMsyncGlobals.PDChanges do
+            promotionDate = ( "Joined: " .. GRMsyncGlobals.PDChanges[i][3] );
+            if GRMsyncGlobals.SyncOK then
+                GRMsyncGlobals.finalSyncDataCount = GRMsyncGlobals.finalSyncDataCount + 1;
+                GRMsync.SendMessage ( "GRM_PDSYNCUP" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRMsyncGlobals.PDChanges[i][1] .. "?" .. promotionDate .. "?" .. tostring ( GRMsyncGlobals.PDChanges[i][2] ) , "GUILD"); 
+                -- Do my own changes too!
+                GRMsync.CheckPromotionDateChange ( GRMsyncGlobals.PDChanges[i][1] .. "?" .. promotionDate .. "?" .. tostring ( GRMsyncGlobals.PDChanges[i][2] ) , "" , "GRM_PDSYNCUP" );
+                if GRMsyncGlobals.finalSyncDataCount % GRMsyncGlobals.syncCap == 0 then
+                    C_Timer.After ( 2 , GRMsync.SubmitFinalSyncData );
+                    return;
+                end
+            end
         end
     end
+    GRMsyncGlobals.finalSyncDataCount = 1;
+    GRMsyncGlobals.finalSyncProgress[2] = true;
 
     -- BAN changes sync!
-    if #GRMsyncGlobals.BanChanges > 0 then
-        for i = 1 , #GRMsyncGlobals.BanChanges do
-            GRMsync.SendMessage ( "GRM_BANSYNCUP" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRMsyncGlobals.BanChanges[i][1] .. "?" .. tostring ( GRMsyncGlobals.BanChanges[i][2] ) .. "?" .. GRMsyncGlobals.BanChanges[i][3] .. "?" .. GRMsyncGlobals.BanChanges[i][4] , GRMsyncGlobals.channelName );
-
-            -- Now my own data!
-            GRMsync.BanManagementPlayersThatLeft ( GRMsyncGlobals.BanChanges[i][1] .. "?" .. tostring ( GRMsyncGlobals.BanChanges[i][2] ) .. "?" .. GRMsyncGlobals.BanChanges[i][3] .. "?" .. GRMsyncGlobals.BanChanges[i][4] , "" , "GRM_BANSYNCUP" );
+    if #GRMsyncGlobals.BanChanges > 0 and not GRMsyncGlobals.finalSyncProgress[3] then
+        for i = GRMsyncGlobals.finalSyncDataCount , #GRMsyncGlobals.BanChanges do
+            if GRMsyncGlobals.SyncOK then
+                GRMsyncGlobals.finalSyncDataCount = GRMsyncGlobals.finalSyncDataCount + 1;
+                GRMsync.SendMessage ( "GRM_BANSYNCUP" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRMsyncGlobals.BanChanges[i][1] .. "?" .. tostring ( GRMsyncGlobals.BanChanges[i][2] ) .. "?" .. GRMsyncGlobals.BanChanges[i][3] .. "?" .. GRMsyncGlobals.BanChanges[i][4] , GRMsyncGlobals.channelName );
+                -- Do my own changes too!
+                GRMsync.BanManagementPlayersThatLeft ( GRMsyncGlobals.BanChanges[i][1] .. "?" .. tostring ( GRMsyncGlobals.BanChanges[i][2] ) .. "?" .. GRMsyncGlobals.BanChanges[i][3] .. "?" .. GRMsyncGlobals.BanChanges[i][4] , "" , "GRM_BANSYNCUP" );
+                if GRMsyncGlobals.finalSyncDataCount % GRMsyncGlobals.syncCap == 0 then
+                    C_Timer.After ( 2 , GRMsync.SubmitFinalSyncData );
+                    return;
+                end
+            end
         end
     end
+    GRMsyncGlobals.finalSyncDataCount = 1;
+    GRMsyncGlobals.finalSyncProgress[3] = true;
 
     -- ALT changes sync for adding alts!
-    if #GRMsyncGlobals.AltAddChanges > 0 then
-        for i = 1 , #GRMsyncGlobals.AltAddChanges do  -- ( playerName , altName )
-            GRMsync.SendMessage ( "GRM_ALTSYNCUP" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRMsyncGlobals.AltAddChanges[i][1] .. "?" .. GRMsyncGlobals.AltAddChanges[i][2] , GRMsyncGlobals.channelName );
-
+    if #GRMsyncGlobals.AltAddChanges > 0 and not GRMsyncGlobals.finalSyncProgress[4] then
+        for i = GRMsyncGlobals.finalSyncDataCount , #GRMsyncGlobals.AltAddChanges do  -- ( playerName , altName )
+            if GRMsyncGlobals.SyncOK then
+                GRMsyncGlobals.finalSyncDataCount = GRMsyncGlobals.finalSyncDataCount + 1;
+                GRMsync.SendMessage ( "GRM_ALTSYNCUP" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRMsyncGlobals.AltAddChanges[i][1] .. "?" .. GRMsyncGlobals.AltAddChanges[i][2] .. "?" .. tostring ( GRMsyncGlobals.AltAddChanges[i][3] ) , GRMsyncGlobals.channelName );
+                -- Do my own changes too!
+                GRMsync.CheckAddAltChange ( GRMsyncGlobals.AltAddChanges[i][1] .. "?" .. GRMsyncGlobals.AltAddChanges[i][2] .. "?" .. tostring ( GRMsyncGlobals.AltAddChanges[i][3] ) , "" , "GRM_ALTSYNCUP" );
+                if GRMsyncGlobals.finalSyncDataCount % GRMsyncGlobals.syncCap == 0 then
+                    C_Timer.After ( 2 , GRMsync.SubmitFinalSyncData );
+                    return;
+                end
+            end
             -- Now my data!
-            GRMsync.CheckAddAltChange ( GRMsyncGlobals.AltAddChanges[i][1] .. "?" .. GRMsyncGlobals.AltAddChanges[i][2] , "" , "GRM_ALTSYNCUP" );
         end
     end
+    GRMsyncGlobals.finalSyncDataCount = 1;
+    GRMsyncGlobals.finalSyncProgress[4] = true;
 
     -- ALT changes sync for adding alts!
-    if #GRMsyncGlobals.AltRemoveChanges > 0 then
-        for i = 1 , #GRMsyncGlobals.AltRemoveChanges do  -- ( playerName , altName )
-            GRMsync.SendMessage ( "GRM_REMSYNCUP" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRMsyncGlobals.AltRemoveChanges[i][1] .. "?" .. GRMsyncGlobals.AltRemoveChanges[i][2] , GRMsyncGlobals.channelName );
-
-            GRMsync.CheckRemoveAltChange ( GRMsyncGlobals.AltRemoveChanges[i][1] .. "?" .. GRMsyncGlobals.AltRemoveChanges[i][2] , "" , "GRM_REMSYNCUP" );
+    if #GRMsyncGlobals.AltRemoveChanges > 0 and not GRMsyncGlobals.finalSyncProgress[5] then
+        for i = GRMsyncGlobals.finalSyncDataCount , #GRMsyncGlobals.AltRemoveChanges do  -- ( playerName , altName )
+            if GRMsyncGlobals.SyncOK then
+                GRMsyncGlobals.finalSyncDataCount = GRMsyncGlobals.finalSyncDataCount + 1;
+                GRMsync.SendMessage ( "GRM_REMSYNCUP" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRMsyncGlobals.AltRemoveChanges[i][1] .. "?" .. GRMsyncGlobals.AltRemoveChanges[i][2] .. "?" .. tostring ( GRMsyncGlobals.AltRemoveChanges[i][3] ) , GRMsyncGlobals.channelName );
+                -- Do my own changes too!
+                GRMsync.CheckRemoveAltChange ( GRMsyncGlobals.AltRemoveChanges[i][1] .. "?" .. GRMsyncGlobals.AltRemoveChanges[i][2] .. "?" .. tostring ( GRMsyncGlobals.AltRemoveChanges[i][3] ) , "" , "GRM_REMSYNCUP" );
+                if GRMsyncGlobals.finalSyncDataCount % GRMsyncGlobals.syncCap == 0 then
+                    C_Timer.After ( 2 , GRMsync.SubmitFinalSyncData );
+                    return;
+                end
+            end
         end
     end
+    GRMsyncGlobals.finalSyncDataCount = 1;
+    GRMsyncGlobals.finalSyncProgress[5] = true;
 
     -- MAIN STATUS CHECK!
-    if #GRMsyncGlobals.AltMainChanges > 0 then
-        for i = 1, #GRMsyncGlobals.AltMainChanges do
-            GRMsync.SendMessage ( "GRM_MAINSYNCUP" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRMsyncGlobals.AltMainChanges[i][1] .. "?" .. tostring ( GRMsyncGlobals.AltMainChanges[i][2] ) , GRMsyncGlobals.channelName )
-
-            GRMsync.CheckMainSyncChange ( GRMsyncGlobals.AltMainChanges[i][1] .. "?" .. tostring ( GRMsyncGlobals.AltMainChanges[i][2] ) );
+    if #GRMsyncGlobals.AltMainChanges > 0 and not GRMsyncGlobals.finalSyncProgress[6] then
+        for i = GRMsyncGlobals.finalSyncDataCount , #GRMsyncGlobals.AltMainChanges do
+            if GRMsyncGlobals.SyncOK then
+                GRMsyncGlobals.finalSyncDataCount = GRMsyncGlobals.finalSyncDataCount + 1;
+                GRMsync.SendMessage ( "GRM_MAINSYNCUP" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRMsyncGlobals.AltMainChanges[i][1] .. "?" .. tostring ( GRMsyncGlobals.AltMainChanges[i][2] ) .. "?" .. tostring ( GRMsyncGlobals.AltMainChanges[i][3] ) , GRMsyncGlobals.channelName )
+                -- Do my own changes too!
+                GRMsync.CheckMainSyncChange ( GRMsyncGlobals.AltMainChanges[i][1] .. "?" .. tostring ( GRMsyncGlobals.AltMainChanges[i][2] ) .. "?" .. tostring ( GRMsyncGlobals.AltMainChanges[i][3] )  );
+                if GRMsyncGlobals.finalSyncDataCount % GRMsyncGlobals.syncCap == 0 then
+                    C_Timer.After ( 2 , GRMsync.SubmitFinalSyncData );
+                    return;
+                end
+            end
         end
     end
+    GRMsyncGlobals.finalSyncDataCount = 1;
+    GRMsyncGlobals.finalSyncProgress[6] = true;
 
     -- Ok all done! Reset the tables!
     GRMsync.ResetReportTables();
+    GRMsyncGlobals.finalSyncProgress = { false , false , false , false , false , false };
+    
     -- Do a quick check if anyone else added themselves to the que in the last millisecond, and if so, REPEAT!
     -- Setup repeat here.
     -----------------------------------
     if #GRMsyncGlobals.SyncQue > 0 then
         GRMsync.InitiateDataSync();
+    else
+        if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][16] then
+            chat:AddMessage ( "GRM: Sync With Guildies Complete..."  , 1.0 , 0.84 , 0 );
+        end
+        GRMsync.SendMessage ( "GRM_COMPLETE" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?0" , GRMsyncGlobals.channelName );
+        GRMsyncGlobals.currentlySyncing = false;
     end
-    GRMsyncGlobals.currentlySyncing = false;
 end
 
 -- Method:          GRMsync.CollectData ( string , string )
@@ -1040,38 +1294,40 @@ GRMsync.CollectAltAddData = function ( msg )
     local name = string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 );
     msg = string.sub ( msg , string.find ( msg , "?" ) + 1 );
 
-    local altName = "";
-    local timeOfAddAlt = 0;
-
     -- Initializing empty array
-    table.insert ( GRMsyncGlobals.AltReceivedTemp , { name , {} } ); 
+    local index = -1;
+    for i = 1 , #GRMsyncGlobals.AltReceivedTemp do
+        if GRMsyncGlobals.AltReceivedTemp[i][1] == name then
+            index = i;
+            break;
+        end
+    end
+
+    if index == -1 then
+        table.insert ( GRMsyncGlobals.AltReceivedTemp , { name , {} } ); 
+    end
 
     -- Ok, let's see if there are alts to be added!
-    if msg ~= "0" then
-        -- There are alts to be added!!!
-        while ( string.find ( msg , "?" ) ~= nil ) do
-            altName = string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 );
-            msg = string.sub ( msg , string.find ( msg , "?" ) + 1 );
-
-            -- Check if we are at the end of the string!
-            local isFinished = false;
-            if string.find ( msg , "?" ) == nil then
-                timeOfAddAlt = tonumber ( msg );
-                isFinished = true;
-            else
-                timeOfAddAlt = tonumber ( string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 ) );
-            end
-            
-            -- Ok, let's add the alt info!
-            -- Player was just added, so you know it is at the end of the table in the last index.
-            table.insert ( GRMsyncGlobals.AltReceivedTemp[ #GRMsyncGlobals.AltReceivedTemp ][2] , { altName , timeOfAddAlt } );
-            
-            if isFinished then  -- We are done adding alts!!
-                break;
-            else
-                msg = string.sub ( msg , string.find ( msg , "?" ) + 1 ); -- Parsing string for next pass!
-            end
+    if msg ~= "0" then      
+        -- Ok, let's add the alt info!
+        -- Player was just added, so you know it is at the end of the table in the last index.
+        -- Sets insert point in table.
+        if index == -1 then
+            index = #GRMsyncGlobals.AltReceivedTemp;
         end
+
+        local timestampResult;
+        local altName = string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 );
+        msg = string.sub ( msg , string.find ( msg , "?" ) + 1 );
+
+        -- This protects against older version from breaking new way alt data is sync'd
+        if string.find ( msg , "?" ) == nil then
+            timestampResult = tonumber ( msg );
+        else
+            timestampResult = tonumber ( string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 ) );
+        end
+
+        table.insert ( GRMsyncGlobals.AltReceivedTemp[ index ][2] , { altName , timestampResult } );
     end
 end
 
@@ -1082,39 +1338,37 @@ GRMsync.CollectAltRemData = function ( msg )
     local name = string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 );
     msg = string.sub ( msg , string.find ( msg , "?" ) + 1 );
 
-    -- Creating empty list.
-    local altName = "";
-    local timeofRemAlt = 0;
+    local index = -1;
+    for i = 1 , #GRMsyncGlobals.AltRemReceivedTemp do
+        if GRMsyncGlobals.AltRemReceivedTemp[i][1] == name then
+            index = i;
+            break;
+        end
+    end
 
-    -- Initializing empty array
-    table.insert ( GRMsyncGlobals.AltRemReceivedTemp , { name , {} } ); 
+    if index == -1 then
+        table.insert ( GRMsyncGlobals.AltRemReceivedTemp , { name , {} } ); 
+    end
 
     -- Ok, let's see if there are alts to be added!
     if msg ~= "0" then
-        -- There are alts to be added!!!
-        while ( string.find ( msg , "?" ) ~= nil ) do
-            altName = string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 );
-            msg = string.sub ( msg , string.find ( msg , "?" ) + 1 );
 
-            -- Check if we are at the end of the string!
-            local isFinished = false;
-            if string.find ( msg , "?" ) == nil then
-                timeofRemAlt = tonumber ( msg );
-                isFinished = true;
-            else
-                timeofRemAlt = tonumber ( string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 ) );
-            end
-            
-            -- Ok, let's add the alt info!
-            -- Player was just added, so you know it is at the end of the table in the last index.
-            table.insert ( GRMsyncGlobals.AltRemReceivedTemp[ #GRMsyncGlobals.AltRemReceivedTemp ][2] , { altName , timeofRemAlt } );
-            
-            if isFinished then  -- We are done adding alts!!
-                break;
-            else
-                msg = string.sub ( msg , string.find ( msg , "?" ) + 1 ); -- Parsing string for next pass!
-            end
+        if index == -1 then
+            index = #GRMsyncGlobals.AltRemReceivedTemp;
         end
+        
+        local timestampResult;
+        local altName = string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 );
+        msg = string.sub ( msg , string.find ( msg , "?" ) + 1 );
+
+        -- This protects against older version from breaking new way alt data is sync'd
+        if string.find ( msg , "?" ) == nil then
+            timestampResult = tonumber ( msg );
+        else
+            timestampResult = tonumber ( string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 ) );
+        end
+
+        table.insert ( GRMsyncGlobals.AltRemReceivedTemp[ index ][2] , { altName , timestampResult } );
     end
 end
 
@@ -1276,9 +1530,9 @@ GRMsync.CheckChanges = function ( msg )
             -- Wiping the temp file!
             -- From here, request should be sent out for PDSYNC!
             GRMsyncGlobals.JDReceivedTemp = {};
-            GRMsync.SendMessage ( "GRM_REQPDDATA" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRMsyncGlobals.CurrentSyncPlayer , GRMsyncGlobals.channelName );
-        else
-            error("GRMsync.CheckChanges() - Sync failed on JOIN DATE check with designated SYNC Leader: " .. GRMsyncGlobals.DesignatedLeader );
+            if GRMsyncGlobals.SyncOK then
+                GRMsync.SendMessage ( "GRM_REQPDDATA" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRMsyncGlobals.CurrentSyncPlayer , GRMsyncGlobals.channelName );
+            end
         end
 
     -----------------------------
@@ -1337,9 +1591,9 @@ GRMsync.CheckChanges = function ( msg )
         
             -- Wipe the data!
             GRMsyncGlobals.PDReceivedTemp = {};
-            GRMsync.SendMessage ( "GRM_REQBANDATA" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRMsyncGlobals.CurrentSyncPlayer , GRMsyncGlobals.channelName );
-        else
-            error("GRMsync.CheckChanges() - Sync failed on PROMOTION DATE Check with designated SYNC Leader: " .. GRMsyncGlobals.DesignatedLeader );
+            if GRMsyncGlobals.SyncOK then
+                GRMsync.SendMessage ( "GRM_REQBANDATA" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRMsyncGlobals.CurrentSyncPlayer , GRMsyncGlobals.channelName );
+            end
         end
 
     -----------------------------
@@ -1407,9 +1661,9 @@ GRMsync.CheckChanges = function ( msg )
                 end
             end
             GRMsyncGlobals.BanReceivedTemp = {};
-            GRMsync.SendMessage ( "GRM_REQALTDATA" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRMsyncGlobals.CurrentSyncPlayer , GRMsyncGlobals.channelName );
-        else
-            error("GRMsync.CheckChanges() - Sync failed on BAN Check with designated SYNC Leader: " .. GRMsyncGlobals.DesignatedLeader );
+            if GRMsyncGlobals.SyncOK then
+                GRMsync.SendMessage ( "GRM_REQALTDATA" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRMsyncGlobals.CurrentSyncPlayer , GRMsyncGlobals.channelName );
+            end
         end
         
         -----------------------------
@@ -1433,8 +1687,7 @@ GRMsync.CheckChanges = function ( msg )
                             -- Adding Received from other player
                             if addReceived then
                                 changeData = GRMsyncGlobals.MainReceivedTemp[i];
-                            
-                            -- Adding my own data, as it is more current
+                                -- Adding my own data, as it is more current
                             else
                                 changeData = { GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][1] , GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][10] , GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][39] };
                             end
@@ -1466,12 +1719,46 @@ GRMsync.CheckChanges = function ( msg )
                 end
             end
 
+            -- Now, let's purge repeats, as only 1 of an alt-grouping needs to be modified.
+            local listToRemove = {};
+ 
+            for i = 1 , #GRMsyncGlobals.AltMainChanges do                                                                                                                                       -- Cycle through all results.
+                if GRMsyncGlobals.AltMainChanges[i][2] then                -- Only need to cycle through the alts where they are set to be listed as main, not demoted.
+                    for j = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do                                                                             -- Let's cycle through the metadata!
+                        if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][1] == GRMsyncGlobals.AltMainChanges[i][1] then                                    -- player found!
+                            local altList = GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][11];
+                            -- Now that I have the altList, I should see if any of them match this main
+                            for r = 1 , #altList do
+                                for s = 1 , #GRMsyncGlobals.AltMainChanges do
+                                    if altList[r][1] == GRMsyncGlobals.AltMainChanges[s][1] then
+                                        table.insert ( listToRemove , altList[r][1] );
+
+                                        break;
+                                    end
+                                end
+                            end
+                            
+                            break;
+                        end
+                    end
+                end
+            end
+            -- Let's purge the changes!
+            while #listToRemove > 0 do
+                for i = 1 , #GRMsyncGlobals.AltMainChanges do
+                    if GRMsyncGlobals.AltMainChanges[i][1] == listToRemove[1] then
+                        table.remove ( GRMsyncGlobals.AltMainChanges , i );
+                        break;
+                    end
+                end
+                table.remove ( listToRemove , 1 );
+            end
+            
+
             -- Resetting the temp tables!
             GRMsyncGlobals.MainReceivedTemp = {};
             -- Final step of the sync process! Let's submit the final changes!!!
             GRMsync.SubmitFinalSyncData();
-        else
-            error ( "GRMsync.CheckChanges() - Sync failed on MAIN STATUS Check with designated SYNC Leader: " .. GRMsyncGlobals.DesignatedLeader );
         end
     end
 end
@@ -1481,11 +1768,10 @@ end
 -- What it Does:    Compares the Leader's data to the received's data
 -- Purpose:         Let's analyze the alt lists!
 GRMsync.CheckAltChanges = function()
-
 -- Ok, first things first, I need to compile both tables
 -- GRMsyncGlobals.AltReceivedTemp
 -- GRMsyncGlobals.AltRemReceivedTemp
-    if #GRMsyncGlobals.AltReceivedTemp == GRMsyncGlobals.NumPlayerDataExpected then 
+    if #GRMsyncGlobals.AltReceivedTemp == GRMsyncGlobals.NumPlayerDataExpected then
         local currentTime = time();
         local leaderListOfAlts = {};
         local leaderListOfRemovedAlts = {};
@@ -1585,11 +1871,9 @@ GRMsync.CheckAltChanges = function()
                                 GRMsync.AddToProperAltTable ( leaderListOfAlts[i][1] , leaderListOfAlts[i][2][r][1] , leaderListOfAlts[i][2][r][2] , false );
                             end
 
-
                         end
 
                     end
-
 
                     -- STEP2: RECEIVED DATA
                     -- Comparing alt lists held by received...
@@ -1663,9 +1947,9 @@ GRMsync.CheckAltChanges = function()
         GRMsyncGlobals.AltReceivedTemp = {};
         GRMsyncGlobals.AltRemReceivedTemp = {};
         -- CHECK MAIN CHANGES NOW!!!
-        GRMsync.SendMessage ( "GRM_REQMAIN" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRMsyncGlobals.CurrentSyncPlayer , GRMsyncGlobals.channelName );
-    else
-        error ( "GRMsync.CheckAltChanges() - Sync failed on LISTED ALT Check with designated SYNC Leader: " .. GRMsyncGlobals.DesignatedLeader );
+        if GRMsyncGlobals.SyncOK then
+            GRMsync.SendMessage ( "GRM_REQMAIN" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRMsyncGlobals.CurrentSyncPlayer , GRMsyncGlobals.channelName );
+        end
     end
 end
 
@@ -1674,8 +1958,9 @@ end
 -- Purpose:         Step 1 of sync algorithm in determining leader.
 GRMsync.InquireLeader = function()
     GRMsyncGlobals.IsLeaderRequested = true;
-    GRMsync.SendMessage ( "GRM_WHOISLEADER" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. "" , GRMsyncGlobals.channelName );
-
+    if GRMsyncGlobals.SyncOK then
+        GRMsync.SendMessage ( "GRM_WHOISLEADER" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. "" , GRMsyncGlobals.channelName );
+    end
 end
 
 -- Method:          GRMsync.SetLeader ( string )
@@ -1687,8 +1972,9 @@ GRMsync.SetLeader = function ( leader )
         GRMsyncGlobals.LeadershipEstablished = true;
 
         -- Non leader sends request to sync
-        GRMsync.SendMessage ( "GRM_REQUESTSYNC" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. "" , GRMsyncGlobals.channelName );
-
+        if GRMsyncGlobals.SyncOK then
+            GRMsync.SendMessage ( "GRM_REQUESTSYNC" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. "" , GRMsyncGlobals.channelName );
+        end
     elseif leader == GRM_AddonGlobals.addonPlayerName then
         GRMsyncGlobals.DesignatedLeader = leader;
         GRMsyncGlobals.LeadershipEstablished = true;
@@ -1706,7 +1992,9 @@ end
 GRMsync.InquireLeaderRespond = function ( sender )
     GRMsyncGlobals.IsLeaderRequested = true;
     GRMsyncGlobals.LeadershipEstablished = true;
-    GRMsync.SendMessage ( "GRM_IAMLEADER" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. "" , GRMsyncGlobals.channelName );
+    if GRMsyncGlobals.SyncOK then
+        GRMsync.SendMessage ( "GRM_IAMLEADER" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. "" , GRMsyncGlobals.channelName );
+    end
     C_Timer.After ( 3 , GRMsync.InitiateDataSync );
 end
 
@@ -1729,8 +2017,9 @@ GRMsync.ReviewElectResponses = function()
         end
 
         -- Send Message out
-        GRMsync.SendMessage ( "GRM_NEWLEADER" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. highestName , GRMsyncGlobals.channelName );
-
+        if GRMsyncGlobals.SyncOK then
+            GRMsync.SendMessage ( "GRM_NEWLEADER" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. highestName , GRMsyncGlobals.channelName );
+        end
         -- Establishing leader.
         GRMsync.SetLeader ( highestName );
         
@@ -1738,14 +2027,16 @@ GRMsync.ReviewElectResponses = function()
     elseif #GRMsyncGlobals.ElectTimeOnlineTable == 1 then
         -- One result will be established as leader. No need to compare.
         -- Identifying new leader!
-        GRMsync.SendMessage ( "GRM_NEWLEADER" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRMsyncGlobals.ElectTimeOnlineTable[1][2] , GRMsyncGlobals.channelName );
+        if GRMsyncGlobals.SyncOK then
+            GRMsync.SendMessage ( "GRM_NEWLEADER" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRMsyncGlobals.ElectTimeOnlineTable[1][2] , GRMsyncGlobals.channelName );
+        end
         -- Sending message out.
         GRMsync.SetLeader ( GRMsyncGlobals.ElectTimeOnlineTable[1][2] );
         
 
     else
         -- ZERO RESPONSES! No one else online! -- No need to data sync and go further!
-        GRMsyncGlobals.DesignatedLeader = leader;
+        GRMsyncGlobals.DesignatedLeader = GRM_AddonGlobals.addonPlayerName;
         GRMsyncGlobals.IsElectedLeader = true;
         
         -- if no leader was found, and it is just me, do a random check again within the next 45-90 seconds.
@@ -1768,8 +2059,9 @@ end
 -- Purpose:         Need to get time responses from all players to determine who has been online the longest, which will likely have the best data.
 GRMsync.RequestElection = function()
     GRMsyncGlobals.ElectionProcessing = true;
-    GRMsync.SendMessage ( "GRM_ELECT" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. "" , GRMsyncGlobals.channelName );
-
+    if GRMsyncGlobals.SyncOK then
+        GRMsync.SendMessage ( "GRM_ELECT" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. "" , GRMsyncGlobals.channelName );
+    end
     -- Let's give it a time delay to receive responses. 3 seconds.
     C_Timer.After ( 3 , GRMsync.ReviewElectResponses );
 end
@@ -1780,7 +2072,9 @@ end
 -- Purpose:         For voting, to determine who was online the longest.
 GRMsync.SendTimeForElection = function()
     if not GRMsyncGlobals.ElectionProcessing then
-        GRMsync.SendMessage ( "GRM_TIMEONLINE" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRM_AddonGlobals.addonPlayerName .. "?" .. tostring ( GRMsyncGlobals.timeAtLogin ) , GRMsyncGlobals.channelName );
+        if GRMsyncGlobals.SyncOK then
+            GRMsync.SendMessage ( "GRM_TIMEONLINE" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRM_AddonGlobals.addonPlayerName .. "?" .. tostring ( GRMsyncGlobals.timeAtLogin ) , GRMsyncGlobals.channelName );
+        end
     end
 end
 
@@ -1817,7 +2111,16 @@ GRMsync.EstablishLeader = function()
             
         end    
     end);
+end
 
+-- Method:          GRMsync.FinalAnnounce()
+-- What it Does:    Initiates a final announcement that the sync is complete... useful for player info.
+-- Purpose:         So the player can easily determine the beginning AND the end of the sync process.
+GRMsync.FinalAnnounce = function()
+
+    if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][16] then
+        chat:AddMessage ( "GRM: Sync With Guildies Complete..."  , 1.0 , 0.84 , 0 );
+    end
 end
 
 -------------------------------
@@ -1834,166 +2137,176 @@ GRMsync.RegisterCommunicationProtocols = function()
 
     -- Setup tracking...
     GRMsync.MessageTracking:SetScript ( "OnEvent" , function( self , event , prefix , msg , channel , sender )
-        if event == "CHAT_MSG_ADDON" and channel == GRMsyncGlobals.channelName and sender ~= GRM_AddonGlobals.addonPlayerName then     -- Don't need to register my own sends.
+        if not GRMsyncGlobals.SyncOK or not IsInGuild() then
+            GRMsync.MessageTracking:UnregisterAllEvents();
+        else
+           
+            if event == "CHAT_MSG_ADDON" and channel == GRMsyncGlobals.channelName and GRMsync.IsPrefixVerified ( prefix ) then     -- Don't need to register my own sends.
 
-            if GRMsync.IsPrefixVerified ( prefix ) then
+                 -- Let's format the sender info for ease!
+                sender = GRMsync.SyncName ( sender , "enGB" ) -- This will eventually be localized
+                if sender ~= GRM_AddonGlobals.addonPlayerName then
 
-                -- Let's strip out the rank requirement of the sender, so it avoids syncing with people not of required rank.
-                local senderRankRequirement = tonumber ( string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 ) );
+                    -- Let's strip out the rank requirement of the sender, so it avoids syncing with people not of required rank.
+                    local senderRankRequirement = tonumber ( string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 ) );
 
-                -- Need to do a rank check here to accept the send or not. -- VERIFY PREFIX BEFORE CHECKING!
-                
-                if sender ~= GRMsync.DesignatedLeader and ( GRM.GetGuildMemberRankID ( sender ) >= GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] or senderRankRequirement <= GRM.GetGuildMemberRankID ( GRM_AddonGlobals.addonPlayerName ) ) then        -- If player's rank is below settings threshold, ignore message.
-                    return
-                end
-                
-                -- parsing out the rankRequirementOfSender
-                msg = string.sub ( msg , string.find ( msg , "?" ) + 1 );
-
-                ------------------------------------------
-                ----------- LIVE UPDATE TRACKING ---------
-                ------------------------------------------
-
-                -- Varuious Prefix Logic handling now...
-                if prefix == "GRM_JD" then
-                    GRMsync.CheckJoinDateChange ( msg , sender , prefix );
-                
-                -- On a Promotion Date Edit
-                elseif prefix == "GRM_PD" then
-                    GRMsync.CheckPromotionDateChange ( msg , sender , prefix );
-
-                -- If person added to Calendar... this event occurs.
-                elseif prefix == "GRM_AC" then
-                    GRMsync.EventAddedToCalendarCheck ( msg , sender );
-                
-                -- For adding an alt!
-                elseif prefix == "GRM_ADDALT" then
-                    GRMsync.CheckAddAltChange ( msg , sender , prefix );
-            
-                -- For Removing an alt!
-                elseif prefix == "GRM_RMVALT" then
-                    GRMsync.CheckRemoveAltChange ( msg , sender , prefix );
-            
-                -- For declaring who is to be "main"
-                elseif prefix == "GRM_MAIN" then
-                    GRMsync.CheckAltMainChange ( msg , sender );
-            
-                -- For demoting from main -- basically to set as no mains.
-                elseif prefix == "GRM_RMVMAIN" then
-                    GRMsync.CheckAltMainToAltChange ( msg , sender );
-            
-                -- For ensuring bans are shared!
-                elseif prefix == "GRM_BAN" then
-                    GRMsync.CheckBanListChange ( msg , sender );
-
-               
-            
-                
-                --------------------------------------------
-                -------- RETROACTIVE SYNC TRACKING ---------
-                --------------------------------------------
-
-                -- In response to asking "Who is the leader" then ONLY THE LEADER will respond.
-                elseif prefix == "GRM_WHOISLEADER" and GRMsyncGlobals.IsElectedLeader then
-                        GRMsync.InquireLeaderRespond( sender );
-
-                -- Updates who is the LEADER to sync with!
-                elseif prefix == "GRM_IAMLEADER" then
-                    GRMsync.SetLeader ( sender );
-
-                 -- For an election...
-                elseif prefix == "GRM_ELECT" then
-                    GRMsync.SendTimeForElection ();
-
-                -- For sending timestamps out!
-                elseif prefix == "GRM_TIMEONLINE" and not GRMsyncGlobals.LeadershipEstablished then -- Only the person who sent the inquiry will bother reading these... flow control...
-                    GRMsync.ResgisterTimeStamps ( msg );
+                    -- Need to do a rank check here to accept the send or not. -- VERIFY PREFIX BEFORE CHECKING!
                     
-                -- For establishing the new leader after an election
-                elseif prefix == "GRM_NEWLEADER" then
-                    GRMsync.ElectedLeader ( msg )
+                    if sender ~= GRMsync.DesignatedLeader and ( GRM.GetGuildMemberRankID ( sender ) >= GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] or senderRankRequirement <= GRM.GetGuildMemberRankID ( GRM_AddonGlobals.addonPlayerName ) ) then        -- If player's rank is below settings threshold, ignore message.
+                        return
+                    end
+                    
+                    -- parsing out the rankRequirementOfSender
+                    msg = string.sub ( msg , string.find ( msg , "?" ) + 1 );
+
+                    ------------------------------------------
+                    ----------- LIVE UPDATE TRACKING ---------
+                    ------------------------------------------
+
+                    -- Varuious Prefix Logic handling now...
+                    if prefix == "GRM_JD" then
+                        GRMsync.CheckJoinDateChange ( msg , sender , prefix );
+                    
+                    -- On a Promotion Date Edit
+                    elseif prefix == "GRM_PD" then
+                        GRMsync.CheckPromotionDateChange ( msg , sender , prefix );
+
+                    -- If person added to Calendar... this event occurs.
+                    elseif prefix == "GRM_AC" then
+                        GRMsync.EventAddedToCalendarCheck ( msg , sender );
+                    
+                    -- For adding an alt!
+                    elseif prefix == "GRM_ADDALT" then
+                        GRMsync.CheckAddAltChange ( msg , sender , prefix );
                 
+                    -- For Removing an alt!
+                    elseif prefix == "GRM_RMVALT" then
+                        GRMsync.CheckRemoveAltChange ( msg , sender , prefix );
+                
+                    -- For declaring who is to be "main"
+                    elseif prefix == "GRM_MAIN" then
+                        GRMsync.CheckAltMainChange ( msg , sender );
+                
+                    -- For demoting from main -- basically to set as no mains.
+                    elseif prefix == "GRM_RMVMAIN" then
+                        GRMsync.CheckAltMainToAltChange ( msg , sender );
+                
+                    -- For ensuring bans are shared!
+                    elseif prefix == "GRM_BAN" then
+                        GRMsync.CheckBanListChange ( msg , sender );
 
-                -- LEADERSHIP ESTABLISHED, NOW LET'S SYNC COMMS!
+                
+                
+                    
+                    --------------------------------------------
+                    -------- RETROACTIVE SYNC TRACKING ---------
+                    --------------------------------------------
 
-                -- Only the leader will hear this message!
-                elseif prefix == "GRM_REQUESTSYNC" and GRMsyncGlobals.IsElectedLeader then
+                    -- In response to asking "Who is the leader" then ONLY THE LEADER will respond.
+                    elseif prefix == "GRM_WHOISLEADER" and GRMsyncGlobals.IsElectedLeader then
+                            GRMsync.InquireLeaderRespond( sender );
+
+                    -- Updates who is the LEADER to sync with!
+                    elseif prefix == "GRM_IAMLEADER" then
+                        GRMsync.SetLeader ( sender );
+
+                    -- For an election...
+                    elseif prefix == "GRM_ELECT" then
+                        GRMsync.SendTimeForElection ();
+
+                    -- For sending timestamps out!
+                    elseif prefix == "GRM_TIMEONLINE" and not GRMsyncGlobals.LeadershipEstablished then -- Only the person who sent the inquiry will bother reading these... flow control...
+                        GRMsync.ResgisterTimeStamps ( msg );
+                        
+                    -- For establishing the new leader after an election
+                    elseif prefix == "GRM_NEWLEADER" then
+                        GRMsync.ElectedLeader ( msg )
+                    
+
+                    -- LEADERSHIP ESTABLISHED, NOW LET'S SYNC COMMS!
+
+                    -- Only the leader will hear this message!
+                    elseif prefix == "GRM_REQUESTSYNC" and GRMsyncGlobals.IsElectedLeader then
                         table.insert ( GRMsyncGlobals.SyncQue , sender );
-                
-                -- PLAYER DATA REQ FROM LEADERS
-                -- Leader has requesated your Join Date Data!
-                elseif prefix == "GRM_REQJDDATA" and msg == GRM_AddonGlobals.addonPlayerName then
-                    -- Start forwarding Join Date data...
-                    GRMsync.SendJDPackets();
+                    
+                    -- PLAYER DATA REQ FROM LEADERS
+                    -- Leader has requesated your Join Date Data!
+                    elseif prefix == "GRM_REQJDDATA" and msg == GRM_AddonGlobals.addonPlayerName then
+                        -- Start forwarding Join Date data...
+                        GRMsync.SendJDPackets();
 
-                elseif prefix == "GRM_REQPDDATA" and msg == GRM_AddonGlobals.addonPlayerName then
-                    -- Start forwarding Promo Date data
-                    GRMsync.SendPDPackets();
+                    elseif prefix == "GRM_REQPDDATA" and msg == GRM_AddonGlobals.addonPlayerName then
+                        -- Start forwarding Promo Date data
+                        GRMsync.SendPDPackets();
 
-                elseif prefix == "GRM_REQBANDATA" and msg == GRM_AddonGlobals.addonPlayerName then
-                    -- Forwarding ban/unban data request.
-                    GRMsync.SendBANPackets();
-                elseif prefix == "GRM_REQALTDATA" and msg == GRM_AddonGlobals.addonPlayerName then
-                    -- Checking for new alts that have been added!
-                    GRMsync.SendAltPackets();
-                    -- forwarding player MAIN status.
-                elseif prefix == "GRM_REQMAIN" and msg == GRM_AddonGlobals.addonPlayerName then
-                    GRMsync.SendMainPackets();
-
-
-                -- DATA FLOW INITIATION AND STOP CONTROLS
-                -- Initializes the starting value
-                elseif prefix == "GRM_START" and GRMsyncGlobals.IsElectedLeader and sender == GRMsyncGlobals.CurrentSyncPlayer then
-                    GRMsyncGlobals.NumPlayerDataExpected = tonumber ( msg );
-
-                -- Stop collecting, start processing!
-                elseif prefix == "GRM_STOP" and GRMsyncGlobals.IsElectedLeader and sender == GRMsyncGlobals.CurrentSyncPlayer then
-                    GRMsync.CheckChanges ( msg );
-
-                -- Stop collecting ALT data, start processing alt changes!
-                elseif prefix == "GRM_STOPALTREM" and GRMsyncGlobals.IsElectedLeader and sender == GRMsyncGlobals.CurrentSyncPlayer then
-                    GRMsync.CheckAltChanges ();
-
-                -- Collect all data before checking for changes!
-                elseif ( prefix == "GRM_JDSYNC" or prefix == "GRM_PDSYNC" or prefix == "GRM_BANSYNC" or prefix == "GRM_MAINSYNC" ) and GRMsyncGlobals.IsElectedLeader and sender == GRMsyncGlobals.CurrentSyncPlayer then
-                    GRMsync.CollectData ( msg , prefix );            
-
-                -- For ALT ADD DATA
-                elseif prefix == "GRM_ALTADDSYNC" and GRMsyncGlobals.IsElectedLeader and sender == GRMsyncGlobals.CurrentSyncPlayer then
-                    GRMsync.CollectAltAddData ( msg );
-
-                -- For ALT REMOVE DATA
-                elseif prefix == "GRM_ALTREMSYNC" and GRMsyncGlobals.IsElectedLeader and sender == GRMsyncGlobals.CurrentSyncPlayer then
-                    GRMsync.CollectAltRemData ( msg );
+                    elseif prefix == "GRM_REQBANDATA" and msg == GRM_AddonGlobals.addonPlayerName then
+                        -- Forwarding ban/unban data request.
+                        GRMsync.SendBANPackets();
+                    elseif prefix == "GRM_REQALTDATA" and msg == GRM_AddonGlobals.addonPlayerName then
+                        -- Checking for new alts that have been added!
+                        GRMsync.SendAltPackets();
+                        -- forwarding player MAIN status.
+                    elseif prefix == "GRM_REQMAIN" and msg == GRM_AddonGlobals.addonPlayerName then
+                        GRMsync.SendMainPackets();
 
 
+                    -- DATA FLOW INITIATION AND STOP CONTROLS
+                    -- Initializes the starting value
+                    elseif prefix == "GRM_START" and GRMsyncGlobals.IsElectedLeader and sender == GRMsyncGlobals.CurrentSyncPlayer then
+                        GRMsyncGlobals.NumPlayerDataExpected = tonumber ( msg );
 
-                -- AFTER DATA RECEIVED AND ANALYZED, SEND UPDATES!!!
-                -- THESE WILL HEAD TO THE SAME METHODS AS LIVE SYNC, WITH A COUPLE CHANGES BASED ON UNIQUE MESSAGE HEADER.
-                -- Sync the Join Dates!
-                elseif prefix == "GRM_JDSYNCUP" then 
-                    GRMsync.CheckJoinDateChange ( msg , sender , prefix );
+                    -- Stop collecting, start processing!
+                    elseif prefix == "GRM_STOP" and GRMsyncGlobals.IsElectedLeader and sender == GRMsyncGlobals.CurrentSyncPlayer then
+                        GRMsync.CheckChanges ( msg );
 
-                -- Sync the Promo Dates!
-                elseif prefix == "GRM_PDSYNCUP" then
-                    GRMsync.CheckPromotionDateChange ( msg , sender , prefix );
+                    -- Stop collecting ALT data, start processing alt changes!
+                    elseif prefix == "GRM_STOPALTREM" and GRMsyncGlobals.IsElectedLeader and sender == GRMsyncGlobals.CurrentSyncPlayer then
+                        GRMsync.CheckAltChanges ();
 
-                -- Final sync of ban player info
-                elseif prefix == "GRM_BANSYNCUP" then
-                    GRMsync.BanManagementPlayersThatLeft ( msg , sender , prefix );
+                    -- Collect all data before checking for changes!
+                    elseif ( prefix == "GRM_JDSYNC" or prefix == "GRM_PDSYNC" or prefix == "GRM_BANSYNC" or prefix == "GRM_MAINSYNC" ) and GRMsyncGlobals.IsElectedLeader and sender == GRMsyncGlobals.CurrentSyncPlayer then
+                        GRMsync.CollectData ( msg , prefix );            
 
-                -- Final sync of ALT player info
-                elseif prefix == "GRM_ALTSYNCUP" then
-                    GRMsync.CheckAddAltChange ( msg , sender , prefix );
+                    -- For ALT ADD DATA
+                    elseif prefix == "GRM_ALTADDSYNC" and GRMsyncGlobals.IsElectedLeader and sender == GRMsyncGlobals.CurrentSyncPlayer then
+                        GRMsync.CollectAltAddData ( msg );
 
-                -- Final sync of Removing alts
-                elseif prefix == "GRM_REMSYNCUP" then
-                    GRMsync.CheckRemoveAltChange ( msg , sender , prefix );
-                
-                -- Final sync on Main Status
-                elseif prefix == "GRM_MAINSYNCUP" then
-                    GRMsync.CheckMainSyncChange ( msg );
+                    -- For ALT REMOVE DATA
+                    elseif prefix == "GRM_ALTREMSYNC" and GRMsyncGlobals.IsElectedLeader and sender == GRMsyncGlobals.CurrentSyncPlayer then
+                        GRMsync.CollectAltRemData ( msg );
 
+
+
+                    -- AFTER DATA RECEIVED AND ANALYZED, SEND UPDATES!!!
+                    -- THESE WILL HEAD TO THE SAME METHODS AS LIVE SYNC, WITH A COUPLE CHANGES BASED ON UNIQUE MESSAGE HEADER.
+                    -- Sync the Join Dates!
+                    elseif prefix == "GRM_JDSYNCUP" then 
+                        GRMsync.CheckJoinDateChange ( msg , sender , prefix );
+
+                    -- Sync the Promo Dates!
+                    elseif prefix == "GRM_PDSYNCUP" then
+                        GRMsync.CheckPromotionDateChange ( msg , sender , prefix );
+
+                    -- Final sync of ban player info
+                    elseif prefix == "GRM_BANSYNCUP" then
+                        GRMsync.BanManagementPlayersThatLeft ( msg , sender , prefix );
+
+                    -- Final sync of ALT player info
+                    elseif prefix == "GRM_ALTSYNCUP" then
+                        GRMsync.CheckAddAltChange ( msg , sender , prefix );
+
+                    -- Final sync of Removing alts
+                    elseif prefix == "GRM_REMSYNCUP" then
+                        GRMsync.CheckRemoveAltChange ( msg , sender , prefix );
+                    
+                    -- Final sync on Main Status
+                    elseif prefix == "GRM_MAINSYNCUP" then
+                        GRMsync.CheckMainSyncChange ( msg );
+
+                    -- Final Announce!!!
+                    elseif prefix == "GRM_COMPLETE" then
+                        GRMsync.FinalAnnounce ();
+                    end
                 end
             end
         end
@@ -2036,17 +2349,16 @@ end
 -- ON LOADING!!!!!!!
 -- Event Tracking
 GRMsync.Initialize = function()
-    if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][14] then
-        GRMsync.ResetDefaultValuesOnSyncReEnable();
-        GRMsync.ResetReportTables();
-        GRMsync.ResetTempTables();
-        GRMsync.MessageTracking = GRMsync.MessageTracking or CreateFrame ( "Frame" , "GRMsyncMessageTracking" );
-        GRMsync.BuildSyncNetwork();
+    if GRMsyncGlobals.SyncOK then
+        if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][14] and IsInGuild() then
+            GRMsync.ResetDefaultValuesOnSyncReEnable();
+            GRMsync.ResetReportTables();
+            GRMsync.ResetTempTables();
+            GRMsyncGlobals.LeadershipEstablished = false;
+            GRMsyncGlobals.LeadSyncProcessing = false;
+            GRMsync.MessageTracking = GRMsync.MessageTracking or CreateFrame ( "Frame" , "GRMsyncMessageTracking" );
+            GRMsync.BuildSyncNetwork();
+        end
     end
 end
-
-
-
-
-
 
