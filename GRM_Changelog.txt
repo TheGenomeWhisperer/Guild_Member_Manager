@@ -1,3 +1,128 @@
+
+
+**VERSION 7.2.5R1.061 - DATE: 24 Aug, 2017**
+
+***Note** - This is a quick, minor update to fix something real fast. I have other things I am working on, but this is so annoying I decided I wanted to get it out right away*
+
+* Bug Fix1: Quick fix on shift-click names to add as alts. I typo'd a line and it was previously closing window than adding name
+
+
+
+**VERSION 7.2.5R1.06 - DATE: 21 Aug, 2017**
+
+*Note: R1.05 was a very small closed beta with a few people, so will be skipped here*
+
+* FEATURE: Notifications! Player can right-click the "status" of player, like AFK, and set notification when no longer
+
+* FEATURE: Player can set to be notified when players login or logoff (more noticeable than Blizz default one)
+
+* FEATURE: Unlimited number of players can be monitored. Of note, they are wiped on each relog, not permanent.
+
+* QOL: Version Check Incorporated. This is not backwards compatible with older version, but from R1.06 and on, player will receive notification if they have outdated addon if others in guild have newer version
+
+* QOL: All future addon users, SYNC is now on by default (though ranks will need to be opened for more than GL)
+
+* Bug Fix1: Addon now takes into consideration guilds with disciplinary ranks that restrict guild chat. This is critical as it can destroy comms and this will resolve a couple of odd bugs.
+
+* Bug Fix2: On rank changes, the addon now takes into consideration rank pre-reqs, like having authenticator and does not attempt to change rank if server will not yet allow.
+
+
+
+
+**VERSION 7.2.5R1.04 - DATE: 15 Aug, 2017**
+
+* QOL: Players full name w/server now viewable on mouseover
+
+* QOL: Name w/server mouseover on alts lits too!
+
+* QOL: ALT CAP REMOVED!!!
+
+* QOL: Player's with more than 12 alts now will have a scrollable alt window!
+
+* QOL: Sync now states when it completes
+
+* Bug Fix1: REMOVE button no longer shows on players of equal or higher rank
+
+* Bug Fix2: Fixed UI bug where it shows promotion/demotion changes, even if player cannot.
+
+* Bug Fix3: Adding event to calendar, description date previously was showing current date, not event date.
+
+* Bug Fix4: Lua error could occur from other addons sharing guild comm channel. Now filters properly.
+
+* Bug Fix5: Shift-clicking roster name now properly places player name where cursor is, not wiping all.
+
+
+**VERSION 7.2.5R1.03 - DATE: 6 Aug, 2017**
+
+* Bug Fix1: Shift-clicking roster names was wonky on adding alt. It works properly now.
+
+* Bug Fix2: Mousing over names, then shift click if no editbox was focus would cause a Lua error.
+
+* Bug Fix3: Issue where wrong player being selected invisibly in the background, but UI showed proper, thus
+
+* Bug Fix3: behind the scenes it was pulling mismatched data from server on mouseover player at times. No more!
+
+* Bug Fix4: Join Date could get overwritten on new player joining, thus rewriting join date for SYNC as current date
+
+* Bug Fix4: rather than the date they actually joined, or when another player said they joined. This should sync the
+
+* Bug Fix4: the data properly now and not override the correct info.
+
+* Bug Fix5: On a player joining the guild, you could get this error where it would add an officer note as joined on current date, then it would overwrite
+
+* Bug Fix5: it as it pulled the real officer note and spam the log as if it were a change. This annoyingly did it on all new joins
+
+* Bug Fix5: if the player logged in at any date AFTER the player joined originally, if the officer note was tagged. How annoyingly spammy! Fixed
+
+* Bug Fix6: Fixed a Width issue on the Year date on drop-down select that should no longer be an issue for people using non-widescreen resolutions.
+
+* Bug Fix7: Sync on large guilds will now be a bit slower, but it seems it was spamming and disconnecting people even at the previous throttled rate
+
+* Bug Fix7: The new Throttle rate is literally 25% the speed of the previous sync rate. Fortunately it all happens in the background so its not noticeable, just be 
+
+* Bug Fix7: aware Sync will not update within seconds on LARGE guilds, but actually, a couple of minutes to prevent disconnect due to Blizz comm limits.
+
+* Bug Fix7: Please report back if disconnects are gone. ALL in your guild will need to upgrade to current version to prevent disconnects.
+
+
+**VERSION 7.2.5R1.02 - DATE: 24 July, 2017**
+
+* Bug Fix1: Dynamic and retroactive sync did not work on any realm that had more than one word in the name, like "Burning Legion" or "Area 52"
+
+* Bug Fix1: Never noticed string handling on comms since I tested on single word realm.
+
+* Bug Fix2: Syncing could crash on MEGA guilds! In my 250+ guild, I never noticed any disconnects, but in larger guilds, too much data would be sent 
+
+* Bug Fix2: across the server and would disconnect the player. Now, based on amount of info/size of guild, data packet is controlled to prevent disconnect.
+
+* Bug Fix2: For some larger guilds, sync may no longer take 2-3 seconds for larger guilds. 500 to 1000 member guilds will take anywhere from 15-40 seconds, depending on 
+
+* Bug Fix2: how much alt data needs to sync too. I want to speed it up, but Blizz has internel limits to prevent server spamming. Don't worry, it all happens in background.
+
+* QOL:	Shift-Click player name in the roster and it will add it to anywhere your cursor has focus. It is universally compatible with any frame or addon.
+
+
+**VERSION 7.2.5R1.00 - DATE: 21 July, 2017**
+
+* Bug Fix1: If a promotion/Demotion was made, there would be a delay on register, which could cause an error when trying to populate the Rank promotion history
+
+* Bug Fix1: Promotions and Demotions now a registered immediately!
+
+* Bug Fix2: Noticed an issue where you could get double spam on reporting changes of public/officer note. This is resolved.
+
+* QOL: Some minor behind-the-scenes tweaking lowered the fingerprint in a couple places. Extremely minimal.
+
+
+**VERSION 7.2.5Beta_5_R1 - DATE: 20 July, 2017**
+
+* **FEATURE:** SYNCING!!! Seriously, this addon will not sync the player data on rank, promotions, alts/main, and so on, both live and retroactively
+
+*As a quick side note, this was NOT an easy job. Building a resource sensitive dynamic syncing algorithm in Lua, that could retroactively sync changes with guildies, be them online or not at the time was an enormous job. I actually didn't want to do it at first because I saw the scope of the task at hand and didn't want to do it. But, I did it... I think it was worth it!*
+
+* Tons of updates, fixes, QoL features included, many minor, some big. Since this is a massive huge release, let's just consider it a fresh start from here!
+
+
+
 **VERSION 7.2.5b500 - DATE: 19 Jun, 2017**
 
 * **FEATURE:** Player zone is now displayed in playerwindow, along with the time duration they have been in the zone. Of note, the player cannot know how long they were in that zone prior to logging, so the time is reset upon logging, but from there on, any zone changes are automatically swept up with timer started for each online player. I am finding it extremely useful for things like not having to ask a player if they just got into that BG, or shouting out when they are in a long arena match, and so on.
