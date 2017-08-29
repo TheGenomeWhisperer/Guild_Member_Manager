@@ -834,11 +834,10 @@ end
 ------- NON-LEADER FORWARD ----
 -------------------------------
 
--- Method:          GRMsync.SendJDPackets()
+-- Method:          GRMsync.zPackets()
 -- What it Does:    Broadcasts to the leader all join date information
 -- Purpose:         Data sync
 GRMsync.SendJDPackets = function()
-
      if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][16] and not GRMsyncGlobals.syncTempDelay then
         chat:AddMessage ( "GRM: Syncing Data With Guildies Now..."  , 1.0 , 0.84 , 0 );
     end
@@ -947,7 +946,6 @@ end
 -- What it Does:    Broadcasts to the leader all ALT information
 -- Purpose:         Data sync
 GRMsync.SendAltPackets = function()
-    print("sending alt");
     local msg = "";
     if not GRMsyncGlobals.syncTempDelay2  then
         if GRMsyncGlobals.SyncOK and not GRMsyncGlobals.syncTempDelay then
@@ -1078,7 +1076,7 @@ end
 
 -------------------------------
 ----- LEADER COLLECTION -------
------ AND ANALYSIS ------------
+----- AND ANALYSIS ------------ 
 -------------------------------
 
 -- Method:          GRMsync.InitiateDataSync()
@@ -1091,6 +1089,7 @@ GRMsync.InitiateDataSync = function ()
         GRMsyncGlobals.currentlySyncing = true;
         GRMsyncGlobals.CurrentSyncPlayer = GRMsyncGlobals.SyncQue[1];
         if GRMsyncGlobals.SyncOK then
+            GRMsync.ResetTempTables();
             GRMsync.SendMessage ( "GRM_REQJDDATA" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRMsyncGlobals.SyncQue[1] , GRMsyncGlobals.channelName );
         end
         table.remove ( GRMsyncGlobals.SyncQue , 1 );
@@ -1108,7 +1107,6 @@ end
 -- What it Does:    Sends out the mandatory updates to all online (they won't if the change is already there)
 -- Purpose:         So leader can send out current, updated sync info.
 GRMsync.SubmitFinalSyncData = function()
-
     -- Ok send of the Join Date updates!
     if #GRMsyncGlobals.JDChanges > 0 and not GRMsyncGlobals.finalSyncProgress[1] then
         local joinDate = "";
@@ -1130,8 +1128,9 @@ GRMsync.SubmitFinalSyncData = function()
                 end
             end
         end
+        GRMsyncGlobals.finalSyncDataCount = 1;
+        GRMsyncGlobals.finalSyncProgress[1] = true;
     end
-    GRMsyncGlobals.finalSyncProgress[1] = true;
 
     -- Promo date sync!
     if #GRMsyncGlobals.PDChanges > 0 and not GRMsyncGlobals.finalSyncProgress[2] then
@@ -1149,9 +1148,9 @@ GRMsync.SubmitFinalSyncData = function()
                 end
             end
         end
+        GRMsyncGlobals.finalSyncDataCount = 1;
+        GRMsyncGlobals.finalSyncProgress[2] = true;
     end
-    GRMsyncGlobals.finalSyncDataCount = 1;
-    GRMsyncGlobals.finalSyncProgress[2] = true;
 
     -- BAN changes sync!
     if #GRMsyncGlobals.BanChanges > 0 and not GRMsyncGlobals.finalSyncProgress[3] then
@@ -1167,10 +1166,10 @@ GRMsync.SubmitFinalSyncData = function()
                 end
             end
         end
+        GRMsyncGlobals.finalSyncDataCount = 1;
+        GRMsyncGlobals.finalSyncProgress[3] = true;
     end
-    GRMsyncGlobals.finalSyncDataCount = 1;
-    GRMsyncGlobals.finalSyncProgress[3] = true;
-
+    
     -- ALT changes sync for adding alts!
     if #GRMsyncGlobals.AltAddChanges > 0 and not GRMsyncGlobals.finalSyncProgress[4] then
         for i = GRMsyncGlobals.finalSyncDataCount , #GRMsyncGlobals.AltAddChanges do  -- ( playerName , altName )
@@ -1186,10 +1185,10 @@ GRMsync.SubmitFinalSyncData = function()
             end
             -- Now my data!
         end
+        GRMsyncGlobals.finalSyncDataCount = 1;
+        GRMsyncGlobals.finalSyncProgress[4] = true;
     end
-    GRMsyncGlobals.finalSyncDataCount = 1;
-    GRMsyncGlobals.finalSyncProgress[4] = true;
-
+    
     -- ALT changes sync for adding alts!
     if #GRMsyncGlobals.AltRemoveChanges > 0 and not GRMsyncGlobals.finalSyncProgress[5] then
         for i = GRMsyncGlobals.finalSyncDataCount , #GRMsyncGlobals.AltRemoveChanges do  -- ( playerName , altName )
@@ -1204,9 +1203,10 @@ GRMsync.SubmitFinalSyncData = function()
                 end
             end
         end
+        GRMsyncGlobals.finalSyncDataCount = 1;
+        GRMsyncGlobals.finalSyncProgress[5] = true;
     end
-    GRMsyncGlobals.finalSyncDataCount = 1;
-    GRMsyncGlobals.finalSyncProgress[5] = true;
+    
 
     -- MAIN STATUS CHECK!
     if #GRMsyncGlobals.AltMainChanges > 0 and not GRMsyncGlobals.finalSyncProgress[6] then
@@ -1222,17 +1222,19 @@ GRMsync.SubmitFinalSyncData = function()
                 end
             end
         end
+        GRMsyncGlobals.finalSyncDataCount = 1;
+        GRMsyncGlobals.finalSyncProgress[6] = true;
     end
-    GRMsyncGlobals.finalSyncDataCount = 1;
-    GRMsyncGlobals.finalSyncProgress[6] = true;
-
+    
     -- Ok all done! Reset the tables!
     GRMsync.ResetReportTables();
+    GRMsyncGlobals.finalSyncDataCount = 1;
     GRMsyncGlobals.finalSyncProgress = { false , false , false , false , false , false };
     
     -- Do a quick check if anyone else added themselves to the que in the last millisecond, and if so, REPEAT!
     -- Setup repeat here.
     -----------------------------------
+
     if #GRMsyncGlobals.SyncQue > 0 then
         GRMsync.InitiateDataSync();
     else
@@ -1475,7 +1477,6 @@ GRMsync.CheckChanges = function ( msg )
     -----------------------------
     if msg == "JD" then
         if #GRMsyncGlobals.JDReceivedTemp == GRMsyncGlobals.NumPlayerDataExpected then
-
             for i = 1 , #GRMsyncGlobals.JDReceivedTemp do
                 for j = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
                     if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][1] == GRMsyncGlobals.JDReceivedTemp[i][1] then
@@ -1588,7 +1589,6 @@ GRMsync.CheckChanges = function ( msg )
                     end
                 end
             end
-        
             -- Wipe the data!
             GRMsyncGlobals.PDReceivedTemp = {};
             if GRMsyncGlobals.SyncOK then
@@ -1754,7 +1754,6 @@ GRMsync.CheckChanges = function ( msg )
                 table.remove ( listToRemove , 1 );
             end
             
-
             -- Resetting the temp tables!
             GRMsyncGlobals.MainReceivedTemp = {};
             -- Final step of the sync process! Let's submit the final changes!!!
@@ -2142,9 +2141,9 @@ GRMsync.RegisterCommunicationProtocols = function()
         else
            
             if event == "CHAT_MSG_ADDON" and channel == GRMsyncGlobals.channelName and GRMsync.IsPrefixVerified ( prefix ) then     -- Don't need to register my own sends.
-
+               
                  -- Let's format the sender info for ease!
-                sender = GRMsync.SyncName ( sender , "enGB" ) -- This will eventually be localized
+                -- sender = GRMsync.SyncName ( sender , "enGB" ) -- This will eventually be localized
                 if sender ~= GRM_AddonGlobals.addonPlayerName then
 
                     -- Let's strip out the rank requirement of the sender, so it avoids syncing with people not of required rank.
@@ -2152,13 +2151,12 @@ GRMsync.RegisterCommunicationProtocols = function()
 
                     -- Need to do a rank check here to accept the send or not. -- VERIFY PREFIX BEFORE CHECKING!
                     
-                    if sender ~= GRMsync.DesignatedLeader and ( GRM.GetGuildMemberRankID ( sender ) >= GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] or senderRankRequirement <= GRM.GetGuildMemberRankID ( GRM_AddonGlobals.addonPlayerName ) ) then        -- If player's rank is below settings threshold, ignore message.
+                    if sender ~= GRMsyncGlobals.DesignatedLeader and ( GRM.GetGuildMemberRankID ( sender ) >= GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] or senderRankRequirement <= GRM.GetGuildMemberRankID ( GRM_AddonGlobals.addonPlayerName ) ) then        -- If player's rank is below settings threshold, ignore message.
                         return
                     end
                     
                     -- parsing out the rankRequirementOfSender
                     msg = string.sub ( msg , string.find ( msg , "?" ) + 1 );
-
                     ------------------------------------------
                     ----------- LIVE UPDATE TRACKING ---------
                     ------------------------------------------
@@ -2195,7 +2193,6 @@ GRMsync.RegisterCommunicationProtocols = function()
                     elseif prefix == "GRM_BAN" then
                         GRMsync.CheckBanListChange ( msg , sender );
 
-                
                 
                     
                     --------------------------------------------
