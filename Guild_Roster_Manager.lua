@@ -1,9 +1,9 @@
 -- Author: Arkaan
 -- Addon Name: "Guild Roster Manager"
 
-local Version = "7.2.5R1.061";
-local PatchDay = 1503620324; -- In Epoch Time
-local Patch = "7.2.5";
+local Version = "7.3.0R1.08";
+local PatchDay = 1504018933; -- In Epoch Time
+local Patch = "7.3";
 
 -- Table to hold all functions
 GRM = {};
@@ -27,7 +27,7 @@ GRM_AddonGlobals = {};
 GRM_AddonGlobals.addonName = "Guild_Roster_Manager";
 -- Player Details
 GRM_AddonGlobals.guildName = GetGuildInfo ( "PLAYER" );
-GRM_AddonGlobals.realmName = GetRealmName();
+GRM_AddonGlobals.realmName = string.gsub ( GetRealmName() , "%s+" , "" );       -- Remove the space since server return calls don't include space on multi-name servers
 GRM_AddonGlobals.addonPlayerName = ( GetUnitName ( "PLAYER" , false ) .. "-" .. GRM_AddonGlobals.realmName );
 GRM_AddonGlobals.faction = UnitFactionGroup ( "PLAYER" );
 GRM_AddonGlobals.rank = 1;
@@ -90,6 +90,8 @@ GRM_AddonGlobals.CalendarAddDelay = 0; -- Needs to be at least 5 seconds...
 GRM_AddonGlobals.RaidGCountBeingChecked = false;
 GRM_AddonGlobals.timerUIChange = 0;
 GRM_AddonGlobals.position = 0;
+GRM_AddonGlobals.ScrollPosition = 0;
+GRM_AddonGlobals.ShowOfflineChecked = false;
 GRM_AddonGlobals.pause = false;
 GRM_AddonGlobals.rankDateSet = false;
 GRM_AddonGlobals.editPromoDate = false;
@@ -646,7 +648,7 @@ GRM.RegisterVersionCheck = function()
     -- Setup tracking actions
     VersionCheck:SetScript ( "OnEvent" , function( self , event , prefix , msg , channel , sender )
         if event == "CHAT_MSG_ADDON" and prefix == "GRMVER" and channel == "GUILD" then
-            sender = GRMsync.SyncName ( sender , "enGB" ) -- This will eventually be localized
+            -- sender = GRMsync.SyncName ( sender , "enGB" ) -- This will eventually be localized
                 -- Gotta filter my own messages out too!
             if sender ~= GRM_AddonGlobals.addonPlayerName then
 
@@ -2462,30 +2464,34 @@ GRM.GetGuildEventString = function ( index , playerName )
 
     if index == 1 or index == 2 then
         for i = GetNumGuildEvents() , 1 , -1 do
-            local type , p1, p2 = GetGuildEventInfo ( i );                                                    ---or eventType [ 2 ] == type ) and ( p2 ~= nil and p2 == playerName ) and p1 ~= nil then
-            if index == 1 and eventType [ 1 ] == type and p2 ~= nil and p2 == playerName then
-                result = ( p1 .. " DEMOTED " .. p2 );
-                break;
-            elseif index == 2 and eventType [ 2 ] == type and p2 ~= nil and p2 == playerName then
-                result = ( p1 .. " PROMOTED " .. p2 );
-                break;
+            local type , p1, p2 = GetGuildEventInfo ( i );
+            if p1 ~= nil then                                                 ---or eventType [ 2 ] == type ) and ( p2 ~= nil and p2 == playerName ) and p1 ~= nil then
+                if index == 1 and eventType [ 1 ] == type and p2 ~= nil and p2 == playerName then
+                    result = ( p1 .. " DEMOTED " .. p2 );
+                    break;
+                elseif index == 2 and eventType [ 2 ] == type and p2 ~= nil and p2 == playerName then
+                    result = ( p1 .. " PROMOTED " .. p2 );
+                    break;
+                end
             end
         end
    elseif index == 3 then
         local notFound = true;
         for i = GetNumGuildEvents() , 1 , -1 do 
             local type , p1, p2 = GetGuildEventInfo ( i );
-            if eventType [ 5 ] == type or eventType [ 6 ] == type then   -- Quit or Remove
-                if eventType [ 6 ] == type and p2 ~= nil and p2 == playerName then
-                    result = ( p1 .. " KICKED " .. p2 .. " from the guild!" );
-                    notFound = false;
-                elseif eventType [ 5 ] == type and p1 == playerName then
-                    -- FOUND!
-                    result = ( p1 .. " has Left the guild" );
-                    notFound = false;
-                end
-                if notFound ~= true then
-                    break;
+            if p1 ~= nil then 
+                if eventType [ 5 ] == type or eventType [ 6 ] == type then   -- Quit or Remove
+                    if eventType [ 6 ] == type and p2 ~= nil and p2 == playerName then
+                        result = ( p1 .. " KICKED " .. p2 .. " from the guild!" );
+                        notFound = false;
+                    elseif eventType [ 5 ] == type and p1 == playerName then
+                        -- FOUND!
+                        result = ( p1 .. " has Left the guild" );
+                        notFound = false;
+                    end
+                    if notFound ~= true then
+                        break;
+                    end
                 end
             end
         end
@@ -5062,7 +5068,7 @@ GRM.PopulateOptionsRankDropDown = function ()
                 GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] = GRM.GetRankIndex ( GRM_RosterCheckBoxSideFrame.GRM_RosterSyncRankDropDownSelectedText:GetText() , GRM_RosterCheckBoxSideFrame.GRM_RosterSyncRankDropDownMenu.Buttons );
             
                 --Let's re-initiate syncing!
-                if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][14] and not GRMsyncGlobals.currentlySyncing and GRM.IsGuildChatEnabled() then
+                if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][14] and not GRMsyncGlobals.currentlySyncing then --and GRM.IsGuildChatEnabled()
                     GRMsync.Initialize();
                 end
                 
@@ -5250,7 +5256,7 @@ GRM.ResetPlayerMetaData = function ( playerName , guildName )
             GRM_MemberDetailMetaData:Hide();
             
             --Let's re-initiate syncing!
-            if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][14] and not GRMsyncGlobals.currentlySyncing and GRM.IsGuildChatEnabled() then
+            if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][14] and not GRMsyncGlobals.currentlySyncing then -- and GRM.IsGuildChatEnabled()
                 chat:AddMessage ( "Re-Syncing " .. GRM.SlimName ( playerName ) .. "'s Player Data... " , 1.0 , 0.84 , 0 );
                 GRMsync.Initialize();
             end
@@ -5699,6 +5705,8 @@ local function GR_RosterFrame ( _ , elapsed )
                                 GRM_MemberDetailMetaData:Show();
                             end
                             GRM_AddonGlobals.position = 1;
+                            GRM_AddonGlobals.ScrollPosition = GuildRosterContainerScrollBar:GetValue();
+                            GRM_AddonGlobals.ShowOfflineChecked = GuildRosterShowOfflineButton:GetChecked();
                             GRM_AddonGlobals.currentName = name;
                             GRM_AddonGlobals.pause = false;
                         else
@@ -5717,6 +5725,8 @@ local function GR_RosterFrame ( _ , elapsed )
                                 GRM_MemberDetailMetaData:Show();
                             end
                             GRM_AddonGlobals.position = 2;
+                            GRM_AddonGlobals.ScrollPosition = GuildRosterContainerScrollBar:GetValue();
+                            GRM_AddonGlobals.ShowOfflineChecked = GuildRosterShowOfflineButton:GetChecked();
                             GRM_AddonGlobals.currentName = name;
                             GRM_AddonGlobals.pause = false;
                         else
@@ -5735,6 +5745,8 @@ local function GR_RosterFrame ( _ , elapsed )
                                 GRM_MemberDetailMetaData:Show();
                             end
                             GRM_AddonGlobals.position = 3;
+                            GRM_AddonGlobals.ScrollPosition = GuildRosterContainerScrollBar:GetValue();
+                            GRM_AddonGlobals.ShowOfflineChecked = GuildRosterShowOfflineButton:GetChecked();
                             GRM_AddonGlobals.currentName = name;
                             GRM_AddonGlobals.pause = false;
                         else
@@ -5753,6 +5765,8 @@ local function GR_RosterFrame ( _ , elapsed )
                                 GRM_MemberDetailMetaData:Show();
                             end
                             GRM_AddonGlobals.position = 4;
+                            GRM_AddonGlobals.ScrollPosition = GuildRosterContainerScrollBar:GetValue();
+                            GRM_AddonGlobals.ShowOfflineChecked = GuildRosterShowOfflineButton:GetChecked();
                             GRM_AddonGlobals.currentName = name;
                             GRM_AddonGlobals.pause = false;
                         else
@@ -5771,6 +5785,8 @@ local function GR_RosterFrame ( _ , elapsed )
                                 GRM_MemberDetailMetaData:Show();
                             end
                             GRM_AddonGlobals.position = 5;
+                            GRM_AddonGlobals.ScrollPosition = GuildRosterContainerScrollBar:GetValue();
+                            GRM_AddonGlobals.ShowOfflineChecked = GuildRosterShowOfflineButton:GetChecked();
                             GRM_AddonGlobals.currentName = name;
                             GRM_AddonGlobals.pause = false;
                         else
@@ -5789,6 +5805,8 @@ local function GR_RosterFrame ( _ , elapsed )
                                 GRM_MemberDetailMetaData:Show();
                             end
                             GRM_AddonGlobals.position = 6;
+                            GRM_AddonGlobals.ScrollPosition = GuildRosterContainerScrollBar:GetValue();
+                            GRM_AddonGlobals.ShowOfflineChecked = GuildRosterShowOfflineButton:GetChecked();
                             GRM_AddonGlobals.currentName = name;
                             GRM_AddonGlobals.pause = false;
                         else
@@ -5807,6 +5825,8 @@ local function GR_RosterFrame ( _ , elapsed )
                                 GRM_MemberDetailMetaData:Show();
                             end
                             GRM_AddonGlobals.position = 7;
+                            GRM_AddonGlobals.ScrollPosition = GuildRosterContainerScrollBar:GetValue();
+                            GRM_AddonGlobals.ShowOfflineChecked = GuildRosterShowOfflineButton:GetChecked();
                             GRM_AddonGlobals.currentName = name;
                             GRM_AddonGlobals.pause = false;
                         else
@@ -5825,6 +5845,8 @@ local function GR_RosterFrame ( _ , elapsed )
                                 GRM_MemberDetailMetaData:Show();
                             end
                             GRM_AddonGlobals.position = 8;
+                            GRM_AddonGlobals.ScrollPosition = GuildRosterContainerScrollBar:GetValue();
+                            GRM_AddonGlobals.ShowOfflineChecked = GuildRosterShowOfflineButton:GetChecked();
                             GRM_AddonGlobals.currentName = name;
                             GRM_AddonGlobals.pause = false;
                         else
@@ -5843,6 +5865,8 @@ local function GR_RosterFrame ( _ , elapsed )
                                 GRM_MemberDetailMetaData:Show();
                             end
                             GRM_AddonGlobals.position = 9;
+                            GRM_AddonGlobals.ScrollPosition = GuildRosterContainerScrollBar:GetValue();
+                            GRM_AddonGlobals.ShowOfflineChecked = GuildRosterShowOfflineButton:GetChecked();
                             GRM_AddonGlobals.currentName = name;
                             GRM_AddonGlobals.pause = false;
                         else
@@ -5861,6 +5885,8 @@ local function GR_RosterFrame ( _ , elapsed )
                                 GRM_MemberDetailMetaData:Show();
                             end
                             GRM_AddonGlobals.position = 10;
+                            GRM_AddonGlobals.ScrollPosition = GuildRosterContainerScrollBar:GetValue();
+                            GRM_AddonGlobals.ShowOfflineChecked = GuildRosterShowOfflineButton:GetChecked();
                             GRM_AddonGlobals.currentName = name;
                             GRM_AddonGlobals.pause = false;
                         else
@@ -5879,6 +5905,8 @@ local function GR_RosterFrame ( _ , elapsed )
                                 GRM_MemberDetailMetaData:Show();
                             end
                             GRM_AddonGlobals.position = 11;
+                            GRM_AddonGlobals.ScrollPosition = GuildRosterContainerScrollBar:GetValue();
+                            GRM_AddonGlobals.ShowOfflineChecked = GuildRosterShowOfflineButton:GetChecked();
                             GRM_AddonGlobals.currentName = name;
                             GRM_AddonGlobals.pause = false;
                         else
@@ -5897,6 +5925,8 @@ local function GR_RosterFrame ( _ , elapsed )
                                 GRM_MemberDetailMetaData:Show();
                             end
                             GRM_AddonGlobals.position = 12;
+                            GRM_AddonGlobals.ScrollPosition = GuildRosterContainerScrollBar:GetValue();
+                            GRM_AddonGlobals.ShowOfflineChecked = GuildRosterShowOfflineButton:GetChecked();
                             GRM_AddonGlobals.currentName = name;
                             GRM_AddonGlobals.pause = false;
                         else
@@ -5915,6 +5945,8 @@ local function GR_RosterFrame ( _ , elapsed )
                                 GRM_MemberDetailMetaData:Show();
                             end
                             GRM_AddonGlobals.position = 13;
+                            GRM_AddonGlobals.ScrollPosition = GuildRosterContainerScrollBar:GetValue();
+                            GRM_AddonGlobals.ShowOfflineChecked = GuildRosterShowOfflineButton:GetChecked();
                             GRM_AddonGlobals.currentName = name;
                             GRM_AddonGlobals.pause = false;
                         else
@@ -5933,6 +5965,8 @@ local function GR_RosterFrame ( _ , elapsed )
                                 GRM_MemberDetailMetaData:Show();
                             end
                             GRM_AddonGlobals.position = 14;
+                            GRM_AddonGlobals.ScrollPosition = GuildRosterContainerScrollBar:GetValue();
+                            GRM_AddonGlobals.ShowOfflineChecked = GuildRosterShowOfflineButton:GetChecked();
                             GRM_AddonGlobals.currentName = name;
                             GRM_AddonGlobals.pause = false;
                         else
@@ -7387,7 +7421,7 @@ GRM.GR_MetaDataInitializeUIThird = function()
     GRM_AddAltEditBox:SetScript ( "OnEnterPressed" , function( _ )
         if GRM_AddAltEditBox:HasFocus() then
             local currentText = GRM_AddAltEditBox:GetText();
-            if GRM_AddAltEditFrameHelpText:IsVisible() and GRM_AddAltEditFrameHelpText:GetText() == "Player Not Found" then
+            if GRM_AddAltEditFrameHelpText:IsVisible() and ( GRM_AddAltEditFrameHelpText:GetText() == "Player Not Found" or GRM_AddAltEditFrameHelpText:GetText() == "Player Cannot Add\nThemselves as an Alt" ) then
                 if GRM.SlimName ( GRM.GetMobileFreeName ( GuildMemberDetailName:GetText() ) ) == GRM_AddAltEditBox:GetText() or GRM.GetMobileFreeName ( GuildMemberDetailName:GetText() ) == GRM_AddAltEditBox:GetText() then
                     print ( "Player Cannot add themselves to be their own Alt!" );
                 end
@@ -8908,23 +8942,32 @@ GRM.MetaDataInitializeUIrosterLog2 = function()
         -- Permissions... if not, disable button.
         if CanEditOfficerNote() then
             GRM_RosterAddTimestampCheckButton:Enable();
+            GRM_RosterAddTimestampCheckButtonText:SetTextColor( 1.0 , 0.82 , 0.0 , 1.0 );
         else
             GRM_RosterAddTimestampCheckButton:SetChecked ( false );
+            GRM_RosterAddTimestampCheckButtonText:SetTextColor( 0.5, 0.5, 0.5 , 1.0 );
             GRM_RosterAddTimestampCheckButton:Disable();
         end
         if CanEditGuildEvent() then
             GRM_RosterCheckBoxSideFrame.GRM_RosterReportUpcomingEventsCheckButton:Enable();
+            GRM_RosterCheckBoxSideFrame.GRM_RosterReportUpcomingEventsCheckButtonText:SetTextColor( 1.0 , 0.82 , 0.0 , 1.0 );
+            GRM_RosterCheckBoxSideFrame.GRM_RosterReportUpcomingEventsCheckButtonText2:SetTextColor( 1.0 , 0.82 , 0.0 , 1.0 );
         else
+            GRM_RosterCheckBoxSideFrame.GRM_RosterReportUpcomingEventsCheckButtonText:SetTextColor( 0.5, 0.5, 0.5 , 1.0 );
+            GRM_RosterCheckBoxSideFrame.GRM_RosterReportUpcomingEventsCheckButtonText2:SetTextColor( 0.5, 0.5, 0.5 , 1.0 );
             GRM_RosterCheckBoxSideFrame.GRM_RosterReportUpcomingEventsCheckButton:SetChecked ( false );
             GRM_RosterCheckBoxSideFrame.GRM_RosterReportUpcomingEventsCheckButton:Disable();
         end
         if CanGuildRemove() then
             GRM_RosterCheckBoxSideFrame.GRM_RosterRecommendKickCheckButton:Enable();
             GRM_RosterCheckBoxSideFrame.GRM_RosterKickRecommendEditBox:Enable();
+            GRM_RosterCheckBoxSideFrame.GRM_RosterRecommendKickCheckButtonText:SetTextColor( 1.0 , 0.82 , 0.0 , 1.0 );
+            GRM_RosterCheckBoxSideFrame.GRM_RosterRecommendKickCheckButtonText2:SetTextColor( 1.0 , 0.82 , 0.0 , 1.0 );
         else
+            GRM_RosterCheckBoxSideFrame.GRM_RosterRecommendKickCheckButtonText:SetTextColor( 0.5, 0.5, 0.5 , 1.0 );
+            GRM_RosterCheckBoxSideFrame.GRM_RosterRecommendKickCheckButtonText2:SetTextColor( 0.5, 0.5, 0.5 , 1.0 );
             GRM_RosterCheckBoxSideFrame.GRM_RosterRecommendKickCheckButton:SetChecked ( false );
             GRM_RosterCheckBoxSideFrame.GRM_RosterRecommendKickCheckButton:Disable();
-            GRM_RosterCheckBoxSideFrame.GRM_RosterKickRecommendEditBox:SetChecked ( false );
             GRM_RosterCheckBoxSideFrame.GRM_RosterKickRecommendEditBox:Disable();
         end
 
@@ -8997,6 +9040,18 @@ GRM.GR_Roster_Click = function ( self , button )
 
                 -- Now, let's reset it back to position
                 GRM_AddonGlobals.RecursiveStop = true;
+                -- Visual representation of guildies is critical to get back to proper spot!
+                if GRM_AddonGlobals.ShowOfflineChecked then
+                    GuildRosterShowOfflineButton:SetChecked( true );
+                    SetGuildRosterShowOffline ( true );
+                else
+                    GuildRosterShowOfflineButton:SetChecked ( false );
+                    SetGuildRosterShowOffline ( false );
+                end
+                -- Next, position the slider in the right place!
+                GuildRosterContainerScrollBar:SetValue ( GRM_AddonGlobals.ScrollPosition );
+
+                -- Now, let's re-click the right position!
                 if GRM_AddonGlobals.position == 1 then
                     GuildRosterContainerButton1:Click();
                 elseif GRM_AddonGlobals.position == 2 then
@@ -9028,14 +9083,21 @@ GRM.GR_Roster_Click = function ( self , button )
                 end
 
                 -- For my own custom frames, update the alt window on this condition.
-                if GetCurrentKeyBoardFocus():GetName() == "GRM_AddAltEditBox" then
+
+                if GetCurrentKeyBoardFocus() == nil then
+
+                    local errorMessagesGRM = { "Add-Alt Interface Trouble Loading... Try again!" , "Interface error, try shift-clicking Again Please!" , "Huh? Odd interface error... Try again!" , "Ya... Interface error on shift-click. No biggie, try again!" , "Interface might be loading data on back end... try again on shift-click!" };
+                    print ( errorMessagesGRM [ math.random ( #errorMessagesGRM ) ] );
+                else
+                if GetCurrentKeyBoardFocus():GetName() ~= nil and GetCurrentKeyBoardFocus():GetName() == "GRM_AddAltEditBox" then
                     GRM.AddAltAutoComplete();
                     GRM_AddonGlobals.pause = true
                 end
-                
+
+                end
 
             else
-                if GRM_AddonGlobals.pause and GRM.SlimName ( name ) ~= GRM_MemberDetailNameText:GetText() then           
+                if ( not GRM_AddonGlobals.pause and GRM.SlimName ( name ) == GRM_MemberDetailNameText:GetText() ) or ( GRM_AddonGlobals.pause and GRM.SlimName ( name ) ~= GRM_MemberDetailNameText:GetText() ) then
                     GRM_AddonGlobals.pause = false;
                     GR_RosterFrame ( _ , 0.075 );           -- Activate one time.
                     GRM_AddonGlobals.pause = true;
@@ -9501,6 +9563,7 @@ Initialization:SetScript ( "OnEvent" , GRM.ActivateAddon );
     ----- KNOWN BUGS --------------------
     ------------------------------------
 
+    -- Adding player to the event que, set it to only consider it if the player is a "main"
     -- When promoting a player, if their promotion date is visible, it positions it incorrectly - I can't seem to recreate this one...
     -- Note change spam if you have curse words in note/officer notes and Profanity filter on. Just disable profanity filter for now until I get around to it.
     -- False positive on guild namechange??
@@ -9529,4 +9592,3 @@ Initialization:SetScript ( "OnEvent" , GRM.ActivateAddon );
 
 --- Changelog
 
--- Greyed out options that player does not have privilege to should now also be unchecked.

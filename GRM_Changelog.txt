@@ -1,6 +1,31 @@
 
+**VERSION 7.3.0R1.08 - DATE: 29 Aug, 2017**
 
-**VERSION 7.2.5R1.061 - DATE: 24 Aug, 2017**
+*UPDATED FOR PATCH 7.3 COMPATIBILITY*
+
+* Note: Oddly, Blizz changed GuildControlSetRank() API function to now a protected function. Not sure why, but it limits ability to pull info on guild rank restrictions and so on... Minor issue, but could potentially cause issues for guilds who have a rank with guild chat restricted. Prob rare case usage.
+
+* Bug Fix1: Error could occur in some cases when parsing through the guild event log to find out WHO did promotions/demotions and so on if server did not provide full info. 
+
+
+**VERSION 7.2.5R1.075 - DATE: 27 Aug, 2017**
+
+* Bug Fix1: Sync issue that could cause, in certain cases, sync to indefinitely loop and never complete. You'd get all join/promo sync fine, but it would only sync the first 50 alt changes lol OOPS!
+
+
+**VERSION 7.2.5R1.071 - DATE: 25 Aug, 2017**
+
+* QoL: Options now greyed out and unchecked if player does not have rank access to them.
+
+* Bug Fix1: If a player did not have access to being able to add events to calendar, it would cause an error.
+
+* Bug Fix2: HUGE issue that would cause certain servers with odd names (like Area52), to not sync properly. Works now!
+
+* Bug Fix3: A couple behind-the-scenes fixes that smooth a couple of reported issues out. Complicated so I won't go into much detail here.
+
+
+
+**VERSION 7.2.5R1.062 - DATE: 24 Aug, 2017**
 
 ***Note** - This is a quick, minor update to fix something real fast. I have other things I am working on, but this is so annoying I decided I wanted to get it out right away*
 
