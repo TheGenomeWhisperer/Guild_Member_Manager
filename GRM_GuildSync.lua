@@ -1,6 +1,6 @@
 -- For Sync controls!
 -- Author: Arkaan... aka "TheGenomeWhisperer"
-
+-- Version 7.3.0R1.086
 
 -- To hold all Sync Methods/Functions
 GRMsync = {};
@@ -174,6 +174,12 @@ GRMsync.ResetTempTables = function()
     GRMsyncGlobals.MainReceivedTemp = {};
 end
 
+-- For use on doing a hard reset on sync. This is useful like if the addon user themselves changes rank and permissions change. Things would be wonky without force a hard reset of privileges.
+GRMsync.TriggerFullReset = function()
+    GRMsync.ResetDefaultValuesOnSyncReEnable();
+    GRMsync.ResetReportTables();
+    GRMsync.ResetTempTables();
+end
 --------------------------
 ----- FUNCTIONS ----------
 --------------------------
@@ -2347,7 +2353,7 @@ end
 -- Event Tracking
 GRMsync.Initialize = function()
     if GRMsyncGlobals.SyncOK then
-        if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][14] and IsInGuild() then
+        if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][14] and IsInGuild() and GRM_AddonGlobals.HasAccessToGuildChat then
             GRMsync.ResetDefaultValuesOnSyncReEnable();
             GRMsync.ResetReportTables();
             GRMsync.ResetTempTables();

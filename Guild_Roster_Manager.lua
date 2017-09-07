@@ -1,8 +1,8 @@
 -- Author: Arkaan
 -- Addon Name: "Guild Roster Manager"
 
-local Version = "7.3.0R1.08";
-local PatchDay = 1504018933; -- In Epoch Time
+local Version = "7.3.0R1.086";
+local PatchDay = 1504598078 ; -- In Epoch Time
 local Patch = "7.3";
 
 -- Table to hold all functions
@@ -22,7 +22,7 @@ SLASH_GRM1 = '/roster';
 -- Useful Variables ( kept in table to keep low upvalues count )
 GRM_AddonGlobals = {};
 -- Live tracking settings
--- Initialization Useful Globals
+-- Initialization Useful Globals 
 -- ADDON
 GRM_AddonGlobals.addonName = "Guild_Roster_Manager";
 -- Player Details
@@ -104,6 +104,16 @@ GRM_AddonGlobals.guildFinderReported = false;
 GRM_AddonGlobals.changeHappenedExitScan = false;
 GRM_AddonGlobals.currentName = "";
 GRM_AddonGlobals.RecursiveStop = false;
+GRM_AddonGlobals.isChecked = false;
+GRM_AddonGlobals.ClickCount = 0;
+GRM_AddonGlobals.HasAccessToGuildChat = false;
+GRM_AddonGlobals.tempAltName = "";
+
+-- Dropdown logic helpers and Roster UI Logic
+GRM_AddonGlobals.RosterButtons = {};
+GRM_AddonGlobals.RankDropDownMenuButtons = {};
+GRM_AddonGlobals.CurrentRank = "";
+GRM_AddonGlobals.ClickNow = false;
 
 GRM_AddonGlobals.VersionChecked = false;
 GRM_AddonGlobals.VersionCheckRegistered = false;
@@ -170,12 +180,12 @@ local GRM_DateSubmitButtonTxt = GRM_DateSubmitButton:CreateFontString ( "GRM_Dat
 local GRM_DateSubmitCancelButtonTxt = GRM_DateSubmitCancelButton:CreateFontString ( "GRM_DateSubmitCancelButtonTxt" , "OVERLAY" , "GameFontWhiteTiny" );
 
 -- RANK DROPDOWN
-local GRM_guildRankDropDownMenuSelected = CreateFrame ( "Frame" , "GRM_guildRankDropDownMenuSelected" , GRM_MemberDetailMetaData , "InsetFrameTemplate" );
-GRM_guildRankDropDownMenuSelected:Hide();
-GRM_guildRankDropDownMenuSelected.RankText = GRM_guildRankDropDownMenuSelected:CreateFontString ( "GRM_guildRankDropDownMenuSelected.RankText" , "OVERLAY" , "GameFontWhiteTiny" );
-local GRM_RankDropDownMenu = CreateFrame ( "Frame" , "GRM_RankDropDownMenu" , GRM_guildRankDropDownMenuSelected , "InsetFrameTemplate" );
-local GRM_RankDropDownMenuButton = CreateFrame ( "Button" , "GRM_RankDropDownMenuButton" , GRM_guildRankDropDownMenuSelected , "UIPanelScrollDownButtonTemplate" );
 
+-- local GRM_guildRankDropDownMenuSelected = CreateFrame ( "Frame" , "GRM_guildRankDropDownMenuSelected" , GRM_MemberDetailMetaData , "InsetFrameTemplate" );
+-- GRM_guildRankDropDownMenuSelected:Hide();
+-- GRM_guildRankDropDownMenuSelected.RankText = GRM_guildRankDropDownMenuSelected:CreateFontString ( "GRM_guildRankDropDownMenuSelected.RankText" , "OVERLAY" , "GameFontWhiteTiny" );
+-- local GRM_RankDropDownMenu = CreateFrame ( "Frame" , "GRM_RankDropDownMenu" , GRM_guildRankDropDownMenuSelected , "InsetFrameTemplate" );
+-- local GRM_RankDropDownMenuButton = CreateFrame ( "Button" , "GRM_RankDropDownMenuButton" , GRM_guildRankDropDownMenuSelected , "UIPanelScrollDownButtonTemplate" );
 
 -- Normal frame translucent
 local noteBackdrop = {
@@ -238,8 +248,8 @@ GRM_MemberDetailMetaData.GRM_MemberDetailMetaZoneInfoTimeText2 = GRM_MemberDetai
 -- GROUP INVITE and REMOVE from Guild BUTTONS
 local GRM_GroupInviteButton = CreateFrame ( "Button" , "GRM_GroupInviteButton" , GRM_MemberDetailMetaData , "GameMenuButtonTemplate" );
 GRM_GroupInviteButton.GRM_GroupInviteButtonText = GRM_GroupInviteButton:CreateFontString ( "GRM_GroupInviteButtonText" , "OVERLAY" , "GameFontWhiteTiny" );
-local GRM_RemoveGuildieButton = CreateFrame ( "Button" , "GRM_RemoveGuildieButton" , GRM_MemberDetailMetaData , "GameMenuButtonTemplate" );
-GRM_RemoveGuildieButton.GRM_RemoveGuildieButtonText = GRM_RemoveGuildieButton:CreateFontString ( "GRM_RemoveGuildieButtonText" , "OVERLAY" , "GameFontWhiteTiny" );
+-- local GRM_RemoveGuildieButton = CreateFrame ( "Button" , "GRM_RemoveGuildieButton" , GRM_MemberDetailMetaData , "GameMenuButtonTemplate" );
+-- -- Fontstriong for remove button?
 
 -- Tooltips
 local GRM_MemberDetailRankToolTip = CreateFrame ( "GameTooltip" , "GRM_MemberDetailRankToolTip" , GRM_MemberDetailMetaData , "GameTooltipTemplate" );
@@ -252,8 +262,8 @@ GRM_MemberDetailJoinDateToolTip:Hide();
 -- CUSTOM POPUPBOX FOR REUSE -- Avoids all possibility of UI Taint by just building my own, for those that use a lot of addons.
 local GRM_PopupWindow = CreateFrame ( "Frame" , "GRM_PopupWindow" , GRM_MemberDetailMetaData , "TranslucentFrameTemplate" );
 GRM_PopupWindow:Hide() -- Prevents it from autopopping up on load like it sometimes will.
-local GRM_PopupWindowButton1 = CreateFrame ( "Button" , "GRM_PopupWindowButton1" , GRM_PopupWindow , "UIPanelButtonTemplate" );
-GRM_PopupWindowButton1.GRM_PopupWindowButton1Text = GRM_PopupWindowButton1:CreateFontString ( "GRM_PopupWindowButton1Text" , "OVERLAY" , "GameFontNormal" );
+-- local GRM_PopupWindowButton1 = CreateFrame ( "Button" , "GRM_PopupWindowButton1" , GRM_PopupWindow , "UIPanelButtonTemplate" );
+-- GRM_PopupWindowButton1.GRM_PopupWindowButton1Text = GRM_PopupWindowButton1:CreateFontString ( "GRM_PopupWindowButton1Text" , "OVERLAY" , "GameFontNormal" );
 local GRM_PopupWindowButton2 = CreateFrame ( "Button" , "GRM_PopupWindowButton2" , GRM_PopupWindow , "UIPanelButtonTemplate" );
 GRM_PopupWindowButton2.GRM_PopupWindowButton2Text = GRM_PopupWindowButton2:CreateFontString ( "GRM_PopupWindowButton2Text" , "OVERLAY" , "GameFontNormal" );
 local GRM_PopupWindowCheckButton1 = CreateFrame ( "CheckButton" , "GRM_PopupWindowCheckButton1" , GRM_PopupWindow , "OptionsSmallCheckButtonTemplate" );
@@ -263,7 +273,7 @@ local GRM_PopupWindowCheckButton2Text = GRM_PopupWindowCheckButton2:CreateFontSt
 local GRM_PopupWindowConfirmText = GRM_PopupWindow:CreateFontString ( "GRM_PopupWindowConfirmText" , "OVERLAY" , "GameFontNormal" );
 
 -- EDIT BOX FOR ANYTHING ( like banned player note );
-local GRM_MemberDetailEditBoxFrame = CreateFrame ( "Frame" , "GRM_MemberDetailEditBoxFrame" , GRM_PopupWindow , "TranslucentFrameTemplate" );
+local GRM_MemberDetailEditBoxFrame = CreateFrame ( "Frame" , "GRM_MemberDetailEditBoxFrame" , StaticPopup1 , "TranslucentFrameTemplate" );
 GRM_MemberDetailEditBoxFrame:Hide();
 local GRM_MemberDetailPopupEditBox = CreateFrame ( "EditBox" , "GRM_MemberDetailPopupEditBox" , GRM_MemberDetailEditBoxFrame );
 
@@ -445,6 +455,14 @@ GRM_RosterCheckBoxSideFrame.GRM_RosterKickRecommendEditBox = CreateFrame( "EditB
 GRM_RosterCheckBoxSideFrame.GRM_RosterKickRecommendEditBox:Hide();
 GRM_RosterCheckBoxSideFrame.GRM_RosterKickOverlayNote = CreateFrame ( "Frame" , "GRM_RosterKickOverlayNote" , GRM_RosterCheckBoxSideFrame.GRM_RosterRecommendKickCheckButton );
 GRM_RosterCheckBoxSideFrame.GRM_RosterKickOverlayNoteText = GRM_RosterCheckBoxSideFrame.GRM_RosterKickOverlayNote:CreateFontString ( "GRM_RosterKickOverlayNoteText" , "OVERLAY" , "GameFontNormalSmall" );
+-- Time Interval to Check for Changes
+GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalCheckButton = CreateFrame ( "CheckButton" , "GRM_RosterTimeIntervalCheckButton" , GRM_RosterCheckBoxSideFrame , "OptionsSmallCheckButtonTemplate" );
+GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalCheckButtonText = GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalCheckButton:CreateFontString ( "GRM_RosterTimeIntervalCheckButtonText" , "OVERLAY" , "GameFontNormalSmall" );
+GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalCheckButtonText2 = GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalCheckButton:CreateFontString ( "GRM_RosterTimeIntervalCheckButtonText" , "OVERLAY" , "GameFontNormalSmall" );
+GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalEditBox = CreateFrame( "EditBox" , "GRM_RosterTimeIntervalEditBox" , GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalCheckButton );
+GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalEditBox:Hide();
+GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalOverlayNote = CreateFrame ( "Frame" , "GRM_RosterTimeIntervalOverlayNote" , GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalCheckButton );
+GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalOverlayNoteText = GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalOverlayNote:CreateFontString ( "GRM_RosterTimeIntervalOverlayNoteText" , "OVERLAY" , "GameFontNormalSmall" );
 -- Report Inactive Options
 GRM_RosterCheckBoxSideFrame.GRM_RosterReportInactiveReturnButton = CreateFrame ( "CheckButton" , "GRM_RosterReportInactiveReturnButton" , GRM_RosterCheckBoxSideFrame , "OptionsSmallCheckButtonTemplate" );
 GRM_RosterCheckBoxSideFrame.GRM_RosterReportInactiveReturnButtonText = GRM_RosterCheckBoxSideFrame.GRM_RosterReportInactiveReturnButton:CreateFontString ( "GRM_RosterReportInactiveReturnButtonText" , "OVERLAY" , "GameFontNormalSmall" );
@@ -573,7 +591,7 @@ GRM.LoadSettings = function()
             true,                                                                                                   -- 16) Receive Notifications if others in the guild send updates!
             
             true,                                                                                                   -- 17) MISC TO BE USED IN THE FUTURE IF NEEDED
-            true,                                                                                                   -- 18) ''
+            true,                                                                                                   -- 18) SCAN FOR CHANGES?
             true,                                                                                                   -- 19) ''
             true,                                                                                                   -- 20) ''
             true,                                                                                                   -- 21) ''
@@ -1472,6 +1490,11 @@ GRM.PopulateAltFrames = function ( index1 )
                             break;
                         end
                     end
+                elseif button == "LeftButton" then
+                    if GRM_MemberDetailServerNameToolTip:IsVisible() then
+                        -- This makes the main window the alt that was clicked on! TempAltName is saved when mouseover action occurs.
+                        GRM.SelectPlayerOnRoster ( GRM_AddonGlobals.tempAltName );
+                    end
                 end
             end);
             
@@ -2323,7 +2346,7 @@ GRM.KickAllAlts = function ( playerName , guildName )
                                     -- Set the banned info.
                                     GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][17][1] = true;
                                     GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][17][2] = time();
-                                    local instructionNote = "Reason Banned? (Press ENTER when done)";
+                                    local instructionNote = "Reason Banned? (Click \"Yes\" to Finalize Ban)";
                                     local result = GRM_MemberDetailPopupEditBox:GetText();
 
                                     if result ~= nil and result ~= instructionNote and result ~= "" then
@@ -2482,11 +2505,11 @@ GRM.GetGuildEventString = function ( index , playerName )
             if p1 ~= nil then 
                 if eventType [ 5 ] == type or eventType [ 6 ] == type then   -- Quit or Remove
                     if eventType [ 6 ] == type and p2 ~= nil and p2 == playerName then
-                        result = ( p1 .. " KICKED " .. p2 .. " from the guild!" );
+                        result = ( p1 .. " KICKED " .. p2 .. " from the Guild!" );
                         notFound = false;
                     elseif eventType [ 5 ] == type and p1 == playerName then
                         -- FOUND!
-                        result = ( p1 .. " has Left the guild" );
+                        result = ( p1 .. " has Left the Guild" );
                         notFound = false;
                     end
                     if notFound ~= true then
@@ -3063,6 +3086,69 @@ GRM.FinalReport = function()
     GRM_AddonGlobals.changeHappenedExitScan = false;
 end  
 
+-- Method:          GRM.RecordKickChanges ( string , string , string , boolean )
+-- What it Does:    Records and logs the changes for when a guildie either is KICKED or leaves the guild
+-- Purpose:         Having its own function saves on repeating a lot of code here.
+GRM.RecordKickChanges = function ( unitName , simpleName , guildName , playerKicked )
+    local timestamp = GRM.GetTimestamp();
+    local logReport = "";
+    local tempStringRemove = "";
+
+    if not playerKicked then
+        tempStringRemove = GRM.GetGuildEventString ( 3 , simpleName ); -- Kicked from the guild.
+        if tempStringRemove ~= nil and tempStringRemove ~= "" then
+            logReport = ( timestamp .. " : " .. tempStringRemove );
+        else
+            logReport = ( timestamp .. " : " .. simpleName .. " has Left the guild" );
+        end
+    else
+        -- The player kicked them right now!
+        logReport = ( timestamp .. " : " .. GRM.SlimName ( GRM_AddonGlobals.addonPlayerName ) .. " KICKED " .. simpleName .. " from the Guild!" );
+    end
+    
+    -- Finding Player's record for removal of current guild and adding to the Left Guild table.
+    for j = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do  -- Scanning through all entries
+        if unitName == GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][1] then -- Matching member leaving to guild saved entry
+            -- Found!
+            table.insert ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][15], timestamp );                                  -- leftGuildDate
+            table.insert ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][16], time() );                                     -- leftGuildDateMeta
+            table.insert ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][25] , { "|cFFC41F3BLeft Guild" , GRM.Trim ( string.sub ( timestamp , 1 , 10 ) ) } );
+            GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][19] = GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][4];         -- oldRank on leaving.
+            if #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][20] == 0 then                                                 -- Let it default to date addon was installed if date joined was never given
+                table.insert( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][20] , GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][2] );   -- oldJoinDate
+                table.insert( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][21] , GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][3] );   -- oldJoinDateMeta
+            end
+            -- Adding to LeftGuild Player history library
+            table.insert ( GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][GRM_AddonGlobals.saveGID] , GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j] );
+                    
+            -- Removing it from the alt list
+            if #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][11] > 0 then
+                -- Let's add them to the end of the report
+                local countAlts = #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][11];
+                for m = 1 , countAlts do
+                    if m == 1 then
+                        logReport = logReport .. "\n ALTS IN GUILD: " .. GRM.SlimName ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][11][1][1] );
+                    else
+                        logReport = logReport .. ", " .. GRM.SlimName ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][11][m][1] );
+                    end
+
+                    -- Just show limited number of alts...
+                    if m == 5 and m < countAlts then
+                        logReport = logReport .. " (+" .. ( countAlts - m ) .. " More)";
+                        break;
+                    end
+                end
+
+                GRM.RemoveAlt ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][11][1][1] ,GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][1] , guildName , false , 0 );
+            end
+            -- removing from active member library
+            table.remove ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] , j );
+            break;
+        end
+    end
+    return logReport;
+end
+
 -- Method           GRM.RecordChanges()
 -- What it does:    Builds all the changes, sorts them, then adds them to change report
 -- Purpose:         Consolidation of data for final output report.
@@ -3262,53 +3348,7 @@ GRM.RecordChanges = function ( indexOfInfo , memberInfo , memberOldInfo , guildN
         end
     -- 11 = Player Left  
     elseif indexOfInfo == 11 then
-        local timestamp = GRM.GetTimestamp();
-        local tempStringRemove = GRM.GetGuildEventString ( 3 , simpleName ); -- Kicked from the guild.
-        if tempStringRemove ~= nil and tempStringRemove ~= "" then
-            logReport = ( timestamp .. " : " .. tempStringRemove );
-        else
-            logReport = ( timestamp .. " : " .. simpleName .. " has Left the guild" );
-        end
-        -- Finding Player's record for removal of current guild and adding to the Left Guild table.
-        for j = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do  -- Scanning through all entries
-            if memberInfo[1] == GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][1] then -- Matching member leaving to guild saved entry
-                -- Found!
-                table.insert ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][15], timestamp );                                  -- leftGuildDate
-                table.insert ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][16], time() );                                     -- leftGuildDateMeta
-                table.insert ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][25] , { "|cFFC41F3BLeft Guild" , GRM.Trim ( string.sub ( timestamp , 1 , 10 ) ) } );
-                GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][19] = GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][4];         -- oldRank on leaving.
-                if #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][20] == 0 then                                                 -- Let it default to date addon was installed if date joined was never given
-                    table.insert( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][20] , GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][2] );   -- oldJoinDate
-                    table.insert( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][21] , GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][3] );   -- oldJoinDateMeta
-                end
-                -- Adding to LeftGuild Player history library
-                table.insert ( GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][GRM_AddonGlobals.saveGID] , GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j] );
-                        
-                -- Removing it from the alt list
-                if #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][11] > 0 then
-                    -- Let's add them to the end of the report
-                    local countAlts = #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][11];
-                    for m = 1 , countAlts do
-                        if m == 1 then
-                            logReport = logReport .. "\n ALTS IN GUILD: " .. GRM.SlimName ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][11][1][1] );
-                        else
-                            logReport = logReport .. ", " .. GRM.SlimName ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][11][m][1] );
-                        end
-
-                        -- Just show limited number of alts...
-                        if m == 5 and m < countAlts then
-                            logReport = logReport .. " (+" .. ( countAlts - m ) .. " More)";
-                            break;
-                        end
-                    end
-
-                    GRM.RemoveAlt ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][11][1][1] ,GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][1] , guildName , false , 0 );
-                end
-                -- removing from active member library
-                table.remove ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] , j );
-                break;
-            end
-        end
+        local report = GRM.RecordKickChanges( memberInfo[1] , simpleName , guildName , false );
         table.insert( GRM_AddonGlobals.TempLeftGuild , { 10 , logReport , false } );
     -- 12 = NameChanged
     elseif indexOfInfo == 12 then
@@ -3399,6 +3439,17 @@ GRM.CheckPlayerChanges = function ( metaData , guildName )
                             -- Update the player index if it is the player themselves that received the change in rank.
                             if metaData[j][1] == GRM_AddonGlobals.addonPlayerName then
                                 GRM_AddonGlobals.playerIndex = metaData[j][3];
+
+                                -- Let's do a resync check as well... If permissions have changed, we should resync check em.
+                                -- First, RESET all..
+                                if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][14] and not GRMsyncGlobals.currentlySyncing then
+                                    GRMsync.TriggerFullReset();
+                                    -- Now, let's add a brief delay, 3 seconds, to trigger sync again
+                                    C_Timer.After ( 3 , GRMsync.Initialize );
+                                end
+                                -- Determine if player has access to guild chat or is in restricted chat rank - need to recheck with rank change.
+                                GRM_AddonGlobals.HasAccessToGuildChat = false;
+                                GRM.RegisterGuildChatPermission();
                             end
                         elseif k == 2 and metaData[j][2] ~= GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][4] and metaData[j][3] == GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][5] then
                             -- RANK RENAMED!
@@ -3840,16 +3891,11 @@ GRM.GetRankPermissions = function ( ... ) -- Note, Guild Leader = 1, so next hig
     return result;
 end
 
--- Method:          GRM.IsGuildChatEnabled()
+-- Method:          GRM.RegisterGuildChatPermission()
 -- What it Does:    Returns true of the player has permission to use the guild chat channel.
 -- Purpose:         If guild chat channel is restricted then sync cannot be enabled either...
-GRM.IsGuildChatEnabled = function()
-    GuildControlSetRank ( GRM.GetGuildMemberRankID ( GRM_AddonGlobals.addonPlayerName ) + 1 );
-    if GRM.GetRankPermissions (  GuildControlGetRankFlags() )[1] == "true" then
-        return true;
-    else
-        return false;
-    end
+GRM.RegisterGuildChatPermission = function()   
+    GRMsync.SendMessage ( "GRM_GCHAT" , "" , "GUILD" );
 end
 
 -- Method:          GRM.AddPlayerActiveCheck ( string )
@@ -4830,21 +4876,33 @@ end
 -- Purpose:         Flow control of drop down menus.
 GRM.GetRankIndex = function ( rankName , buttons )
     local index = -1;
+    local is2D = true;
+    if buttons[1][2] == nil then
+        is2D = false;
+    end
     for i = 1 , #buttons do
-        if buttons[i][2]:GetText() == rankName then
-            index = i;
-            break;
+        if not is2D then
+            if buttons[i]:GetText() == rankName then
+                index = i;
+                break;
+            end
+        else
+            if buttons[i][2]:GetText() == rankName then
+                index = i;
+                break;
+            end
         end
     end
     return index;
 end
 
--- Method:          GRM.OnRankDropMenuClick ( self )
+-- Method:          GRM.OnRankDropMenuClick ( string, string  )
 -- What it Does:    Logic on Rank Drop down select in main frame
 -- Purpose:         UI feature and UX
 GRM.OnRankDropMenuClick = function ( formerRank , newRank )
-    local newRankIndex = GRM.GetRankIndex ( newRank , GRM_RankDropDownMenu.Buttons );
-    local formerRankIndex = GRM.GetRankIndex ( formerRank , GRM_RankDropDownMenu.Buttons );
+    -- Build Buttons Profile
+    local newRankIndex = GRM.GetRankIndex ( newRank , GRM_AddonGlobals.RankDropDownMenuButtons );
+    local formerRankIndex = GRM.GetRankIndex ( formerRank , GRM_AddonGlobals.RankDropDownMenuButtons );
 
     if ( newRankIndex > formerRankIndex and CanGuildDemote() ) or ( newRankIndex < formerRankIndex and CanGuildPromote() ) then
         local numRanks = GuildControlGetNumRanks();
@@ -4861,7 +4919,6 @@ GRM.OnRankDropMenuClick = function ( formerRank , newRank )
                 -- Need to verify promotion is ok... in case of authenticator requirement or other reasons
                 local canSetRank , reason = IsGuildRankAssignmentAllowed ( i , solution );
                 if canSetRank then
-                    SetGuildMemberRank ( i , solution );
 
                     -- Save the data!
                     local timestamp = GRM.GetTimestamp();
@@ -4885,7 +4942,6 @@ GRM.OnRankDropMenuClick = function ( formerRank , newRank )
                             local logReport = "";
                             -- Promotion Obtained
                             if newRankIndex < formerRankIndex and CanGuildPromote() then
-                                GRM_guildRankDropDownMenuSelected.RankText:SetText ( newRankName );
                                 logReport = ( timestamp .. " : " .. GRM.SlimName ( GRM_AddonGlobals.addonPlayerName ) .. " PROMOTED " .. simpleName .. " from " .. formerRankName .. " to " .. newRankName );
 
                                 -- report the changes!
@@ -4896,8 +4952,6 @@ GRM.OnRankDropMenuClick = function ( formerRank , newRank )
 
                             -- Demotion Obtained
                             elseif newRankIndex > formerRankIndex and CanGuildDemote() then
-                                GRM_guildRankDropDownMenuSelected.RankText:SetText ( newRankName );
-                                tempString = GRM.GetGuildEventString ( 1 , simpleName );
                                 logReport = ( timestamp .. " : " .. GRM.SlimName ( GRM_AddonGlobals.addonPlayerName ) .. " DEMOTED " .. simpleName .. " from " .. formerRankName .. " to " .. newRankName );
 
                                 -- reporting the changes!
@@ -4938,83 +4992,117 @@ GRM.OnRankDropMenuClick = function ( formerRank , newRank )
     end
 end
 
--- Method:          GRM.PopulateRank ( self , int )
--- What it Does:    Adds all the guild ranks to the drop down menu
--- Purpose:         UI Feature
-GRM.PopulateRankDropDown = function ()
-    -- populating the frames!
-    local buffer = 3;
-    local height = 0;
-    GRM_RankDropDownMenu.Buttons = GRM_RankDropDownMenu.Buttons or {};
-
-    -- Resetting the buttons!
-    for i = 1 , #GRM_RankDropDownMenu.Buttons do
-        GRM_RankDropDownMenu.Buttons[i][1]:Hide();
-    end
-    
-    local i = 1;
+-- Method:          GRM.BuildDropdownButtons()
+-- What it Does:    It builds into an array all of the dropdown buttons from the guild rank dropdown.
+-- Purpose:         Needed to initialize dropdown logic...
+GRM.BuildDropdownButtons = function()
+    -- Let's put all of the buttons in an array, and let's set some rules.
+    GRM_AddonGlobals.CurrentRank = GuildMemberRankDropdownText:GetText();
     for count = 2 , ( GuildControlGetNumRanks() - GRM_AddonGlobals.playerIndex ) do
-        if not GRM_RankDropDownMenu.Buttons[i] then
-            local tempButton = CreateFrame ( "Button" , "rankIndex" .. i , GRM_RankDropDownMenu );
-            GRM_RankDropDownMenu.Buttons[i] = { tempButton , tempButton:CreateFontString ( "rankIndexText" .. i , "OVERLAY" , "GameFontWhiteTiny" ) }
-        end
+        GRM_AddonGlobals.RankDropDownMenuButtons[count - 1 ] = GetClickFrame ( "DropDownList1Button" .. count - 1 );
 
-        local RankButtons = GRM_RankDropDownMenu.Buttons[i][1];
-        local RankButtonsText = GRM_RankDropDownMenu.Buttons[i][2];
-        RankButtons:SetWidth ( 112 );
-        RankButtons:SetHeight ( 10 );
-        RankButtons:SetHighlightTexture ( "Interface\\Buttons\\UI-Panel-Button-Highlight" );
-        RankButtonsText:SetText ( GuildControlGetRankName ( count + GRM_AddonGlobals.playerIndex ) );
-        RankButtonsText:SetWidth ( 112 );
-        RankButtonsText:SetWordWrap ( false );
-        RankButtonsText:SetFont ( "Fonts\\FRIZQT__.TTF" , 9 );
-        RankButtonsText:SetPoint ( "CENTER" , RankButtons );
-        RankButtonsText:SetJustifyH ( "CENTER" );
-
-        if i == 1 then
-            RankButtons:SetPoint ( "TOP" , GRM_RankDropDownMenu , 0 , -7 );
-            height = height + RankButtons:GetHeight();
-        else
-            RankButtons:SetPoint ( "TOP" , GRM_RankDropDownMenu.Buttons[i - 1][1] , "BOTTOM" , 0 , -buffer );
-            height = height + RankButtons:GetHeight() + buffer;
-        end
-
-        RankButtons:SetScript ( "OnClick" , function( _ , button ) 
-            if button == "LeftButton" then
-                local formerRank = GRM_guildRankDropDownMenuSelected.RankText:GetText();
-                GRM_RankDropDownMenu:Hide();
-                GRM_guildRankDropDownMenuSelected:Show();
-                GRM.OnRankDropMenuClick( formerRank , RankButtonsText:GetText() );
+        -- Button Logic...
+        GRM_AddonGlobals.RankDropDownMenuButtons[count - 1 ]:HookScript ( "OnClick" , function( self , button )
+            if button == "LeftButton" and GuildMemberRankDropdown:IsVisible() and not GRM_AddonGlobals.ClickNow then      -- It's a reused asset, so make sure it is open in context
+                GRM_AddonGlobals.ClickNow = true;
+                GRM.OnRankDropMenuClick( GRM_AddonGlobals.CurrentRank  , GRM_AddonGlobals.RankDropDownMenuButtons[count - 1 ]:GetText() );
+                C_Timer.After ( 2 , function()
+                    GRM_AddonGlobals.ClickNow = false;
+                end);
             end
-        end); 
-        RankButtons:Show();
-        i = i + 1;
+        end);
     end
-    GRM_RankDropDownMenu:SetHeight ( height + 15 );
 end
+
+-- Method:          GRM.CollectRosterButtons()
+-- What it Does:    Puts the 14 roster buttons into an array
+-- Purpose:         Ease of access of the buttons of course!!!
+GRM.CollectRosterButtons = function()
+    for i = 1 , 14 do
+        GRM_AddonGlobals.RosterButtons[i] = GetClickFrame ( "GuildRosterContainerButton" .. i );
+    end
+end
+
+-- -- Method:          GRM.PopulateRank ( self , int )
+-- -- What it Does:    Adds all the guild ranks to the drop down menu
+-- -- Purpose:         UI Feature
+-- GRM.PopulateRankDropDown = function ()
+--     -- populating the frames!
+--     local buffer = 3;
+--     local height = 0;
+--     GRM_AddonGlobals.RankDropDownMenuButtons = GRM_AddonGlobals.RankDropDownMenuButtons or {};
+
+--     -- Resetting the buttons!
+--     for i = 1 , #GRM_AddonGlobals.RankDropDownMenuButtons do
+--         GRM_AddonGlobals.RankDropDownMenuButtons[i][1]:Hide();
+--     end
+    
+--     local i = 1;
+--     for count = 2 , ( GuildControlGetNumRanks() - GRM_AddonGlobals.playerIndex ) do
+--         if not GRM_AddonGlobals.RankDropDownMenuButtons[i] then
+--             local tempButton = CreateFrame ( "Button" , "rankIndex" .. i , GRM_RankDropDownMenu );
+--             GRM_AddonGlobals.RankDropDownMenuButtons[i] = { tempButton , tempButton:CreateFontString ( "rankIndexText" .. i , "OVERLAY" , "GameFontWhiteTiny" ) }
+--         end
+
+--         local RankButtons = GRM_AddonGlobals.RankDropDownMenuButtons[i][1];
+--         local RankButtonsText = GRM_AddonGlobals.RankDropDownMenuButtons[i][2];
+--         RankButtons:SetWidth ( 112 );
+--         RankButtons:SetHeight ( 10 );
+--         RankButtons:SetHighlightTexture ( "Interface\\Buttons\\UI-Panel-Button-Highlight" );
+--         RankButtonsText:SetText ( GuildControlGetRankName ( count + GRM_AddonGlobals.playerIndex ) );
+--         RankButtonsText:SetWidth ( 112 );
+--         RankButtonsText:SetWordWrap ( false );
+--         RankButtonsText:SetFont ( "Fonts\\FRIZQT__.TTF" , 9 );
+--         RankButtonsText:SetPoint ( "CENTER" , RankButtons );
+--         RankButtonsText:SetJustifyH ( "CENTER" );
+
+--         if i == 1 then
+--             RankButtons:SetPoint ( "TOP" , GRM_RankDropDownMenu , 0 , -7 );
+--             height = height + RankButtons:GetHeight();
+--         else
+--             RankButtons:SetPoint ( "TOP" , GRM_AddonGlobals.RankDropDownMenuButtons[i - 1][1] , "BOTTOM" , 0 , -buffer );
+--             height = height + RankButtons:GetHeight() + buffer;
+--         end
+
+--         RankButtons:SetScript ( "OnClick" , function( _ , button ) 
+--             if button == "LeftButton" then
+--                 local formerRank = GRM_guildRankDropDownMenuSelected.RankText:GetText();
+--                 GRM_RankDropDownMenu:Hide();
+--                 GRM_guildRankDropDownMenuSelected:Show();
+--                 GRM.OnRankDropMenuClick( formerRank , RankButtonsText:GetText() );
+--             end
+--         end); 
+--         RankButtons:Show();
+--         i = i + 1;
+--     end
+--     GRM_RankDropDownMenu:SetHeight ( height + 15 );
+-- end
 
 -- Method:          GRM.CreateRankDropDown()
 -- What it Does:    Builds the final rank drop down product
 -- Purpose:         UI Feature
 GRM.CreateRankDropDown = function ()
-    GRM.PopulateRankDropDown();
-    local numRanks = GuildControlGetNumRanks();
-    local numChoices = ( numRanks - GRM_AddonGlobals.playerIndex - 1 );
-    local solution = GRM_AddonGlobals.rankIndex - ( numRanks - numChoices ) + 1;   -- Calculating which rank to select based on flexible and scalable rank numbers.
 
-    GRM_guildRankDropDownMenuSelected.RankText:SetText( GRM_RankDropDownMenu.Buttons[ solution ][2]:GetText() );    -- Sets the text to be the rank of the player on mouseover.
+   GuildMemberRankDropdown:SetParent( GRM_MemberDetailMetaData ); 
+   GuildMemberRankDropdown:SetPoint( "CENTER" , GRM_MemberDetailMetaData );
+    -- GRM.PopulateRankDropDown();
+    -- local numRanks = GuildControlGetNumRanks();
+    -- local numChoices = ( numRanks - GRM_AddonGlobals.playerIndex - 1 );
+    -- local solution = GRM_AddonGlobals.rankIndex - ( numRanks - numChoices ) + 1;   -- Calculating which rank to select based on flexible and scalable rank numbers.
+
+    -- GRM_guildRankDropDownMenuSelected.RankText:SetText( GRM_AddonGlobals.RankDropDownMenuButtons[ solution ][2]:GetText() );    -- Sets the text to be the rank of the player on mouseover.
     
-    GRM_RankDropDownMenuButton:SetScript ( "OnMouseDown" , function( _ , button ) 
-        if button == "LeftButton" then
-            if GRM_RankDropDownMenu:IsVisible() then
-                GRM_RankDropDownMenu:Hide();
-            else
-                GRM.PopulateRankDropDown();
-                GRM_RankDropDownMenu:Show();
-            end
-        end
-    end);
-    GRM_guildRankDropDownMenuSelected:Show();
+    -- GRM_RankDropDownMenuButton:SetScript ( "OnMouseDown" , function( _ , button ) 
+    --     if button == "LeftButton" then
+    --         if GRM_RankDropDownMenu:IsVisible() then
+    --             GRM_RankDropDownMenu:Hide();
+    --         else
+    --             GRM.PopulateRankDropDown();
+    --             GRM_RankDropDownMenu:Show();
+    --         end
+    --     end
+    -- end);
+    -- GRM_guildRankDropDownMenuSelected:Show();
 end
 
 
@@ -5068,9 +5156,14 @@ GRM.PopulateOptionsRankDropDown = function ()
                 GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] = GRM.GetRankIndex ( GRM_RosterCheckBoxSideFrame.GRM_RosterSyncRankDropDownSelectedText:GetText() , GRM_RosterCheckBoxSideFrame.GRM_RosterSyncRankDropDownMenu.Buttons );
             
                 --Let's re-initiate syncing!
-                if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][14] and not GRMsyncGlobals.currentlySyncing then --and GRM.IsGuildChatEnabled()
-                    GRMsync.Initialize();
+                if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][14] and not GRMsyncGlobals.currentlySyncing and GRM_AddonGlobals.HasAccessToGuildChat then
+                    GRMsync.TriggerFullReset();
+                    -- Now, let's add a brief delay, 3 seconds, to trigger sync again
+                    C_Timer.After ( 3 , GRMsync.Initialize );
                 end
+                -- Determine if player has access to guild chat or is in restricted chat rank
+                GRM_AddonGlobals.HasAccessToGuildChat = false;
+                GRM.RegisterGuildChatPermission();
                 
             end
         end); 
@@ -5256,7 +5349,7 @@ GRM.ResetPlayerMetaData = function ( playerName , guildName )
             GRM_MemberDetailMetaData:Hide();
             
             --Let's re-initiate syncing!
-            if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][14] and not GRMsyncGlobals.currentlySyncing then -- and GRM.IsGuildChatEnabled()
+            if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][14] and not GRMsyncGlobals.currentlySyncing and GRM_AddonGlobals.HasAccessToGuildChat then
                 chat:AddMessage ( "Re-Syncing " .. GRM.SlimName ( playerName ) .. "'s Player Data... " , 1.0 , 0.84 , 0 );
                 GRMsync.Initialize();
             end
@@ -5383,7 +5476,7 @@ end
 -- What it Does:    Builds the details for the core MemberInfoFrame
 -- Purpose:         Iterate on each mouseover... Furthermore, this is being kept in "Local" for even the most infinitesimal cost-saving on resources
 --                  by not indexing it in a table. Buried in it will be mostly non-compartmentalized logic, few function calls.
-local function PopulateMemberDetails( handle )
+local function PopulateMemberDetails ( handle )
     GRM_AddonGlobals.rankDateSet = false;        -- resetting tracker
 
     for r = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
@@ -5430,7 +5523,7 @@ local function PopulateMemberDetails( handle )
                 GRM_MemberDetailRankTxt:Hide();
                 GRM.CreateRankDropDown();
             else
-                GRM_guildRankDropDownMenuSelected:Hide();
+                GuildMemberRankDropdown:Hide();
                 GRM_MemberDetailRankTxt:SetText ( "\"" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][4] .. "\"");
                 GRM_MemberDetailRankTxt:Show();
             end
@@ -5570,13 +5663,13 @@ local function PopulateMemberDetails( handle )
                 local isGuildieBanned = GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][17][1];
                 if GRM_AddonGlobals.rankIndex > GRM_AddonGlobals.playerIndex and CanGuildRemove() then
                     if isGuildieBanned then
-                        GRM_RemoveGuildieButton.GRM_RemoveGuildieButtonText:SetText ( "Re-Kick" );
+                        GuildMemberRemoveButtonText:SetText ( "Re-Kick" );
                     else
-                        GRM_RemoveGuildieButton.GRM_RemoveGuildieButtonText:SetText ( "Remove" );
+                        GuildMemberRemoveButtonText:SetText ( "Remove" );
                     end
-                    GRM_RemoveGuildieButton:Show();
+                    GuildMemberRemoveButton:Show();
                 else
-                    GRM_RemoveGuildieButton:Hide();
+                    GuildMemberRemoveButton:Hide();
                     GRM_MemberDetailBannedText1:Hide();
                     GRM_MemberDetailBannedIgnoreButton:Hide();
                 end
@@ -5588,10 +5681,11 @@ local function PopulateMemberDetails( handle )
                             GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][17] = nil;
                             GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][17] = { false , 0 , false }
                             GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][18] = "";
-                            GRM_RemoveGuildieButton.GRM_RemoveGuildieButtonText:SetText( "Remove" );
+                            GuildMemberRemoveButtonText:SetText( "Remove" );
                             GRM_MemberDetailBannedText1:Hide();
                             GRM_MemberDetailBannedIgnoreButton:Hide();
                             GRM_PopupWindow:Hide();
+                            StaticPopup1:Hide();
                         end
                     end);
                     
@@ -5602,7 +5696,7 @@ local function PopulateMemberDetails( handle )
                     GRM_MemberDetailBannedIgnoreButton:Hide();
                 end
             else
-                GRM_RemoveGuildieButton:Hide();
+                GuildMemberRemoveButton:Hide();
                 GRM_MemberDetailBannedText1:Hide();
                 GRM_MemberDetailBannedIgnoreButton:Hide();
             end
@@ -5623,7 +5717,7 @@ GRM.ClearAllFrames = function()
     GRM_MonthDropDownMenuSelected:Hide();
     GRM_YearDropDownMenuSelected:Hide();
     GRM_DayDropDownMenuSelected:Hide();
-    GRM_guildRankDropDownMenuSelected:Hide();
+    GuildMemberRankDropdown:Hide();
     GRM_DateSubmitButton:Hide();
     GRM_DateSubmitCancelButton:Hide();
     GRM_PopupWindow:Hide();
@@ -5632,6 +5726,10 @@ GRM.ClearAllFrames = function()
     GRM_altDropDownOptions:Hide();
     GRM_AddAltButton:Hide();
     GRM_AddAltEditFrame:Hide();
+
+    if not StaticPopup1EditBox:IsVisible() then
+        StaticPopup1:Hide();
+    end
 end
 
 -- Method:          GRM.SubFrameCheck()
@@ -5979,7 +6077,7 @@ local function GR_RosterFrame ( _ , elapsed )
                 end
                 -- Logic on when to make Member Detail window disappear.
                 if mouseNotOver and NotSameWindow and GRM_AddonGlobals.pause == false then
-                    if ( GuildRosterFrame:IsMouseOver ( 2 , -2 , -2 , 2 ) ~= true and DropDownList1Backdrop:IsMouseOver ( 2 , -2 , -2 , 2 ) ~= true and GRM_MemberDetailMetaData:IsMouseOver ( 2 , -2 , -2 , 2 ) ~= true ) or 
+                    if ( GuildRosterFrame:IsMouseOver ( 2 , -2 , -2 , 2 ) ~= true and not DropDownList1Backdrop:IsMouseOver ( 2 , -2 , -2 , 2 ) and not StaticPopup1:IsMouseOver ( 2 , -2 , -2 , 2 ) and not GRM_MemberDetailMetaData:IsMouseOver ( 2 , -2 , -2 , 2 ) ) or 
                         ( GRM_MemberDetailMetaData:IsMouseOver ( 2 , -2 , -2 , 2 ) == true and GRM_MemberDetailMetaData:IsVisible() ~= true ) then  -- If player is moused over side window, it will not hide it!
                         GRM_AddonGlobals.position = 0;
                         
@@ -5998,6 +6096,81 @@ local function GR_RosterFrame ( _ , elapsed )
     end
 end
 
+
+-- Method:          GRM.SelectPlayerOnRoster ( string )
+-- What it Does:    If the guild roster window is open, this will jump to the player anywhere in the roster, online or offline, and bring up their metadata window
+-- Purpose:         Useful for when a player wants to click and alt rather than have to scan through the roster for them.
+GRM.SelectPlayerOnRoster = function ( playerName )
+
+    -- Ok, let's find the position the player is in right now...
+    local position = -1;
+    local isFoundOnline = false;
+    local numGuildies = GRM.GetNumGuildies();
+    -- if the action bars are showing ONLY the online players - determining if given player is online.
+
+    -- If the player is ONLY looking at online players, let's do this scan slightly more efficiently
+    -- You see, IF the selected player is online, the scan will be quicker! No need to parse the entire roster unnecessarily.
+    if not GRM_AddonGlobals.ShowOfflineChecked then
+        for i = 1 , numGuildies do
+            local name , _ , _ , _ , _ , _ , _ , _ , isOnline = GetGuildRosterInfo ( i );
+            if not isOnline then
+                break;
+                -- once it reaches the end of the onlines, it kills it...
+            elseif name == playerName then
+                position = i;
+                isFoundOnline = true;
+                break;
+            end
+        end
+    end
+    
+    -- Omg, IF so, then we know 2 things... the players is first, only looking at online players and second, is currently online!
+    if not isFoundOnline then
+        -- Let's make sure we are looking at all players...
+        GuildRosterShowOfflineButton:SetChecked( true );
+        SetGuildRosterShowOffline ( true );
+
+        -- Ok, now we need to find the player's position...
+        for i = 1 , numGuildies do
+            local name = GetGuildRosterInfo ( i );
+            
+            -- match the name!
+            if name == playerName then
+                position = i;
+                break;
+            end
+        end
+    end
+
+    -- Ok, let's set the position!
+    -- To do that, we need to figure out how to scale the guild
+    -- We don't need to scroll if the guild has 14 members or less. We do if otherwise.
+    if position <= 14 or numGuildies <= 14 then
+        GuildRosterContainerScrollBar:SetValue ( 0 );
+    else
+        -- Now here is the fancy footwork. It is roughly +300 position length for every 14 players in the guild. So, let's see how many we need to go.
+        GuildRosterContainerScrollBar:SetValue ( ( position / 14 ) * ( 300 + ( position / 127 ) ) ); -- After some testing on guilds size 15 to size 100, the magic number really is 127. At 125, the extra few pts, if the player is at position 999, puts them too far
+    end
+
+    for i = 1 , #GRM_AddonGlobals.RosterButtons do
+        -- Select the button!
+        GRM_AddonGlobals.RosterButtons[i]:Click();
+        if GRM.GetMobileFreeName ( GuildMemberDetailName:GetText() ) == playerName then
+            -- Player is found!
+            GRM_AddonGlobals.pause = false;
+            PopulateMemberDetails ( playerName );
+
+            -- Make sure we hide this frame if needed
+            GRM_PopupWindow:Hide();
+            StaticPopup1:Hide();
+            GRM_AddonGlobals.RosterButtons[i]:Click();
+            GRM_AddonGlobals.pause = true;
+            break;
+        end
+    end   
+end
+
+
 --- FINALLY!!!!!
 --- TOOLTIPS ---
 ----------------
@@ -6012,7 +6185,7 @@ GRM.MemberDetailToolTips = function ( self , elapsed )
 
         -- Rank Text
         -- Only populate and show tooltip if mouse is over text frame and it is not already visible.
-        if GRM_MemberDetailRankToolTip:IsVisible() ~= true and not GRM_RankDropDownMenu:IsVisible() and GRM_MemberDetailRankDateTxt:IsVisible() == true and GRM_altDropDownOptions:IsVisible() ~= true and GRM_MemberDetailRankDateTxt:IsMouseOver(1,-1,-1,1) == true then
+        if GRM_MemberDetailRankToolTip:IsVisible() ~= true and not StaticPopup1:IsVisible() and not DropDownList1:IsVisible() and GRM_MemberDetailRankDateTxt:IsVisible() == true and GRM_altDropDownOptions:IsVisible() ~= true and GRM_MemberDetailRankDateTxt:IsMouseOver(1,-1,-1,1) == true then
             
             GRM_MemberDetailRankToolTip:SetOwner( GRM_MemberDetailRankDateTxt , "ANCHOR_BOTTOMRIGHT" );
             GRM_MemberDetailRankToolTip:AddLine( "|cFFFFFFFFRank History");
@@ -6039,7 +6212,7 @@ GRM.MemberDetailToolTips = function ( self , elapsed )
         end
 
         -- JOIN DATE TEXT
-        if GRM_MemberDetailJoinDateToolTip:IsVisible() ~= true and GRM_JoinDateText:IsVisible() == true and GRM_altDropDownOptions:IsVisible() ~= true and GRM_JoinDateText:IsMouseOver(1,-1,-1,1) == true then
+        if GRM_MemberDetailJoinDateToolTip:IsVisible() ~= true and not StaticPopup1:IsVisible() and GRM_JoinDateText:IsVisible() == true and GRM_altDropDownOptions:IsVisible() ~= true and GRM_JoinDateText:IsMouseOver(1,-1,-1,1) == true then
            
             GRM_MemberDetailJoinDateToolTip:SetOwner( GRM_JoinDateText , "ANCHOR_BOTTOMRIGHT" );
             GRM_MemberDetailJoinDateToolTip:AddLine( "|cFFFFFFFFMembership History");
@@ -6071,7 +6244,7 @@ GRM.MemberDetailToolTips = function ( self , elapsed )
         end
 
         -- Mouseover name shows full server... useful on merged realms.
-        if not GRM_altDropDownOptions:IsVisible() and GRM_MemberDetailNameText:IsMouseOver ( 1 , -1 , -1 , 1 ) then
+        if not GRM_altDropDownOptions:IsVisible() and not StaticPopup1:IsVisible() and GRM_MemberDetailNameText:IsMouseOver ( 1 , -1 , -1 , 1 ) then
             -- Get Class Color
             local textR, textG, textB = GRM_MemberDetailNameText:GetTextColor();
 
@@ -6085,7 +6258,7 @@ GRM.MemberDetailToolTips = function ( self , elapsed )
         end
 
         -- Mouseover on Alt Names
-        if GRM_AltName1:IsVisible() or ( GRM_AltAdded1 ~= nil and GRM_AltAdded1:IsVisible() ) then
+        if GRM_AltName1:IsVisible() or ( GRM_AltAdded1 ~= nil and GRM_AltAdded1:IsVisible() ) and not StaticPopup1:IsVisible() and not GRM_altDropDownOptions:IsVisible() then
             for j = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
                 if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][1] == name then   --- Player Found in MetaData Logs
                     local listOfAlts = GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][11];
@@ -6096,54 +6269,44 @@ GRM.MemberDetailToolTips = function ( self , elapsed )
                             if GRM_AltName1:IsVisible() and GRM_AltName1:IsMouseOver ( 1 , -1 , -1 , 1 ) then
                                 numAlt = numAlt + 1;
                                 GRM_MemberDetailServerNameToolTip:SetOwner ( GRM_AltName1 , "ANCHOR_CURSOR" );
-                                GRM_MemberDetailServerNameToolTip:AddLine ( listOfAlts[numAlt][1] , listOfAlts[numAlt][2] , listOfAlts[numAlt][3] , listOfAlts[numAlt][4] );
                             elseif GRM_AltName2:IsVisible() and GRM_AltName2:IsMouseOver ( 1 , -1 , -1 , 1 ) then
                                 numAlt = numAlt + 2;
                                 GRM_MemberDetailServerNameToolTip:SetOwner ( GRM_AltName2 , "ANCHOR_CURSOR" );
-                                GRM_MemberDetailServerNameToolTip:AddLine ( listOfAlts[numAlt][1] , listOfAlts[numAlt][2] , listOfAlts[numAlt][3] , listOfAlts[numAlt][4] );
                             elseif GRM_AltName3:IsVisible() and GRM_AltName3:IsMouseOver ( 1 , -1 , -1 , 1 ) then
                                 numAlt = numAlt + 3;
                                 GRM_MemberDetailServerNameToolTip:SetOwner ( GRM_AltName3 , "ANCHOR_CURSOR" );
-                                GRM_MemberDetailServerNameToolTip:AddLine ( listOfAlts[numAlt][1] , listOfAlts[numAlt][2] , listOfAlts[numAlt][3] , listOfAlts[numAlt][4] );
                             elseif GRM_AltName4:IsVisible() and GRM_AltName4:IsMouseOver ( 1 , -1 , -1 , 1 ) then
                                 numAlt = numAlt + 4;
                                 GRM_MemberDetailServerNameToolTip:SetOwner ( GRM_AltName4 , "ANCHOR_CURSOR" );
-                                GRM_MemberDetailServerNameToolTip:AddLine ( listOfAlts[numAlt][1] , listOfAlts[numAlt][2] , listOfAlts[numAlt][3] , listOfAlts[numAlt][4] );
                             elseif GRM_AltName5:IsVisible() and GRM_AltName5:IsMouseOver ( 1 , -1 , -1 , 1 ) then
                                 numAlt = numAlt + 5;
                                 GRM_MemberDetailServerNameToolTip:SetOwner ( GRM_AltName5 , "ANCHOR_CURSOR" );
-                                GRM_MemberDetailServerNameToolTip:AddLine ( listOfAlts[numAlt][1] , listOfAlts[numAlt][2] , listOfAlts[numAlt][3] , listOfAlts[numAlt][4] );
                             elseif GRM_AltName6:IsVisible() and GRM_AltName6:IsMouseOver ( 1 , -1 , -1 , 1 ) then
                                 numAlt = numAlt + 6;
                                 GRM_MemberDetailServerNameToolTip:SetOwner ( GRM_AltName6 , "ANCHOR_CURSOR" );
-                                GRM_MemberDetailServerNameToolTip:AddLine ( listOfAlts[numAlt][1] , listOfAlts[numAlt][2] , listOfAlts[numAlt][3] , listOfAlts[numAlt][4] );
                             elseif GRM_AltName7:IsVisible() and GRM_AltName7:IsMouseOver ( 1 , -1 , -1 , 1 ) then
                                 numAlt = numAlt + 7;
                                 GRM_MemberDetailServerNameToolTip:SetOwner ( GRM_AltName7 , "ANCHOR_CURSOR" );
-                                GRM_MemberDetailServerNameToolTip:AddLine ( listOfAlts[numAlt][1] , listOfAlts[numAlt][2] , listOfAlts[numAlt][3] , listOfAlts[numAlt][4] );
                             elseif GRM_AltName8:IsVisible() and GRM_AltName8:IsMouseOver ( 1 , -1 , -1 , 1 ) then
                                 numAlt = numAlt + 8;
                                 GRM_MemberDetailServerNameToolTip:SetOwner ( GRM_AltName8 , "ANCHOR_CURSOR" );
-                                GRM_MemberDetailServerNameToolTip:AddLine ( listOfAlts[numAlt][1] , listOfAlts[numAlt][2] , listOfAlts[numAlt][3] , listOfAlts[numAlt][4] );
                             elseif GRM_AltName9:IsVisible() and GRM_AltName9:IsMouseOver ( 1 , -1 , -1 , 1 ) then
                                 numAlt = numAlt + 9;
                                 GRM_MemberDetailServerNameToolTip:SetOwner ( GRM_AltName9 , "ANCHOR_CURSOR" );
-                                GRM_MemberDetailServerNameToolTip:AddLine ( listOfAlts[numAlt][1] , listOfAlts[numAlt][2] , listOfAlts[numAlt][3] , listOfAlts[numAlt][4] );
                             elseif GRM_AltName10:IsVisible() and GRM_AltName10:IsMouseOver ( 1 , -1 , -1 , 1 ) then
                                 numAlt = numAlt + 10;
                                 GRM_MemberDetailServerNameToolTip:SetOwner ( GRM_AltName10 , "ANCHOR_CURSOR" );
-                                GRM_MemberDetailServerNameToolTip:AddLine ( listOfAlts[numAlt][1] , listOfAlts[numAlt][2] , listOfAlts[numAlt][3] , listOfAlts[numAlt][4] );
                             elseif GRM_AltName11:IsVisible() and GRM_AltName11:IsMouseOver ( 1 , -1 , -1 , 1 ) then
                                 numAlt = numAlt + 11;
                                 GRM_MemberDetailServerNameToolTip:SetOwner ( GRM_AltName11 , "ANCHOR_CURSOR" );
-                                GRM_MemberDetailServerNameToolTip:AddLine ( listOfAlts[numAlt][1] , listOfAlts[numAlt][2] , listOfAlts[numAlt][3] , listOfAlts[numAlt][4] );
                             elseif GRM_AltName12:IsVisible() and GRM_AltName12:IsMouseOver ( 1 , -1 , -1 , 1 ) then
                                 numAlt = numAlt + 12;
                                 GRM_MemberDetailServerNameToolTip:SetOwner ( GRM_AltName12 , "ANCHOR_CURSOR" );
-                                GRM_MemberDetailServerNameToolTip:AddLine ( listOfAlts[numAlt][1] , listOfAlts[numAlt][2] , listOfAlts[numAlt][3] , listOfAlts[numAlt][4] );
                             end
 
                             if numAlt > 0 then
+                                GRM_AddonGlobals.tempAltName = listOfAlts[numAlt][1];
+                                GRM_MemberDetailServerNameToolTip:AddLine ( listOfAlts[numAlt][1] , listOfAlts[numAlt][2] , listOfAlts[numAlt][3] , listOfAlts[numAlt][4] );
                                 GRM_MemberDetailServerNameToolTip:Show();
                             elseif not GRM_MemberDetailNameText:IsMouseOver ( 1 , -1 , -1 , 1 ) then
                                 GRM_MemberDetailServerNameToolTip:Hide();
@@ -6153,6 +6316,7 @@ GRM.MemberDetailToolTips = function ( self , elapsed )
                             local isOver = false;
                             for i = 1 , #GRM_CoreAltScrollChildFrame.allFrameButtons do
                                 if GRM_CoreAltScrollChildFrame.allFrameButtons[i][1]:IsVisible() and GRM_CoreAltScrollChildFrame.allFrameButtons[i][1]:IsMouseOver ( 1 , -1 , -1 , 1 ) then
+                                    GRM_AddonGlobals.tempAltName = listOfAlts[i][1];
                                     GRM_MemberDetailServerNameToolTip:SetOwner ( GRM_CoreAltScrollChildFrame.allFrameButtons[i][1] , "ANCHOR_CURSOR" );
                                     GRM_MemberDetailServerNameToolTip:AddLine ( listOfAlts[i][1] , listOfAlts[i][2] , listOfAlts[i][3] , listOfAlts[i][4] );
                                     isOver = true;
@@ -6220,9 +6384,9 @@ GRM.LogFrameTransformationOpen = function ()
     GRM_RosterChangeLogFrame:SetSize ( 600 , GRM_RosterChangeLogFrame:GetHeight() + 3.5 );          -- reset size, slightly increment it up!
     -- Determine if I need to loop through again.
     local fading = false;
-    local height = 522;
+    local height = 542;
     if GRM_RosterCheckBoxSideFrame.GRM_RosterSyncCheckButton:GetChecked() then
-        height = 542;
+        height = 562;
     end
     if math.floor ( GRM_RosterChangeLogFrame:GetHeight() ) < height then   
         if not fading and math.floor ( GRM_RosterChangeLogFrame:GetHeight() ) > 460 then        -- Trigger fade transition into already moving tile.
@@ -6255,7 +6419,7 @@ end
 GRM.LogFrameTransformationCloseMinor = function ()
     GRM_RosterChangeLogFrame:SetSize ( 600 , GRM_RosterChangeLogFrame:GetHeight() - 4.0 );          -- reset size, slightly increment it up!
     -- Determine if I need to loop through again.
-    if math.floor ( GRM_RosterChangeLogFrame:GetHeight() ) > 524 then
+    if math.floor ( GRM_RosterChangeLogFrame:GetHeight() ) > 544 then
          C_Timer.After ( 0.01 , GRM.LogFrameTransformationCloseMinor );
     end
 end
@@ -6312,6 +6476,10 @@ end
 -- What it Does:    Initializes "some of the frames"
 -- Purpose:         Should only initialize as needed. Kept as local for speed
 GRM.GR_MetaDataInitializeUIFirst = function()
+
+    -- First, Gather the roster buttons into a table!!!
+    GRM.CollectRosterButtons();
+
     -- Frame Control
     GRM_MemberDetailMetaData:EnableMouse ( true );
     -- GRM_MemberDetailMetaData:SetMovable ( true );
@@ -6452,6 +6620,11 @@ GRM.GR_MetaDataInitializeUIFirst = function()
                 GRM_altDropDownOptions:SetSize ( width , 92 );
                 GRM_altDropDownOptions:Show();
             end
+        elseif button == "LeftButton" then
+            if GRM_MemberDetailServerNameToolTip:IsVisible() and not GRM_MemberDetailNameText:IsMouseOver ( 2 , -2 , -2 , 2 ) then
+                -- This makes the main window the alt that was clicked on! TempAltName is saved when mouseover action occurs.
+                GRM.SelectPlayerOnRoster ( GRM_AddonGlobals.tempAltName );
+            end
         end
     end);
 
@@ -6460,29 +6633,60 @@ GRM.GR_MetaDataInitializeUIFirst = function()
 
     -- CORE FRAME CHILDREN FEATURES
     -- rank drop down 
-    GRM_guildRankDropDownMenuSelected:SetPoint ( "TOP" , GRM_MemberDetailMetaData , 0 , -50 );
-    GRM_guildRankDropDownMenuSelected:SetSize (  135 , 22 );
-    GRM_guildRankDropDownMenuSelected.RankText:SetPoint ( "CENTER" , GRM_guildRankDropDownMenuSelected );
-    GRM_guildRankDropDownMenuSelected.RankText:SetFont ( "Fonts\\FRIZQT__.TTF" , 10 );
-    GRM_RankDropDownMenu:SetPoint ( "TOP" , GRM_guildRankDropDownMenuSelected , "BOTTOM" );
-    GRM_RankDropDownMenu:SetWidth ( 135 );
-    GRM_RankDropDownMenu:SetFrameStrata ( "HIGH" );
+    -- GuildMemberRankDropdown:SetParent ( GRM_MemberDetailMetaData );
+    GuildMemberRankDropdown:ClearAllPoints();
+    GuildMemberRankDropdown:SetPoint ( "TOP" , GRM_MemberDetailMetaData , -22 , -50 );
+    GuildMemberRankDropdown:SetSize ( 135 , 25 );
+    GuildMemberRankDropdownText:ClearAllPoints();
+    GuildMemberRankDropdownText:SetPoint ( "CENTER" , GuildMemberRankDropdown , 22 , -1.5 );
+    GuildMemberRankDropdownText:SetJustifyH ( "CENTER" );
+    DropDownList1:SetFrameStrata ( "HIGH" );
 
-    GRM_RankDropDownMenuButton:SetPoint ( "RIGHT" , GRM_guildRankDropDownMenuSelected , 0 , -1 );
-    GRM_RankDropDownMenuButton:SetSize ( 20 , 18 );
+    DropDownList1:HookScript ( "OnShow" , function ()
+        GuildMemberRankDropdownText:SetPoint ( "CENTER" , GuildMemberRankDropdown , 22 , 2.0 );
+    end);
 
-    GRM_RankDropDownMenu:SetScript ( "OnKeyDown" , function ( _ , key )
-        GRM_RankDropDownMenu:SetPropagateKeyboardInput ( true );      -- Ensures keyboard access will default to the main chat window on / or Enter. UX feature.
+    DropDownList1:HookScript ( "OnHide" , function () 
+        GuildMemberRankDropdownText:SetPoint ( "CENTER" , GuildMemberRankDropdown , 22 , 2.0 );
+    end);
+
+    DropDownList1:SetScript ( "OnKeyDown" , function ( _ , key )
+        DropDownList1:SetPropagateKeyboardInput ( true );      -- Ensures keyboard access will default to the main chat window on / or Enter. UX feature.
         if key == "ESCAPE" then
-            GRM_RankDropDownMenu:SetPropagateKeyboardInput ( false );
-            GRM_RankDropDownMenu:Hide();
-            GRM_guildRankDropDownMenuSelected:Show();
+            DropDownList1:SetPropagateKeyboardInput ( false );
+            DropDownList1:Hide();
         end
     end);
 
-    GRM_guildRankDropDownMenuSelected:SetScript ( "OnShow" , function() 
-        GRM_RankDropDownMenu:Hide();
-    end)
+    -- The built in dropdown.
+    GuildMemberRankDropdownButton:HookScript ( "OnClick" , function ( self , button ) 
+        if button == "LeftButton" then
+            GRM.BuildDropdownButtons();
+        end
+    end);
+
+    -- GRM_guildRankDropDownMenuSelected:SetSize (  135 , 22 );
+    -- GRM_guildRankDropDownMenuSelected.RankText:SetPoint ( "CENTER" , GRM_guildRankDropDownMenuSelected );
+    -- GRM_guildRankDropDownMenuSelected.RankText:SetFont ( "Fonts\\FRIZQT__.TTF" , 10 );
+    -- GRM_RankDropDownMenu:SetPoint ( "TOP" , GRM_guildRankDropDownMenuSelected , "BOTTOM" );
+    -- GRM_RankDropDownMenu:SetWidth ( 135 );
+    -- GRM_RankDropDownMenu:SetFrameStrata ( "HIGH" );
+
+    -- GRM_RankDropDownMenuButton:SetPoint ( "RIGHT" , GRM_guildRankDropDownMenuSelected , 0 , -1 );
+    -- GRM_RankDropDownMenuButton:SetSize ( 20 , 18 );
+
+    -- GRM_RankDropDownMenu:SetScript ( "OnKeyDown" , function ( _ , key )
+    --     GRM_RankDropDownMenu:SetPropagateKeyboardInput ( true );      -- Ensures keyboard access will default to the main chat window on / or Enter. UX feature.
+    --     if key == "ESCAPE" then
+    --         GRM_RankDropDownMenu:SetPropagateKeyboardInput ( false );
+    --         GRM_RankDropDownMenu:Hide();
+    --         GRM_guildRankDropDownMenuSelected:Show();
+    --     end
+    -- end);
+
+    -- GRM_guildRankDropDownMenuSelected:SetScript ( "OnShow" , function() 
+    --     GRM_RankDropDownMenu:Hide();
+    -- end)
 
     -- Day Dropdown
     GRM_DayDropDownButton:SetPoint ( "LEFT" , GRM_DayDropDownMenuSelected , "RIGHT" , -2 , 0 );
@@ -6656,54 +6860,36 @@ GRM.GR_MetaDataInitializeUIFirst = function()
     GRM_GroupInviteButton.GRM_GroupInviteButtonText:SetFont ( "Fonts\\FRIZQT__.TTF" , 9 );
         
     -- REMOVE GUILDIE BUTTON
-    GRM_RemoveGuildieButton:SetPoint ( "BOTTOMRIGHT" , GRM_MemberDetailMetaData , -15, 13 )
-    GRM_RemoveGuildieButton:SetSize ( 88 , 19 );
-    GRM_RemoveGuildieButton.GRM_RemoveGuildieButtonText:SetPoint ( "CENTER" , GRM_RemoveGuildieButton );
-    GRM_RemoveGuildieButton.GRM_RemoveGuildieButtonText:SetFont ( "Fonts\\FRIZQT__.TTF" , 9 );
-    GRM_RemoveGuildieButton:SetScript ( "OnClick" , function ( _ , button )
+    GuildMemberRemoveButton:ClearAllPoints();
+    GuildMemberRemoveButton:SetParent ( GRM_MemberDetailMetaData );
+    GuildMemberRemoveButton:SetPoint ( "BOTTOMRIGHT" , GRM_MemberDetailMetaData , -15, 13 )
+    GuildMemberRemoveButton:SetSize ( 88 , 19 );
+    GuildMemberRemoveButtonText:SetTextColor ( 1.0 , 1.0 , 1.0 , 1.0 );
+    GuildMemberRemoveButtonText:SetJustifyH ( "CENTER" );
+    GuildMemberRemoveButtonText:SetPoint ( "CENTER" , GuildMemberRemoveButton , 2 , 0 );
+    
+    GRM.RemoveGuildButtonLogic = function()
+        -- Inital check is to ensure clean UX - ensuring the next time window is closed on reload, but if already open, no need to close it.
+        if GRM_AddonGlobals.ClickCount > 9 then
+            GRM_AddonGlobals.pause = true
+            if  GuildMemberRemoveButtonText:GetText() ~= "Re-Kick" then
+                GRM_PopupWindow:Show();
+            end
+            GRM_AddonGlobals.ClickCount = 0;        
+        else
+            -- This is kind of a hack workaround that forces the game to acknowledge the button clicks
+            GRM_AddonGlobals.ClickCount = GRM_AddonGlobals.ClickCount + 1;
+            GuildMemberRemoveButton:Click( "LeftButton" );
+            GRM.RemoveGuildButtonLogic();
+        end
+    end
+
+    GuildMemberRemoveButton:HookScript ( "OnClick" , function ( _ , button )
         -- Inital check is to ensure clean UX - ensuring the next time window is closed on reload, but if already open, no need to close it.
         if button == "LeftButton" then
-            GRM_AddonGlobals.pause = true
-            local frameName = GRM.GetMobileFreeName ( GuildMemberDetailName:GetText() );
-            if GRM_PopupWindow:IsVisible() ~= true then
-                GRM_MemberDetailEditBoxFrame:Hide();
-                GRM_PopupWindowCheckButton1:SetChecked ( false ); -- Ensures it is always unchecked on load.
-                GRM_PopupWindowCheckButton2:SetChecked ( false );
-            end
-            if GRM_RemoveGuildieButton.GRM_RemoveGuildieButtonText:GetText() == "Re-Kick" then
-                GRM_PopupWindowConfirmText:SetText ( "Are you sure you want to Re-Gkick " .. GRM.SlimName ( frameName ) .. "?" );
-            else
-                GRM_PopupWindowConfirmText:SetText ( "Are you sure you want to Gkick " .. GRM.SlimName ( frameName ) .. "?" );
-            end
-            if GRM_RemoveGuildieButton.GRM_RemoveGuildieButtonText:GetText() ~= "Re-Kick" then
-                GRM_PopupWindowCheckButtonText:SetTextColor ( 1.0 , 0.0 , 0.0 , 1.0 );
-                GRM_PopupWindowCheckButtonText:SetText ( "Ban Player" );
-                GRM_PopupWindowCheckButtonText:Show();
-                GRM_PopupWindowCheckButton1:Show();
-            else
-                GRM_PopupWindowCheckButtonText:Hide();
-                GRM_PopupWindowCheckButton1:Hide();
-            end
-            for i = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
-                if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1] == frameName then
-                    if #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][11] > 0 then
-                        GRM_PopupWindowCheckButton2Text:SetTextColor ( 1.0 , 1.0 , 1.0 , 1.0 );
-                        GRM_PopupWindowCheckButton2Text:SetText ( "Kick Alts Too!" );
-                        GRM_PopupWindowCheckButton2Text:Show();
-                        GRM_PopupWindowCheckButton2:Show();
-                    else
-                        GRM_PopupWindowCheckButton2Text:Hide();
-                        GRM_PopupWindowCheckButton2:Hide();
-                    end
-                    break;
-                end
-            end
-            
-            GRM_PopupWindow:Show();
+            GRM.RemoveGuildButtonLogic();
         end
     end);
-
-
 
 
     -- player note edit box and font string (31 characters)
@@ -6996,162 +7182,183 @@ end
 -- Purpose:                 Can only have 60 "up-values" in one function. This splits it up.
 GRM.GR_MetaDataInitializeUISecond = function()
 
-    -- CUSTOM POPUP
-    GRM_PopupWindow:SetPoint ( "CENTER" , UIParent );
-    GRM_PopupWindow:SetSize ( 240 , 120 );
+    -- CUSTOM 
+    GRM_PopupWindow:SetPoint ( "TOP" , StaticPopup1 , "BOTTOM" , 0 , 2 );
+    GRM_PopupWindow:SetSize ( 245 , 45 );
     GRM_PopupWindow:EnableMouse ( true );
     GRM_PopupWindow:EnableKeyboard ( true );
     GRM_PopupWindow:SetToplevel ( true );
-    GRM_PopupWindowButton1:SetPoint ( "BOTTOMLEFT" , GRM_PopupWindow , 15 , 14 );
-    GRM_PopupWindowButton1:SetSize ( 75 , 25 );
-    GRM_PopupWindowButton1.GRM_PopupWindowButton1Text:SetPoint ( "CENTER" , GRM_PopupWindowButton1 );
-    GRM_PopupWindowButton1.GRM_PopupWindowButton1Text:SetFont ( "Fonts\\FRIZQT__.TTF" , 12 );
-    GRM_PopupWindowButton1.GRM_PopupWindowButton1Text:SetText ( "YES" );
-    GRM_PopupWindowButton2:SetPoint ( "BOTTOMRIGHT" , GRM_PopupWindow , -15 , 14 );
-    GRM_PopupWindowButton2:SetSize ( 75 , 25 );
-    GRM_PopupWindowButton2.GRM_PopupWindowButton2Text:SetPoint ( "CENTER" , GRM_PopupWindowButton2 );
-    GRM_PopupWindowButton2.GRM_PopupWindowButton2Text:SetFont ( "Fonts\\FRIZQT__.TTF" , 12 );
-    GRM_PopupWindowButton2.GRM_PopupWindowButton2Text:SetText ( "CANCEL" );
-    GRM_PopupWindowConfirmText:SetPoint ( "TOP" , GRM_PopupWindow , 0 , -17.5 );
-    GRM_PopupWindowConfirmText:SetFont ( "Fonts\\FRIZQT__.TTF" , 12 );
-    GRM_PopupWindowConfirmText:SetWidth ( 185 );
-    GRM_PopupWindowConfirmText:SetJustifyH ( "CENTER" );
-    GRM_PopupWindowCheckButton1:SetPoint ( "BOTTOMLEFT" , GRM_PopupWindow , 15 , 55 );
-    GRM_PopupWindowCheckButtonText:SetPoint ( "RIGHT" , GRM_PopupWindowCheckButton1 , 54 , 0 );
-    GRM_PopupWindowCheckButton2:SetPoint ( "BOTTOMLEFT" , GRM_PopupWindow , 15 , 35 );
-    GRM_PopupWindowCheckButton2Text:SetPoint ( "RIGHT" , GRM_PopupWindowCheckButton2 , 70 , 0 );
 
-    GRM_PopupWindowButton1:SetScript ( "OnClick" , function( _ , button )
-        if button == "LeftButton" then
-            if GRM_PopupWindowCheckButton1:IsVisible() and GRM_PopupWindowCheckButton1:GetChecked() then          -- Box is checked, so YES player should be banned.
-                -- Popup edit box
-                
-                GRM_MemberDetailPopupEditBox:SetText ( "Reason Banned? (Press ENTER when done)" );
-                GRM_MemberDetailPopupEditBox:HighlightText ( 0 );
-                GRM_MemberDetailEditBoxFrame:Show();
-                GRM_MemberDetailPopupEditBox:Show();
-            else    -- Kicking the player ( not a ban )
-                -- if button 2 is checked, kick the alts too.
-                local frameName = GRM.GetMobileFreeName ( GuildMemberDetailName:GetText() );
-                if GRM_PopupWindowCheckButton2:IsVisible() and GRM_PopupWindowCheckButton2:GetChecked() then
-                    GRM.KickAllAlts ( frameName , GRM_AddonGlobals.guildName );
-                end
-                GRM_PopupWindow:Hide();
-                GuildUninvite ( frameName );
-                GRM_AddonGlobals.pause = false;
-            end
-        end
+    GRM_PopupWindowCheckButton1:SetPoint ( "TOPLEFT" , GRM_PopupWindow , 15 , -10 );
+    GRM_PopupWindowCheckButtonText:SetPoint ( "RIGHT" , GRM_PopupWindowCheckButton1 , 65 , 0 );
+    GRM_PopupWindowCheckButtonText:SetText ( "Ban Player?" );
+    GRM_PopupWindowCheckButtonText:SetFont ( "Fonts\\FRIZQT__.TTF" , 10 );
+    GRM_PopupWindowCheckButtonText:SetTextColor ( 1 , 0 , 0 , 1 );
+
+    StaticPopup1:SetScript ( "OnHide" , function()
+        GRM_PopupWindow:Hide();
+        C_Timer.After ( 1 , function()
+            GRM_AddonGlobals.isChecked = false;
         end);
-
-
-
-
-    GRM_PopupWindowCheckButton1:HookScript ( "OnClick" , function ( _ , button )
-        if button == "LeftButton" then
-            if GRM_PopupWindowCheckButton1:GetChecked() ~= true then
-                GRM_MemberDetailEditBoxFrame:Hide();                 -- If editframe is up, and you uncheck the box, it hides the editbox too
-                GRM_PopupWindowCheckButton2Text:ClearAllPoints();
-                GRM_PopupWindowCheckButton2Text:SetPoint ( "RIGHT" , GRM_PopupWindowCheckButton2 , 70 , 0 );
-                GRM_PopupWindowCheckButton2Text:SetTextColor ( 1.0 , 1.0 , 1.0 , 1.0 );
-                GRM_PopupWindowCheckButton2Text:SetText ( "Kick Alts Too!" );
-                
-            else
-                GRM_PopupWindowCheckButton2Text:ClearAllPoints();
-                GRM_PopupWindowCheckButton2Text:SetPoint ( "RIGHT" , GRM_PopupWindowCheckButton2 , 112 , 0 );
-                GRM_PopupWindowCheckButton2Text:SetTextColor ( 1.0 , 0 , 0 , 1.0 );
-                GRM_PopupWindowCheckButton2Text:SetText ( "Kick and Ban Alts too!" );
-            end
-        end
     end);
+
+    GRM_PopupWindow:SetScript( "OnShow" , function() 
+        GRM_PopupWindowCheckButton1:SetChecked ( false );
+        GRM_MemberDetailEditBoxFrame:Hide();
+        GRM_AddonGlobals.isChecked = false;
+    end);
+
+    
+    -- GRM_PopupWindowButton2:SetPoint ( "BOTTOMRIGHT" , GRM_PopupWindow , -15 , 14 );
+    -- GRM_PopupWindowButton2:SetSize ( 75 , 25 );
+    -- GRM_PopupWindowButton2.GRM_PopupWindowButton2Text:SetPoint ( "CENTER" , GRM_PopupWindowButton2 );
+    -- GRM_PopupWindowButton2.GRM_PopupWindowButton2Text:SetFont ( "Fonts\\FRIZQT__.TTF" , 12 );
+    -- GRM_PopupWindowButton2.GRM_PopupWindowButton2Text:SetText ( "CANCEL" );
+    -- GRM_PopupWindowConfirmText:SetPoint ( "TOP" , GRM_PopupWindow , 0 , -17.5 );
+    -- GRM_PopupWindowConfirmText:SetFont ( "Fonts\\FRIZQT__.TTF" , 12 );
+    -- GRM_PopupWindowConfirmText:SetWidth ( 185 );
+    -- GRM_PopupWindowConfirmText:SetJustifyH ( "CENTER" );
+    
+    -- GRM_PopupWindowCheckButton2:SetPoint ( "BOTTOMLEFT" , GRM_PopupWindow , 15 , 35 );
+    -- GRM_PopupWindowCheckButton2Text:SetPoint ( "RIGHT" , GRM_PopupWindowCheckButton2 , 70 , 0 );
+
 
     -- Popup logic
-    GRM_PopupWindowButton2:SetScript ( "OnClick" , function ( _ , button )
-        if button == "LeftButton" then
-            GRM_PopupWindow:Hide();
-        end
-    end);
+    -- GRM_PopupWindowButton2:SetScript ( "OnClick" , function ( _ , button )
+    --     if button == "LeftButton" then
+    --         GRM_PopupWindow:Hide();
+    --     end
+    -- end);
 
-    -- Backup logic with Escape key
-    GRM_PopupWindow:SetScript ( "OnKeyDown" , function ( _ , key )
-        GRM_PopupWindow:SetPropagateKeyboardInput ( true );      -- Ensures keyboard access will default to the main chat window on / or Enter. UX feature.
-        if key == "ESCAPE" then
-            GRM_PopupWindow:SetPropagateKeyboardInput ( false );
-            GRM_PopupWindow:Hide();
-        end
-    end);
+    -- -- Backup logic with Escape key
+    -- GRM_PopupWindow:SetScript ( "OnKeyDown" , function ( _ , key )
+    --     GRM_PopupWindow:SetPropagateKeyboardInput ( true );      -- Ensures keyboard access will default to the main chat window on / or Enter. UX feature.
+    --     if key == "ESCAPE" then
+    --         GRM_PopupWindow:SetPropagateKeyboardInput ( false );
+    --         GRM_PopupWindow:Hide();
+    --     end
+    -- end);
 
-    GRM_PopupWindow:HookScript ( "OnHide" , function ( self ) 
-        GRM_PopupWindowCheckButton2Text:SetPoint ( "RIGHT" , GRM_PopupWindowCheckButton2 , 70 , 0 );  -- Reset Position
-    end);
+    -- GRM_PopupWindow:HookScript ( "OnHide" , function ( self ) 
+    --     GRM_PopupWindowCheckButton2Text:SetPoint ( "RIGHT" , GRM_PopupWindowCheckButton2 , 70 , 0 );  -- Reset Position
+    -- end);
 
     -- Popup EDIT BOX
-    GRM_MemberDetailEditBoxFrame:SetPoint ( "TOP" , GRM_PopupWindow , "BOTTOM" , 0 , 2 );
-    GRM_MemberDetailEditBoxFrame:SetSize ( 240 , 45 );
+    GRM_MemberDetailEditBoxFrame:SetPoint ( "TOP" , GRM_PopupWindow , "BOTTOM" , 0 , 5 );
+    GRM_MemberDetailEditBoxFrame:SetSize ( 320 , 45 );
 
-    GRM_MemberDetailPopupEditBox:SetPoint( "CENTER" , GRM_MemberDetailEditBoxFrame , 0 , 0 );
-    GRM_MemberDetailPopupEditBox:SetSize ( 210 , 25 );
+    GRM_MemberDetailPopupEditBox:SetPoint( "CENTER" , GRM_MemberDetailEditBoxFrame );
+    GRM_MemberDetailPopupEditBox:SetSize ( 295 , 30 );
     GRM_MemberDetailPopupEditBox:SetTextInsets( 2 , 3 , 3 , 2 );
     GRM_MemberDetailPopupEditBox:SetMaxLetters ( 155 );
-    GRM_MemberDetailPopupEditBox:SetFont( "Fonts\\FRIZQT__.TTF" , 9 );
+    GRM_MemberDetailPopupEditBox:SetFont( "Fonts\\FRIZQT__.TTF" , 10 );
+    GRM_MemberDetailPopupEditBox:SetTextColor ( 1 , 1 , 1 , 1 );
     GRM_MemberDetailPopupEditBox:SetFrameStrata ( "HIGH" );
     GRM_MemberDetailPopupEditBox:EnableMouse( true );
 
     -- Script handler for General popup editbox.
     GRM_MemberDetailPopupEditBox:SetScript ( "OnEscapePressed" , function ( self )
         GRM_MemberDetailEditBoxFrame:Hide();
+        GRM_PopupWindowCheckButton1:Click();
+    end);
+
+    GRM_PopupWindowCheckButton1:SetScript ( "OnClick" , function ( _ , button )
+        if button == "LeftButton" then
+            if GRM_PopupWindowCheckButton1:GetChecked() ~= true then
+                GRM_MemberDetailEditBoxFrame:Hide();                 -- If editframe is up, and you uncheck the box, it hides the editbox too
+                -- GRM_PopupWindowCheckButton2Text:ClearAllPoints();
+                -- GRM_PopupWindowCheckButton2Text:SetPoint ( "RIGHT" , GRM_PopupWindowCheckButton2 , 70 , 0 );
+                -- GRM_PopupWindowCheckButton2Text:SetTextColor ( 1.0 , 1.0 , 1.0 , 1.0 );
+                -- GRM_PopupWindowCheckButton2Text:SetText ( "Kick Alts Too!" );
+                
+            else
+                GRM_AddonGlobals.isChecked = true;
+                GRM_MemberDetailPopupEditBox:SetText ( "Reason Banned? (Click \"Yes\" to Finalize Ban)" );
+                GRM_MemberDetailPopupEditBox:HighlightText ( 0 );
+                GRM_MemberDetailEditBoxFrame:Show();
+                GRM_MemberDetailPopupEditBox:Show();
+                -- GRM_PopupWindowCheckButton2Text:ClearAllPoints();
+                -- GRM_PopupWindowCheckButton2Text:SetPoint ( "RIGHT" , GRM_PopupWindowCheckButton2 , 112 , 0 );
+                -- GRM_PopupWindowCheckButton2Text:SetTextColor ( 1.0 , 0 , 0 , 1.0 );
+                -- GRM_PopupWindowCheckButton2Text:SetText ( "Kick and Ban Alts too!" );
+            end
+        end
+    end);
+
+    StaticPopup1Button1:HookScript ( "PostClick" , function ( self , button )
+        if button == "LeftButton" and GRM_PopupWindowCheckButton1:IsVisible() then
+            -- Breaks a scan if necessary...
+            GRM_AddonGlobals.changeHappenedExitScan = true;
+            -- -- Kick the alts!
+            -- -- if GRM_PopupWindowCheckButton2:IsVisible() and GRM_PopupWindowCheckButton2:GetChecked() then
+            -- --     GRM.KickAllAlts ( frameName , GRM_AddonGlobals.guildName );
+            -- -- end
+            local frameName = GRM.GetMobileFreeName ( GuildMemberDetailName:GetText() );
+            if GRM_AddonGlobals.isChecked then          -- Box is checked, so YES player should be banned. -This boolean is useful because this is a reused Blizz default frame, since protected function.
+                -- Popup edit box - BAN logic...
+                for r = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
+                    if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][1] == frameName then
+                        GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][17][1] = true;      -- This officially tags the player as BANNED!
+                        GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][17][2] = time();
+                        local result = GRM_MemberDetailPopupEditBox:GetText();
+                        if result ~= "Reason Banned? (Click \"Yes\" to Finalize Ban)" and result ~= "" and result ~= nil then
+                            GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][18] = result;
+                        else
+                            GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][18] = "";
+                            result = "";
+                        end
+
+                        -- Add a log message too if it is a ban!
+                        local logEntry = "";
+                        
+                        if GRM_PopupWindowCheckButton2:IsVisible() and GRM_PopupWindowCheckButton2:GetChecked() then
+                            logEntry = ( GRM.GetTimestamp() .. " : " .. GRM.SlimName ( GRM_AddonGlobals.addonPlayerName ) .. " has BANNED " .. GRM.SlimName ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][1] ) .. " and all linked alts from the guild!!!" );
+                            if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][18] ~= "" then
+                                GRM.AddLog ( 18 , "Reason Banned:        " .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][18] );
+                            end
+                            GRM.AddLog ( 17 , logEntry );
+                        else
+                            logEntry = ( GRM.GetTimestamp() .. " : " .. GRM.SlimName ( GRM_AddonGlobals.addonPlayerName ) .. " has BANNED " .. GRM.SlimName ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][1] ) .. " from the guild!!!" );
+                            if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][18] ~= "" then
+                                GRM.AddLog ( 18 , "Reason Banned:        " .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][18] );
+                            end
+                            GRM.AddLog ( 17 , logEntry );
+                        end
+
+                        if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][13][4] then
+                            GRM.PrintLog ( 17 , logEntry , false );
+                            GRM.PrintLog ( 18 , "Reason Banned:        " .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][18] , false );
+                        end
+
+                        -- Send the message out!
+                        if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][14] then
+                            if result == "" then
+                                result = "No Reason Given";
+                            end
+                            GRMsync.SendMessage ( "GRM_BAN" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. frameName .. "?" .. tostring ( GRM_PopupWindowCheckButton2:GetChecked() ) .. "?" .. result , "GUILD" );
+                        end
+
+                        break;
+                    end
+                end
+            end
+            -- GuildUninvite ( frameName );
+            -- Remove player normally
+            local logReport = GRM.RecordKickChanges ( frameName , GRM.SlimName ( frameName ) , GRM_AddonGlobals.guildName , true );
+            -- report the changes!
+            if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][13][4] then
+                GRM.PrintLog ( 10 , logReport , false );
+            end
+            GRM.AddLog ( 10 , logReport );
+            GRM_MemberDetailMetaData:Hide();
+            GRM.BuildLog();
+            GRM_AddonGlobals.pause = false;
+        end
     end);
 
     GRM_MemberDetailPopupEditBox:SetScript ( "OnEnterPressed" , function ( _ )
         -- If kick alts button is checked...
-        local frameName = GRM.GetMobileFreeName ( GuildMemberDetailName:GetText() );
-        if GRM_PopupWindowCheckButton2:IsVisible() and GRM_PopupWindowCheckButton2:GetChecked() then
-            GRM.KickAllAlts ( frameName , GRM_AddonGlobals.guildName );
-        end
-
-        for r = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
-            if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][1] == frameName then
-                GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][17][1] = true;      -- This officially tags the player as BANNED!
-                GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][17][2] = time();
-                local result = GRM_MemberDetailPopupEditBox:GetText();
-                if result ~= "Reason Banned? (Press ENTER when done)" and result ~= "" and result ~= nil then
-                    GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][18] = result;
-                else
-                    GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][18] = "";
-                    result = "";
-                end
-
-                -- Add a log message too if it is a ban!
-                local logEntry = "";
-                
-                if GRM_PopupWindowCheckButton2:IsVisible() and GRM_PopupWindowCheckButton2:GetChecked() then
-                    logEntry = ( GRM.GetTimestamp() .. " : " .. GRM.SlimName ( GRM_AddonGlobals.addonPlayerName ) .. " has BANNED " .. GRM.SlimName ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][1] ) .. " and all linked alts from the guild!!!" );
-                    if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][18] ~= "" then
-                        GRM.AddLog ( 18 , "Reason Banned:        " .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][18] );
-                    end
-                    GRM.AddLog ( 17 , logEntry );
-                else
-                    logEntry = ( GRM.GetTimestamp() .. " : " .. GRM.SlimName ( GRM_AddonGlobals.addonPlayerName ) .. " has BANNED " .. GRM.SlimName ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][1] ) .. " from the guild!!!" );
-                    if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][18] ~= "" then
-                        GRM.AddLog ( 18 , "Reason Banned:        " .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][18] );
-                    end
-                    GRM.AddLog ( 17 , logEntry );
-                end
-
-                -- Send the message out!
-                if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][14] then
-                    if result == "" then
-                        result = "No Reason Given";
-                    end
-                    GRMsync.SendMessage ( "GRM_BAN" , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. frameName .. "?" .. tostring ( GRM_PopupWindowCheckButton2:GetChecked() ) .. "?" .. result , "GUILD" );
-                end
-                break;
-            end
-        end
-        
-        -- Now let's kick the member
-        GuildUninvite ( frameName );
-        GRM_MemberDetailEditBoxFrame:Hide();
-        GRM_AddonGlobals.pause = false;                                                
+        print ( "Please Click \"Yes\" to Ban the Player!" );
     end);
 
     -- Heads-up text if player was previously banned
@@ -8039,6 +8246,11 @@ GRM.GR_MetaDataInitializeUIThird = function()
         end
     end);
 
+    -- It is prudent to hide the frame because it deselects, server side, the players you are pulling data from. No need to keep the addon window up as it will be showing a wrong player.
+    GuildRosterShowOfflineButton:HookScript ( "OnClick" , function()
+        GRM_MemberDetailMetaData:Hide();
+    end);
+
     -- TOOLTIP INIT
     GRM_MemberDetailRankToolTip:SetScale ( 0.85 );
     GRM_MemberDetailJoinDateToolTip:SetScale ( 0.85 );
@@ -8071,6 +8283,18 @@ GRM.PreAddonLoadUI = function()
     GRM_AddEventFrame:RegisterForDrag ( "LeftButton" );
     GRM_AddEventFrame:SetScript ( "OnDragStart" , GRM_AddEventFrame.StartMoving );
     GRM_AddEventFrame:SetScript( "OnDragStop" , GRM_AddEventFrame.StopMovingOrSizing );
+
+    -- Due to some restrictions on guild controls, I also need to register a prefix for a "hack" workaround to determine if player has access to Guild Chat channel.
+    -- If the player does not, then player
+    GRM_FrameChatTest = CreateFrame ( "Frame" , "GRM_FrameChatTest");
+    RegisterAddonMessagePrefix( "GRM_GCHAT" );
+    GRM_FrameChatTest:RegisterEvent ( "CHAT_MSG_ADDON" );
+    GRM_FrameChatTest:SetScript ( "OnEvent" , function ( self , event , prefix , msg , channel , sender )
+        -- Only acknowledge if you are sending it to yourself, as this is just a check to see if you have access
+        if prefix == "GRM_GCHAT" and sender == GRM_AddonGlobals.addonPlayerName then
+            GRM_AddonGlobals.HasAccessToGuildChat = true;
+        end
+    end);
 end
 
 -- Method           GRM.MetaDataInitializeUIrosterLog1()
@@ -8208,7 +8432,7 @@ GRM.MetaDataInitializeUIrosterLog1 = function()
             GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][2] = false;
         end
     end);
-    GRM_RosterAddTimestampCheckButton:SetPoint ( "TOPLEFT" , GRM_RosterChangeLogFrame , 14 , -42 );
+    GRM_RosterAddTimestampCheckButton:SetPoint ( "TOPLEFT" , GRM_RosterChangeLogFrame , 14 , -62 );
     GRM_RosterAddTimestampCheckButtonText:SetPoint ( "LEFT" , GRM_RosterAddTimestampCheckButton , 27 , 0 );
     GRM_RosterAddTimestampCheckButtonText:SetFont ( "Fonts\\FRIZQT__.TTF" , 12 );
     GRM_RosterAddTimestampCheckButtonText:SetText ( "Add Join Date to Officer Note   " ); -- Don't ask me why, but this spacing is needed for tabs to line up right in UI. Lua lol'
@@ -8220,8 +8444,74 @@ GRM.MetaDataInitializeUIrosterLog1 = function()
         end
     end);
 
+    -- Time Interval Controls on checking for changes!!!
+    GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalCheckButton:SetPoint ( "TOPLEFT" , GRM_RosterChangeLogFrame , 14 , -42 );
+    GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalCheckButtonText:SetPoint ( "LEFT" , GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalCheckButton , 27 , 0 );
+    GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalCheckButtonText:SetFont ( "Fonts\\FRIZQT__.TTF" , 12 );
+    GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalCheckButtonText:SetText ( "Scan for Changes Every" );
+    GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalCheckButtonText2:SetPoint ( "LEFT" , GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalCheckButtonText , "RIGHT" , 37.5 , 0 );
+    GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalCheckButtonText2:SetFont ( "Fonts\\FRIZQT__.TTF" , 12 );
+    GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalCheckButtonText2:SetText ( "Seconds" );
+    GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalCheckButton:SetScript ( "OnClick", function()
+        if GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalCheckButton:GetChecked() then
+            GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][18] = true;
+            GRM.Report ( "Reactivating SCAN for Guild Member Changes..." );
+        else
+            GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][18] = false;
+            GRM.Report ( "Deactivating SCAN of Guild Member Changes..." );
+        end
+    end);
+    GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalOverlayNote:SetPoint ( "LEFT" , GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalCheckButtonText , "RIGHT" , 1.0 , 0 )
+    GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalOverlayNote:SetBackdrop ( noteBackdrop2 );
+    GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalOverlayNote:SetFrameStrata ( "HIGH" );
+    GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalOverlayNote:SetSize ( 35 , 22 );
+    GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalOverlayNoteText:SetPoint ( "CENTER" , GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalOverlayNote );
+    GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalOverlayNoteText:SetFont ( "Fonts\\FRIZQT__.TTF" , 12 );
+    GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalOverlayNoteText:SetTextColor ( 1.0 , 0 , 0 , 1.0 );
+    GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalOverlayNoteText:SetText ( GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][6] );
+    GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalEditBox:SetPoint ( "LEFT" , GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalCheckButtonText , "RIGHT" , -1 , 0 );
+    GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalEditBox:SetSize ( 40 , 22 );
+    GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalEditBox:SetTextInsets ( 8 , 9 , 9 , 8 );
+    GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalEditBox:SetMaxLetters ( 3 );
+    GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalEditBox:SetNumeric ( true );
+    GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalEditBox:SetTextColor ( 1.0 , 0 , 0 , 1.0 );
+    GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalEditBox:SetFont ( "Fonts\\FRIZQT__.TTF" , 10 );
+    GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalEditBox:EnableMouse ( true );
+
+    GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalOverlayNote:SetScript ( "OnMouseDown" , function ( self , button )
+        if button == "LeftButton" then
+            if GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalEditBox:IsEnabled() then
+                GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalOverlayNote:Hide();
+                GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalEditBox:SetText ( "" );
+                GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalEditBox:Show()
+            end
+        end    
+    end);
+
+    GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalEditBox:SetScript ( "OnEscapePressed" , function()
+        GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalEditBox:Hide();
+        GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalOverlayNote:Show();
+    end);
+
+    GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalEditBox:SetScript ( "OnEnterPressed" , function()
+        local numSeconds = tonumber ( GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalEditBox:GetText() );
+        if numSeconds >= 10 then
+            GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][6] = numSeconds;
+            GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalOverlayNoteText:SetText ( numSeconds );
+            GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalEditBox:Hide();
+            GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalOverlayNote:Show();
+        else
+            print ( "\nDue to server data restrictions, a scan interval must be at least 10 seconds or more!\nPlease choose an scan interval 10 seconds or higher! " .. numSeconds .. " is too Low!" );
+        end      
+    end);
+
+    GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalEditBox:SetScript ( "OnEditFocusLost" , function() 
+        GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalEditBox:Hide();
+        GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalOverlayNote:Show();
+    end)
+
     -- Kick Recommendation!
-    GRM_RosterCheckBoxSideFrame.GRM_RosterRecommendKickCheckButton:SetPoint ( "TOPLEFT" , GRM_RosterChangeLogFrame , 14 , -62 );
+    GRM_RosterCheckBoxSideFrame.GRM_RosterRecommendKickCheckButton:SetPoint ( "TOPLEFT" , GRM_RosterChangeLogFrame , 14 , -82 );
     GRM_RosterCheckBoxSideFrame.GRM_RosterRecommendKickCheckButtonText:SetPoint ( "LEFT" , GRM_RosterCheckBoxSideFrame.GRM_RosterRecommendKickCheckButton , 27 , 0 );
     GRM_RosterCheckBoxSideFrame.GRM_RosterRecommendKickCheckButtonText:SetFont ( "Fonts\\FRIZQT__.TTF" , 12 );
     GRM_RosterCheckBoxSideFrame.GRM_RosterRecommendKickCheckButtonText:SetText ( "Kick Inactives Reminder at" );
@@ -8426,7 +8716,7 @@ GRM.MetaDataInitializeUIrosterLog1 = function()
     end);
 
     -- SYNC WITH OTHER PLAYERS!
-    GRM_RosterCheckBoxSideFrame.GRM_RosterSyncCheckButton:SetPoint ( "TOPLEFT" , GRM_RosterChangeLogFrame , 14 , -82 );
+    GRM_RosterCheckBoxSideFrame.GRM_RosterSyncCheckButton:SetPoint ( "TOPLEFT" , GRM_RosterChangeLogFrame , 14 , -102 );
     GRM_RosterCheckBoxSideFrame.GRM_RosterSyncCheckButtonText:SetPoint ( "LEFT" , GRM_RosterCheckBoxSideFrame.GRM_RosterSyncCheckButton , 27 , 0)
     GRM_RosterCheckBoxSideFrame.GRM_RosterSyncCheckButtonText:SetFont ( "Fonts\\FRIZQT__.TTF" , 12 );
     GRM_RosterCheckBoxSideFrame.GRM_RosterSyncCheckButtonText:SetText ( "SYNC Changes With Guildies at Rank " );
@@ -8438,18 +8728,24 @@ GRM.MetaDataInitializeUIrosterLog1 = function()
             GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][14] = true;
             GRM_RosterCheckBoxSideFrame.GRM_RosterNotifyOnChangesCheckButton:Show();
             GRM.LogFrameTransformationOpen();
-            GRMsync.Initialize();
+            if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][14] and not GRMsyncGlobals.currentlySyncing and GRM_AddonGlobals.HasAccessToGuildChat then
+                GRMsync.TriggerFullReset();
+                -- Now, let's add a brief delay, 3 seconds, to trigger sync again
+                GRMsync.Initialize();
+            end
         else
             GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][14] = false;
             GRM.LogFrameTransformationCloseMinor();
             GRM_RosterCheckBoxSideFrame.GRM_RosterNotifyOnChangesCheckButton:Hide();
-            GRMsync.MessageTracking:UnregisterAllEvents();
+            if GRMsync.MessageTracking ~= nil then
+                GRMsync.MessageTracking:UnregisterAllEvents()
+            end
             GRMsync.ResetDefaultValuesOnSyncReEnable();         -- Reset values to default, so that it resyncs if player re-enables.
         end
     end);
 
     -- GRM_RosterCheckBoxSideFrame.GRM_RosterNotifyOnChangesCheckButton:GetChecked()
-    GRM_RosterCheckBoxSideFrame.GRM_RosterNotifyOnChangesCheckButton:SetPoint ( "TOPLEFT" , GRM_RosterChangeLogFrame , 14 , -102 );
+    GRM_RosterCheckBoxSideFrame.GRM_RosterNotifyOnChangesCheckButton:SetPoint ( "TOPLEFT" , GRM_RosterChangeLogFrame , 14 , -122 );
     GRM_RosterCheckBoxSideFrame.GRM_RosterNotifyOnChangesCheckButtonText:SetPoint ( "LEFT" , GRM_RosterCheckBoxSideFrame.GRM_RosterNotifyOnChangesCheckButton , 27 , 0)
     GRM_RosterCheckBoxSideFrame.GRM_RosterNotifyOnChangesCheckButtonText:SetFont ( "Fonts\\FRIZQT__.TTF" , 12 );
     GRM_RosterCheckBoxSideFrame.GRM_RosterNotifyOnChangesCheckButtonText:SetText ( "Display SYNC Update Messages" );
@@ -8919,6 +9215,9 @@ GRM.MetaDataInitializeUIrosterLog2 = function()
         if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][16] then
             GRM_RosterCheckBoxSideFrame.GRM_RosterNotifyOnChangesCheckButton:SetChecked ( true );
         end
+        if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][18] then
+            GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalCheckButton:SetChecked ( true );
+        end
 
 
         -- Display Information
@@ -9100,6 +9399,10 @@ GRM.GR_Roster_Click = function ( self , button )
                 if ( not GRM_AddonGlobals.pause and GRM.SlimName ( name ) == GRM_MemberDetailNameText:GetText() ) or ( GRM_AddonGlobals.pause and GRM.SlimName ( name ) ~= GRM_MemberDetailNameText:GetText() ) then
                     GRM_AddonGlobals.pause = false;
                     GR_RosterFrame ( _ , 0.075 );           -- Activate one time.
+
+                    -- Make sure we hide this frame if needed
+                    GRM_PopupWindow:Hide();
+                    StaticPopup1:Hide();
                     GRM_AddonGlobals.pause = true;
                 end
             end
@@ -9270,47 +9573,56 @@ local function Tracking()
                 end
             end
 
-            -- Checking Roster, tracking changes
-            GRM.BuildNewRoster();
+            -- If Scanning is Enabled!!!
+            if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][18] then
+                -- Checking Roster, tracking changes
+                GRM.BuildNewRoster();
 
-            -- Need to check if guild was established!
-            local guildNotFound = true;
-            for i = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ] do
-                if GRM_AddonGlobals.guildName == GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ i ][1] then
-                    guildNotFound = false;
-                    break;
-                end
-            end
-
-            if not guildNotFound then
-                -- if GRM_AddonGlobals.logGID ~= 0 and GRM_AddonGlobals.saveGID ~= 0 and 
-                -- Seeing if any upcoming notable events, like anniversaries/birthdays
-                GRM.CheckPlayerEvents( GRM_AddonGlobals.guildName );
-                -- Printing Report, and sending report to log.
-                GRM.FinalReport();
-
-                -- Do a quick check on if players requesting to join the guild as well!
-                GRM.ReportGuildJoinApplicants();
-
-                -- Prevent from re-scanning changes
-                -- On first load, bring up window.
-                if GRM_AddonGlobals.OnFirstLoad then
-                    if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][2] then
-                        GRM.MetaDataInitializeUIrosterLog1();
-                        GRM.MetaDataInitializeUIrosterLog2();
-                        GRM_RosterChangeLogFrame:Show();
+                -- Need to check if guild was established!
+                local guildNotFound = true;
+                for i = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ] do
+                    if GRM_AddonGlobals.guildName == GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ i ][1] then
+                        guildNotFound = false;
+                        break;
                     end
-                    
-                    -- Let's quickly refresh the AddEventToCalendar Que, in case others have already added events to the calendar! Only need to check once as once online it live-syncs with other players after first retroactive sync.
-                    GRM.CalendarQueCheck();
+                end
 
-                    -- Establish Message Sharing as well!
-                    GRMsyncGlobals.SyncOK = true;
-                    C_Timer.After ( 10 , GRMsync.Initialize ); -- It needs to be minimum 10 seconds as it might take that long to process all changes and add player to database.
+                if not guildNotFound then
+                    -- if GRM_AddonGlobals.logGID ~= 0 and GRM_AddonGlobals.saveGID ~= 0 and 
+                    -- Seeing if any upcoming notable events, like anniversaries/birthdays
+                    GRM.CheckPlayerEvents( GRM_AddonGlobals.guildName );
+                    -- Printing Report, and sending report to log.
+                    GRM.FinalReport();
 
-                    GRM_AddonGlobals.OnFirstLoad = false;
-                    -- MISC frames to be loaded immediately, not on delay
-                    GRM.AllRemainingNonDelayFrameInitialization();
+                    -- Do a quick check on if players requesting to join the guild as well!
+                    GRM.ReportGuildJoinApplicants();
+
+                    -- Prevent from re-scanning changes
+                    -- On first load, bring up window.
+                    if GRM_AddonGlobals.OnFirstLoad then
+
+                        -- Then, initialize the frames.
+                        if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][2] then
+                            GRM.MetaDataInitializeUIrosterLog1();
+                            GRM.MetaDataInitializeUIrosterLog2();
+                            GRM_RosterChangeLogFrame:Show();
+                        end
+
+                        -- Determine if player has access to guild chat or is in restricted chat rank
+                        GRM.RegisterGuildChatPermission();
+                        
+                        -- Let's quickly refresh the AddEventToCalendar Que, in case others have already added events to the calendar! Only need to check once as once online it live-syncs with other players after first retroactive sync.
+                        GRM.CalendarQueCheck();
+
+                        -- Establish Message Sharing as well!
+                        GRMsyncGlobals.SyncOK = true;
+                        
+                        C_Timer.After ( 10 , GRMsync.Initialize ); -- It needs to be minimum 10 seconds as it might take that long to process all changes and add player to database.
+
+                        GRM_AddonGlobals.OnFirstLoad = false;
+                        -- MISC frames to be loaded immediately, not on delay
+                        GRM.AllRemainingNonDelayFrameInitialization();
+                    end
                 end
             end
         end
@@ -9431,7 +9743,7 @@ GRM.ManageGuildStatus = function ( self , event )
             GRM_AddonGlobals.DelayedAtLeastOnce = true;                     -- Keeping it true as there does not need to be a delay at this point.
             UI_Events:UnregisterEvent ( "GUILD_EVENT_LOG_UPDATE" );         -- This prevents it from doing an unnecessary tracking call if not in guild.
             if GRMsync.MessageTracking ~= nil then
-                GRMsync.MessageTracking:UnregisterAllEvents()
+                GRMsync.MessageTracking:UnregisterAllEvents();
             end
             GRMsync.ResetDefaultValuesOnSyncReEnable();                     -- Need to reset sync algorithm too!
             GRM_RosterChangeLogFrame:Hide();
@@ -9513,6 +9825,12 @@ Initialization:SetScript ( "OnEvent" , GRM.ActivateAddon );
     -------------------------------------   
     ----- FEATURES TO BE ADDED NEXT!! ---
     -------------------------------------
+    -------------------------------------
+    ----- POTENTIAL FEATURES ------------
+    -------------------------------------
+
+    -- Option to allow Ban list to be shared with other guildies using the addon.
+    -- Sync ban list between all guilds?
 
     -- Groups! Create groups! Allow people to join RBG teams, Raid groups, Mythic groups, Arena teams, Custom... request info of those teams.
     -- Click on the team, it pops up all members of the team w/misc. stats of team.
@@ -9529,13 +9847,14 @@ Initialization:SetScript ( "OnEvent" , GRM.ActivateAddon );
     -- Request to join list for admins... Deny w/reason
 
     -- Opetion to right click zone and notify you when it changes
-    -- Notify when player comes back from being AFK
+
     -- On the guild news, let's start with Guild achievements!
-    -- If more than one guildie in a zone, on mouseover detail of player zone and time in zone, it also mentions how many people in the guild are also in the zone ( with mouseover including names of those in zone too ).
+    -- If more than one guildie in a zone it also mentions how many people in the guild are also in the zone ( with mouseover including names of those in zone too ).
     -- Drop down menu on the Log Frame allowing you to choose which log to view, from any character, any faction you have... just the log. (maybe I will include maybe not. Seems mostly useless for high time effort)
     -- Guild achievement and loot NEWS window could be parsed for interesting info
     -- BIRTHDAYS
     -- Custom Reminders
+    -- Set promotion date reminders?
     -- Search of the News Window
     -- GUILD EVENT INFO -- Potential huge feature to add
             -- GUILD EVENT AND RAID GROUP INFO
@@ -9564,31 +9883,24 @@ Initialization:SetScript ( "OnEvent" , GRM.ActivateAddon );
     ------------------------------------
 
     -- Adding player to the event que, set it to only consider it if the player is a "main"
-    -- When promoting a player, if their promotion date is visible, it positions it incorrectly - I can't seem to recreate this one...
     -- Note change spam if you have curse words in note/officer notes and Profanity filter on. Just disable profanity filter for now until I get around to it.
-    -- False positive on guild namechange??
+    -- False positive on guild namechange?? Can't seem to recreate this
+    -- False positive occasionally on inactive player returning?? Can't seem to recreate... I should check if data is nil
     
     -------------------------------------
     ----- BUSY work ---------------
     -------------------------------------
 
+    -- Create custom restriction on the player leveled minimum to announce. That way you don't get a ton of low-lvl lvling spam.
     -- Create Viewable BAN window.
     -- Ban list needs to be created to be sync'd - OR, if a player is banned, and it is a player that was in the guild at a previous time in place, then they need to be added to left players list.
     -- Guild Namechange needs to be tested.
-    -- On gkicking alts, if they are a rank above you, not to kick them, right?
-
-    -- if the player using the addon is promoted, do a resync check due to new permissions, refresh entire addon UI... -- In other words, if promotion is found and the player is currently online, do sync check.
 
     -- If Mature language filter is on
     -- 4 letter word == !@#$ !@#$%^ or ^&*!  
-    -------------------------------------
-    ----- POTENTIAL FEATURES ------------
-    -------------------------------------
-    
-    
-    
-    -- What player is currently doing, if online "Raiding" or "PVPing" or whatever..
+  
 
 
 --- Changelog
 
+ -- Much more UI quality controls. So many behind-the-scenes stuff here I won't mention it all.
