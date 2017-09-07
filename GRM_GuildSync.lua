@@ -1,6 +1,6 @@
 -- For Sync controls!
 -- Author: Arkaan... aka "TheGenomeWhisperer"
--- Version 7.3.0R1.086
+-- Version 7.3.0R1.087
 
 -- To hold all Sync Methods/Functions
 GRMsync = {};

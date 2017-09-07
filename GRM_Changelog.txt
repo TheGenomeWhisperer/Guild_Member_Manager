@@ -1,3 +1,14 @@
+**VERSION 7.3.0R1.087 - DATE: 6 Sep, 2017**
+
+* Bug Fix1: I think I finally fully ironed out the gkick/ban issues due to 7.3 changes. Please let me know. I have had all my officers report it as working now, and 2 other guilds I know using it I beta tested first and they said no issues, so I HOPE we are good from here on out lol. 7.3 = #sadface
+
+* Bug Fix2: OOPS!!! I accidentally broke reporting to you and the log if a player leaves or kicks the guild. Minor typo introduced and now fixed...
+
+* Bug Fix3: Accidentally a word and the confirm popup window autohides in last patch! Seriously, you would not even be able to put on a BOE piece of gear. Stupid gamebreaking 1 line typo fixed lol
+
+* Bug Fix4: A couple other misc. bugs fixed. This is a fairly minor patch as I really wanted to get this out there and fixed
+
+
 **VERSION 7.3.0R1.086 - DATE: 5 Sep, 2017**
 *Thank you for many suggestions and bug reporting. Keep em coming! So much to do!*
 
