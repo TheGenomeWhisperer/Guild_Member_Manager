@@ -2,9 +2,9 @@
 ## Interface: 70300
 ## Title: Guild Roster Manager
 ## Author: Arkaan (TheGenomeWhisperer)
-## Version: 7.3.0R1.09
+## Version: 7.3.0R1.095
 ## Notes: Manage Guild Roster Changes, Events, with Alt/Main tagging
-## SavedVariables: GRM_PlayersThatLeftHistory_Save , GRM_GuildMemberHistory_Save , GRM_CalendarAddQue_Save , GRM_LogReport_Save , GRM_AddonSettings_Save
+## SavedVariables: GRM_PlayersThatLeftHistory_Save , GRM_GuildMemberHistory_Save , GRM_CalendarAddQue_Save , GRM_LogReport_Save , GRM_AddonSettings_Save , GRM_PlayerListOfAlts_Save
 
 Guild_Roster_Manager.lua
 GRM_GuildSync.lua
