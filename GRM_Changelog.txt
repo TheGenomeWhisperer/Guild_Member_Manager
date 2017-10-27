@@ -1,3 +1,67 @@
+**VERSION 7.3.0R1.100 - DATE: 27 Oct, 2017**
+
+***HUGE UPDATE*** *Note: You need to encourage your guildies to upgrade to latest version or else ban list will not sync. I'd even highly recommend in the options restricting sync to only people who have latest version. Some people with really old version might get hit with a Lua error or two as they try to talk to your addon. Again, encourage people to upgrade. It's worth it!*
+
+**NEW FEATURE 1:** *Localization Framework has been built*
+
+* Fonts have all been implemented for ALL languages, including support for Russian, Korean, Mandarin (Both Chinese and Taiwanese). No more "???"
+
+* Some translations have already been implemented that I manually did on my own, just pulling from the built-in scripts. I am not going to focus on the full localization as of yet, this is more quality of life starting.
+
+* This also resolves many issues for people using non-English clients and should provide and overall better user experience.
+
+
+**NEW FEATURE 2:** *Sync'd Ban List*
+
+* Custom Rank restriction on the Ban List. It seems like it would be prudent to allow widespread sync on general guild info, like alts and so on, but have tighter restrictions on who can modify the ban list. I personally have guild-wide sync, but officer only ban list permissions.
+
+* Full retroactive Ban SYNC. So, new officer? They will be sync'd with up-to-date list, including all people who were banned prior to them even joining the guild, as long as someone with addon stored the info originally and sync'd the data.
+
+* Ban List Custom UI window - shows name, rank when banned, and the date of the ban.
+
+* Ability to remove people from ban list.
+
+* Live frame updates, on both sync and live changes. No need to open and close window to refresh it.
+
+* Note: the "Add" to ban list feature is not quite ready and is significantly more work than one might realize. So, until then... button will not do anything.
+
+* So much is going on behind the scenes to get this all working together properly. A significant amount of effort had to be put into ensuring it is error free and an overall good, simple, user experience.
+
+**QUALITY OF LIFE**
+
+* QOL 1: Options Menu Changed a bit. A little bit cleaner, a little bit more logical, like the display options or clearLog are now always visible
+
+* QOL 2: Buttons added to options menu slash commands that accomplish the same thing.
+
+* QOL 3: Minor Localization progress has been made. Initially it was just down to lay a foundation for future work and to bring in proper fonts.
+
+**BUG FIXES**
+
+* Bug Fix1: Addon should now properly trigger a data sync shortly after joining a guild.
+
+* Bug Fix2: OMG, WTF BLIZZ!!! Blizz just introdued a NEW bug that reintroduced "taint" on the gkick window. I have a feature where you click on an alt name and it not only opens that profile, but it opens the Guild Roster Slider to the correct position as well. Blizz just made it so manipulating the slider in the code will now block you from being able to gkick players again. WTF BLIZZ. I just don't get it. So, I am keeping the clicking on alts feature, but removing the Roster move-to positioning. Silly, silly Blizz for doing this.
+
+* Bug Fix3: Addon will now properly register when a player joins the guild, asap. So, even if you have it set to only do a roster change scan once every 15 min, if a new player joins, the addon will register that update asap, then continue where it left off in the timer.
+
+* Bug Fix4: Lua error could occur on occasion, often shortly after logging, in regards to the "SyncInfo" table it was populating, of all guildies with addon. This "should" be resolved now.
+
+* Bug Fix5: And about a dozen other minor things here and there not worth mentioning...
+
+
+
+**VERSION 7.3.0R1.099 - DATE: 10 Oct, 2017**
+
+*Quick Bug Fix patch!!!*
+
+* Bug Fix1: Fixed an issue if there is only 1 player online, the mouseover window will not popup again.
+
+* Bug Fix2: Lua error could occur in certain circumstances in reference to the new guild addon user feature of last patch. Oops! no more...
+
+* Bug Fix3: Lua error could occur in certain circumstances when syncing "alt" information. This was a coding typo. Fixed!
+
+* Bug Fix4: Newer versions now do a better job of filter REALLY old versions of this addon, as if you didn't you could get spammed with Lua errors until guildie updated their addon.
+
+
 **VERSION 7.3.0R1.098 - DATE: 9 Oct, 2017**
 
 ***NEW FEATURE:** New window that gives details on ALL players in guild that have addon installed. It tells you if sync is "ok!" with that player, and if it is not, it gives you the reason as to why, be it they have sync disabled, they are filtering out your rank, or you theirs, or even their addon is outdated and you are restricting sync of players with outdated addons (as per options). It will tell you ALL players in guild if they have addon. Furthermore, it will auto-update itself if opened, on receiving new data, like if a player logs off, it will remove them from the list, or if a player changes their sync settings/restrictions, it will update on the fly to you. All automatic!*
