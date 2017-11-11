@@ -1,4 +1,61 @@
-**VERSION 7.3.0R1.100 - DATE: 27 Oct, 2017**
+**VERSION 7.3.2R1.104 - DATE: 10 Nov, 2017**
+
+**NEW FEATURE**
+
+*Player can now take advantage of manually adding a player to the ban list, not just when gkicking someone. This had a TON of things that needed to happen behind the scenes, so what might seem like such a simple feature on the front end was immensely time-consuming.Huge sub-project really due to the auto-generation of a manually added metadata profile and so on.*
+
+**QUALITY OF LIFE**
+
+* Addon now detects the "EPGP" addon and will automatically disable the adding of join dates to officer notes with the user needing to manually go into the settings. It is an immensely popular addon, so this helps avoid any officer note conflicts.
+
+* Ban List sync tweaked a bit for some more edge cases I discovered.
+
+* Modularized a bit of the UI loading to improve performance. It's already quick, but now it's quicker.
+
+
+**VERSION 7.3.2R1.103 - DATE: 7 Nov, 2017**
+
+**NEW FEATURE**
+
+*"Ban all alts too" has now returned, sort of. While you no longer can gkick them all with the click of a button, as you could in pre-7.3, you now have the option to ban all of the alts of the player as well, so when you gkick the one player, it also bans all their alts. They immediately show up in the ban list as "still in guild" so you know who to still kick (plus the given reason will all be the same)*
+
+**BUG FIXES**
+
+* Bug Fix1: Sync is working again! I broke it without realizing it for like 90% of guilds out there. Oops lol
+
+* Bug Fix2: Sometimes ban list could erroneously purge a name from it. Well that's not good! This shouldn't happen anymore.
+
+* Bug Fix3: Blizz made another stealth change, so I had to adjust the "click on alt name" feature. It no longer attempts to scroll the roster to position of player.
+
+
+**VERSION 7.3.2R1.102 - DATE: 5 Nov, 2017**
+
+* Bug Fix1: Server Sync would not work if you had a server name that included a hyphen (like EU "Azjol-Nerub"), as it didn't parse properly. Fixed!
+
+* Bug Fix2: Some even tighter controls on sync, if a player's sync fails (like if a player logs off in the middle), or for any reason, it will re-evaluate the sync leadership structure, as well as the que. It will even determine the cause of sync failure, even notify you if player is offline now, and so on.
+
+
+**VERSION 7.3.2R1.101 - DATE: 30 Oct, 2017**
+
+**QUALITY OF LIFE**
+
+* QOL 1: SyncInfo window now states a "helper" if you have sync disabled in the options or not.
+
+* QOL 2: Addon will now trigger a re-sync automatically after doing a full reset (/roster clearall), rather than needing to manually
+
+* QOL 3: Sync sometimes could fail in certain occasions. Not a big deal as it would reset itself the next time someone logs with addon installed, or you /reload. However, in some edge cases you could get stuck in sync limbo, never acknowlodging it failed. This could happen say, if a player logged off in the middle of a sync in certain cases. Not always, just some circumstances. The addon is now significantly smarter at how to handle resync on failure, as well as checking things like online status of the players and so on.
+
+* QOL 4: Reset Defaults button is now included in the OPTIONS panel.
+
+**BUG FIXES**
+
+* Bug Fix1: Slight modification to the font system for localization support in a more streamlined, server-side deciding way
+
+* Bug Fix2: Lua error could occur on first login due to guildName loading order for ban list. Minor issue, just needed to load proper order, onshow
+
+
+
+**VERSION 7.3.2R1.100 - DATE: 27 Oct, 2017**
 
 ***HUGE UPDATE*** *Note: You need to encourage your guildies to upgrade to latest version or else ban list will not sync. I'd even highly recommend in the options restricting sync to only people who have latest version. Some people with really old version might get hit with a Lua error or two as they try to talk to your addon. Again, encourage people to upgrade. It's worth it!*
 
