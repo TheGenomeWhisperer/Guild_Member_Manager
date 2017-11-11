@@ -396,6 +396,10 @@ GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ClearAllOptionsButton = CreateFrame ( "Bu
 GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_VersionOptionsButton = CreateFrame ( "Button" , "GRM_VersionOptionsButton" , GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_RosterSyncCheckButton , "UIPanelButtonTemplate" );
 GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_SyncInfoOptionsButton = CreateFrame ( "Button" , "GRM_SyncInfoOptionsButton" , GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_RosterSyncCheckButton , "UIPanelButtonTemplate" );
 
+-- Reset Defaults Button
+GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ResetDefaultOptionsButton = CreateFrame ( "Button" , "GRM_ResetDefaultOptionsButton" , GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_RosterSyncCheckButton , "UIPanelButtonTemplate" );
+GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ResetDefaultOptionsButtonText = GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ResetDefaultOptionsButton:CreateFontString ( "GRM_ResetDefaultOptionsButtonText" , "OVERLAY" , "GameFontWhiteTiny");
+
 -- Guild Event Log Frame Confirm Details.
 GRM_RosterConfirmFrame = CreateFrame ( "Frame" , "GRM_RosterConfirmFrame" , UIPanel , "BasicFrameTemplate" );
 GRM_RosterConfirmFrameText = GRM_RosterConfirmFrame:CreateFontString ( "GRM_RosterConfirmFrameText" , "OVERLAY" , "GameFontWhiteTiny");
@@ -405,13 +409,15 @@ GRM_RosterConfirmCancelButton = CreateFrame ( "Button" , "GRM_RosterConfirmCance
 GRM_RosterConfirmCancelButtonText = GRM_RosterConfirmCancelButton:CreateFontString ( "GRM_RosterConfirmCancelButtonText" , "OVERLAY" , "GameFontWhiteTiny");
 
 -- ADDON USERS FRAME
-GRM_AddonUsersCoreFrame = CreateFrame ( "Frame" , "GRM_AddonUsersCoreFrame" , UIParent , "BasicFrameTemplate" );
-GRM_AddonUsersCoreFrame:Hide();
-GRM_AddonUsersCoreFrame.GRM_AddonUsersCoreFrameText = GRM_AddonUsersCoreFrame:CreateFontString ( "GRM_AddonUsersCoreFrameText" , "OVERLAY" , "GameFontNormal" );
-GRM_AddonUsersCoreFrame.GRM_AddonUsersCoreFrameTitleText = GRM_AddonUsersCoreFrame:CreateFontString ( "GRM_AddonUsersCoreFrameTitleText" , "OVERLAY" , "GameFontNormal" );
+GRM_UI.GRM_AddonUsersCoreFrame = CreateFrame ( "Frame" , "GRM_AddonUsersCoreFrame" , UIParent , "BasicFrameTemplate" );
+GRM_UI.GRM_AddonUsersCoreFrame:Hide();
+GRM_UI.GRM_AddonUsersCoreFrame.GRM_AddonUsersCoreFrameText = GRM_UI.GRM_AddonUsersCoreFrame:CreateFontString ( "GRM_AddonUsersCoreFrameText" , "OVERLAY" , "GameFontNormal" );
+GRM_UI.GRM_AddonUsersCoreFrame.GRM_AddonUsersCoreFrameTitleText = GRM_UI.GRM_AddonUsersCoreFrame:CreateFontString ( "GRM_AddonUsersCoreFrameTitleText" , "OVERLAY" , "GameFontNormal" );
+GRM_UI.GRM_AddonUsersCoreFrame.GRM_AddonUsersSyncEnabledText = GRM_UI.GRM_AddonUsersCoreFrame:CreateFontString ( "GRM_AddonUsersSyncEnabledText" , "OVERLAY" , "GameFontNormal" );
+
 -- SCROLL FRAME
-GRM_AddonUsersScrollFrame = CreateFrame ( "ScrollFrame" , "GRM_AddonUsersScrollFrame" , GRM_AddonUsersCoreFrame );
-GRM_AddonUsersScrollBorderFrame = CreateFrame ( "Frame" , "GRM_AddonUsersScrollBorderFrame" , GRM_AddonUsersCoreFrame , "TranslucentFrameTemplate" );
+GRM_AddonUsersScrollFrame = CreateFrame ( "ScrollFrame" , "GRM_AddonUsersScrollFrame" , GRM_UI.GRM_AddonUsersCoreFrame );
+GRM_AddonUsersScrollBorderFrame = CreateFrame ( "Frame" , "GRM_AddonUsersScrollBorderFrame" , GRM_UI.GRM_AddonUsersCoreFrame , "TranslucentFrameTemplate" );
 -- CONTENT FRAME (Child Frame)
 GRM_AddonUsersScrollChildFrame = CreateFrame ( "Frame" , "GRM_AddonUsersScrollChildFrame" );
 GRM_AddonUsersScrollChildFrame.GRM_AddonUsersCoreFrameTitleText2 = GRM_AddonUsersScrollChildFrame:CreateFontString ( "GRM_AddonUsersCoreFrameTitleText2" , "OVERLAY" , "GameFontNormal" );
@@ -454,13 +460,52 @@ GRM_UI.GRM_CoreBanListScrollChildFrame = CreateFrame ( "Frame" , "GRM_CoreBanLis
 GRM_UI.GRM_CoreBanListScrollFrameSlider = CreateFrame ( "Slider" , "GRM_CoreBanListScrollFrameSlider" , GRM_UI.GRM_CoreBanListFrame , "UIPanelScrollBarTemplate" );
 -- BANLIST BUTTON
 GRM_UI.GRM_BanListButton = CreateFrame( "Button" , "GRM_BanListButton" , GuildRosterFrame , "UIPanelButtonTemplate" );
-GRM_UI.GRM_BanListButtonText = GRM_UI.GRM_BanListButton:CreateFontString ( "GRM_BanListButtonText" , "OVERLAY" , "GameFontWhiteTiny");
+GRM_UI.GRM_BanListButtonText = GRM_UI.GRM_BanListButton:CreateFontString ( "GRM_BanListButtonText" , "OVERLAY" , "GameFontWhiteTiny" );
 GRM_UI.GRM_BanListButton:Hide();
 -- Add and Remove BUTTONS
-GRM_UI.GRM_BanListRemoveButton = CreateFrame ( "Button" , "GRM_BanListRemoveButton" , GRM_CoreBanListFrame , "UIPanelButtonTemplate" );
+GRM_UI.GRM_BanListRemoveButton = CreateFrame ( "Button" , "GRM_BanListRemoveButton" , GRM_UI.GRM_CoreBanListFrame , "UIPanelButtonTemplate" );
 GRM_UI.GRM_BanListRemoveButtonText = GRM_UI.GRM_BanListRemoveButton:CreateFontString ( "GRM_BanListRemoveButtonText" , "OVERLAY" , "GameFontWhiteTiny" );
-GRM_UI.GRM_BanListAddButton = CreateFrame ( "Button" , "GRM_BanListAddButton" , GRM_CoreBanListFrame , "UIPanelButtonTemplate" );
+GRM_UI.GRM_BanListAddButton = CreateFrame ( "Button" , "GRM_BanListAddButton" , GRM_UI.GRM_CoreBanListFrame , "UIPanelButtonTemplate" );
 GRM_UI.GRM_BanListAddButtonText = GRM_UI.GRM_BanListAddButton:CreateFontString ( "GRM_BanListAddButtonText" , "OVERLAY" , "GameFontWhiteTiny" );
+
+-- Add player window
+GRM_UI.GRM_AddBanFrame = CreateFrame( "Frame" , "GRM_AddBanFrame" , UIPanel , "BasicFrameTemplate" );
+GRM_UI.GRM_AddBanFrameInnerBorder = CreateFrame ( "Frame" , "GRM_AddBanFrameInnerBorder" , GRM_UI.GRM_AddBanFrame , "TranslucentFrameTemplate" );
+GRM_UI.GRM_AddBanFrame:Hide();
+GRM_UI.GRM_AddBanFrame.GRM_AddBanTitleText = GRM_UI.GRM_AddBanFrame:CreateFontString ( "GRM_AddBanTitleText" , "OVERLAY" , "GameFontNormal" );
+GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelectionWarningText = GRM_UI.GRM_AddBanFrameInnerBorder:CreateFontString ( "GRM_AddBanNameSelectionWarningText" , "OVERLAY" , "GameFontWhiteTiny" );
+GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelectionWarningText2 = GRM_UI.GRM_AddBanFrameInnerBorder:CreateFontString ( "GRM_AddBanNameSelectionWarningText2" , "OVERLAY" , "GameFontWhiteTiny" );
+-- Name selection to add ban
+GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelection = CreateFrame( "EditBox" , "GRM_AddBanNameSelection" , GRM_UI.GRM_AddBanFrame , "InputBoxTemplate" );
+GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelectionText = GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelection:CreateFontString ( "GRM_AddBanNameSelectionText" , "OVERLAY" , "GameFontNormal" );
+-- Server selection to add ban
+GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelection = CreateFrame( "EditBox" , "GRM_AddBanServerSelection" , GRM_UI.GRM_AddBanFrame , "InputBoxTemplate" );
+GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelectionText = GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelection:CreateFontString ( "GRM_AddBanServerSelectionText" , "OVERLAY" , "GameFontNormal" );
+-- Reason for the ban
+GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox = CreateFrame( "EditBox" , "GRM_AddBanReasonEditBox" , GRM_UI.GRM_AddBanFrame );
+GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBoxText = GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:CreateFontString ( "GRM_AddBanReasonEditBoxText" , "OVERLAY" , "GameFontNormal" );
+GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBoxFrame = CreateFrame ( "Frame" , "GRM_AddBanReasonEditBoxFrame" , GRM_UI.GRM_AddBanFrame );
+
+-- Add Ban CLASS selection dropdown
+GRM_UI.GRM_AddBanFrame.GRM_AddBanClassSelectionText = GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelection:CreateFontString ( "GRM_AddBanClassSelectionText" , "OVERLAY" , "GameFontNormal" );
+GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownClassSelected = CreateFrame ( "Frame" , "GRM_AddBanDropDownClassSelected" , GRM_UI.GRM_AddBanFrame, "InsetFrameTemplate" );
+GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownClassSelectedText = GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownClassSelected:CreateFontString ( "GRM_AddBanDropDownClassSelectedText" , "OVERLAY" , "GameFontWhiteTiny" );
+GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownMenu = CreateFrame ( "Frame" , "GRM_AddBanDropDownMenu" , GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownClassSelected , "InsetFrameTemplate" );
+GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownMenuButton = CreateFrame ( "Button" , "GRM_AddBanDropDownMenuButton" , GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownClassSelected, "UIPanelScrollDownButtonTemplate" );
+-- Submit button
+GRM_UI.GRM_AddBanFrame.GRM_AddBanConfirmButton = CreateFrame ( "Button" , "GRM_AddBanConfirmButton" , GRM_UI.GRM_AddBanFrameInnerBorder , "UIPanelButtonTemplate" );
+GRM_UI.GRM_AddBanFrame.GRM_AddBanConfirmButtonText = GRM_UI.GRM_AddBanFrame.GRM_AddBanConfirmButton:CreateFontString ( "GRM_AddBanConfirmButtonText" , "OVERLAY" , "GameFontWhiteTiny" );
+
+-- ADD BAN MEMBER CONFIRM FRAME UNIQUE
+GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrame = CreateFrame ( "Frame" , "GRM_AddBanFrame.PopupWindowConfirmFrame" , GRM_UI.GRM_AddBanFrame , "TranslucentFrameTemplate" );
+GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrame:Hide();
+GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrameText = GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrame:CreateFontString ( "GRM_AddBanFrame.PopupWindowConfirmFrameText" , "OVERLAY" , "GameFontNormal" );
+GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrameText2 = GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrame:CreateFontString ( "GRM_AddBanFrame.PopupWindowConfirmFrameText2" , "OVERLAY" , "GameFontNormal" );
+GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrameYesButton = CreateFrame ( "Button" , "GRM_AddBanFrame.PopupWindowConfirmFrameYesButton" , GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrame , "UIPanelButtonTemplate" );
+GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrameYesButtonText = GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrameYesButton:CreateFontString ( "GRM_AddBanFrame.PopupWindowConfirmFrameYesButtonText" , "OVERLAY" , "GameFontWhiteTiny" );
+GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrameCancelButton = CreateFrame ( "Button" , "GRM_AddBanFrame.PopupWindowConfirmFrameCancelButton" , GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrame , "UIPanelButtonTemplate" );
+GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrameCancelButtonText = GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrameCancelButton:CreateFontString ( "GRM_AddBanFrame.PopupWindowConfirmFrameCancelButtonText" , "OVERLAY" , "GameFontWhiteTiny" );
+
 
 -- CUSTOM NOTE EDIT BOX FRAME INFO
 -- GRM_UI.GRM_PlayerCustomNoteWindow = CreateFrame( "Frame" , "GRM_PlayerCustomNoteWindow" , GRM_MemberDetailMetaData );
@@ -1199,10 +1244,29 @@ GRM_UI.GR_MetaDataInitializeUISecond = function()
     GRM_PopupWindowCheckButtonText:SetFont ( GRM_AddonGlobals.FontChoice , GRM_AddonGlobals.FontModifier + 10 );
     GRM_PopupWindowCheckButtonText:SetTextColor ( 1 , 0 , 0 , 1 );
 
+    GRM_PopupWindowCheckButton2:SetPoint ( "TOP" , GRM_PopupWindowCheckButton1 , "BOTTOM" , 0 , 0 );
+    GRM_PopupWindowCheckButton2Text:SetPoint ( "TOPLEFT" , GRM_PopupWindowCheckButtonText , "BOTTOMLEFT" , 0 , -15 );
+    GRM_PopupWindowCheckButton2Text:SetFont ( GRM_AddonGlobals.FontChoice , GRM_AddonGlobals.FontModifier + 10 );
+    GRM_PopupWindowCheckButton2Text:SetTextColor ( 1 , 0 , 0 , 1 );
+
+    GRM_PopupWindowCheckButton2:SetScript ( "OnClick" , function ( self , button )
+        if button == "LeftButton" then
+            if GRM_PopupWindowCheckButton2:GetChecked() ~= true then
+                GRM_AddonGlobals.isChecked2 = false;
+            else
+                GRM_AddonGlobals.isChecked2 = true;
+            end
+        end
+    end);
+
     GRM_PopupWindow:SetScript( "OnShow" , function() 
         GRM_PopupWindowCheckButton1:SetChecked ( false );
+        GRM_PopupWindowCheckButton2:SetChecked ( false );
+        GRM_PopupWindowCheckButton2:Hide();
         GRM_MemberDetailEditBoxFrame:Hide();
+        GRM_PopupWindow:SetSize ( 247 , 45 );
         GRM_AddonGlobals.isChecked = false;
+        GRM_AddonGlobals.isChecked2 = false;
         GRM_AddonGlobals.pause = true;
     end);
 
@@ -1231,11 +1295,15 @@ GRM_UI.GR_MetaDataInitializeUISecond = function()
     GRM_MemberDetailPopupEditBox:SetScript ( "OnEscapePressed" , function ( self )
         GRM_MemberDetailEditBoxFrame:Hide();
         GRM_PopupWindowCheckButton1:Click();
+        GRM_PopupWindowCheckButton2:SetChecked ( false );
+        GRM_PopupWindowCheckButton2:Hide();
+        GRM_PopupWindow:SetSize ( 247 , 45 );
     end);
 
     GRM_PopupWindowCheckButton1:SetScript ( "OnHide" , function ()
         C_Timer.After ( 1 , function()
             GRM_AddonGlobals.isChecked = false;
+            GRM_AddonGlobals.isChecked2 = false;
         end);
     end);
 
@@ -1244,13 +1312,33 @@ GRM_UI.GR_MetaDataInitializeUISecond = function()
             if GRM_PopupWindowCheckButton1:GetChecked() ~= true then
                 GRM_MemberDetailEditBoxFrame:Hide();
                 GRM_AddonGlobals.isChecked = false;
-                
+                GRM_AddonGlobals.isChecked2 = false;
+                GRM_PopupWindowCheckButton2:SetChecked ( false );
+                GRM_PopupWindowCheckButton2:Hide();
+                GRM_PopupWindow:SetSize ( 247 , 45 );                
             else
                 GRM_AddonGlobals.isChecked = true;
                 GRM_MemberDetailPopupEditBox:SetText ( "Reason Banned?\nClick \"Yes\" When Done" );
                 GRM_MemberDetailPopupEditBox:HighlightText ( 0 );
                 GRM_MemberDetailEditBoxFrame:Show();
                 GRM_MemberDetailPopupEditBox:Show();
+
+                -- Check if player has alts...
+                for i = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
+                    if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1] == GRM_AddonGlobals.currentName then
+                        local numAlts = #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][11];
+                        if numAlts > 0 then
+                            local string1 = "alt";
+                            if numAlts > 1 then
+                                string1 = "alts";
+                            end
+                            GRM_PopupWindow:SetSize ( 247 , 70 );
+                            GRM_PopupWindowCheckButton2:Show();
+                            GRM_PopupWindowCheckButton2Text:SetText ( "Ban the Player's " .. #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][11] .. " " .. string1 .. " too?" );
+                        end
+                        break;
+                    end
+                end
             end
         end
     end);
@@ -1992,10 +2080,10 @@ GRM_UI.GR_MetaDataInitializeUIThird = function()
 
     GRM_AddonUsersButton:SetScript ( "OnClick" , function ( _ , button)
         if button == "LeftButton" then
-            if GRM_AddonUsersCoreFrame:IsVisible() then
-                GRM_AddonUsersCoreFrame:Hide();
+            if GRM_UI.GRM_AddonUsersCoreFrame:IsVisible() then
+                GRM_UI.GRM_AddonUsersCoreFrame:Hide();
             else
-                GRM_AddonUsersCoreFrame:Show();
+                GRM_UI.GRM_AddonUsersCoreFrame:Show();
             end
         end
     end);
@@ -2241,16 +2329,16 @@ GRM_UI.PreAddonLoadUI = function()
     GRM_AddEventFrame:SetScript( "OnDragStop" , GRM_AddEventFrame.StopMovingOrSizing );
 
     -- Addon Users Frame
-    GRM_AddonUsersCoreFrame:SetPoint ( "CENTER" , UIParent );
-    GRM_AddonUsersCoreFrame:SetFrameStrata ( "HIGH" );
-    GRM_AddonUsersCoreFrame:SetSize ( 425 , 225 );
-    GRM_AddonUsersCoreFrame:EnableMouse ( true );
-    GRM_AddonUsersCoreFrame:SetMovable ( true );
-    GRM_AddonUsersCoreFrame:SetUserPlaced ( true );
-    GRM_AddonUsersCoreFrame:SetToplevel ( true );
-    GRM_AddonUsersCoreFrame:RegisterForDrag ( "LeftButton" );
-    GRM_AddonUsersCoreFrame:SetScript ( "OnDragStart" , GRM_AddonUsersCoreFrame.StartMoving );
-    GRM_AddonUsersCoreFrame:SetScript( "OnDragStop" , GRM_AddonUsersCoreFrame.StopMovingOrSizing );
+    GRM_UI.GRM_AddonUsersCoreFrame:SetPoint ( "CENTER" , UIParent );
+    GRM_UI.GRM_AddonUsersCoreFrame:SetFrameStrata ( "HIGH" );
+    GRM_UI.GRM_AddonUsersCoreFrame:SetSize ( 425 , 225 );
+    GRM_UI.GRM_AddonUsersCoreFrame:EnableMouse ( true );
+    GRM_UI.GRM_AddonUsersCoreFrame:SetMovable ( true );
+    GRM_UI.GRM_AddonUsersCoreFrame:SetUserPlaced ( true );
+    GRM_UI.GRM_AddonUsersCoreFrame:SetToplevel ( true );
+    GRM_UI.GRM_AddonUsersCoreFrame:RegisterForDrag ( "LeftButton" );
+    GRM_UI.GRM_AddonUsersCoreFrame:SetScript ( "OnDragStart" , GRM_UI.GRM_AddonUsersCoreFrame.StartMoving );
+    GRM_UI.GRM_AddonUsersCoreFrame:SetScript( "OnDragStop" , GRM_UI.GRM_AddonUsersCoreFrame.StopMovingOrSizing );
 
     -- Ban List Frame
     GRM_UI.GRM_CoreBanListFrame:SetPoint ( "CENTER" , UIParent );
@@ -2271,9 +2359,11 @@ GRM_UI.PreAddonLoadUI = function()
     GRM_FrameChatTest:RegisterEvent ( "CHAT_MSG_ADDON" );
     GRM_FrameChatTest:SetScript ( "OnEvent" , function ( self , event , prefix , msg , channel , sender )
         -- Only acknowledge if you are sending it to yourself, as this is just a check to see if you have access
-        if event == "CHAT_MSG_ADDON" and channel == GRMsyncGlobals.channelName then
-            if prefix == "GRM_GCHAT" and sender == GRM_AddonGlobals.addonPlayerName then
+        if event == "CHAT_MSG_ADDON" and prefix == "GRM_GCHAT" and sender == GRM_AddonGlobals.addonPlayerName then
+            if channel == GRMsyncGlobals.channelName then
                 GRM_AddonGlobals.HasAccessToGuildChat = true;
+            elseif channel == "OFFICER" then
+                GRM_AddonGlobals.HasAccessToOfficerChat = true;
             end
         end
     end);
@@ -2411,6 +2501,11 @@ GRM_UI.BuildLogFrames = function()
         GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_RosterSyncBanList:SetChecked ( true );
     end
 
+    -- Reset the editboxes
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_RosterReportUpcomingEventsOverlayNoteText:SetText ( GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][5] ) ;    
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_RosterTimeIntervalOverlayNoteText:SetText ( GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][6] );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_RosterKickOverlayNoteText:SetText ( GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][9] );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ReportInactiveReturnOverlayNoteText:SetText ( math.floor ( GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][4] / 24 ) );
 
     -- Display Information
     if GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_RosterKickRecommendEditBox:IsVisible() then
@@ -2637,8 +2732,6 @@ GRM_UI.MetaDataInitializeUIrosterLog1 = function()
     GRM_UI.GRM_RosterLoadOnLogonCheckButtonText:SetFont ( GRM_AddonGlobals.FontChoice , GRM_AddonGlobals.FontModifier + 12 );
     GRM_UI.GRM_RosterLoadOnLogonCheckButtonText:SetText ( "Show at Logon" );
     GRM_UI.GRM_RosterLoadOnLogonCheckButton:SetScript ( "OnClick", function()
-    GRM_UI.GRM_RosterLoadOnLogonCheckButton:SetAlpha ( 0 );
-    GRM_UI.GRM_RosterLoadOnLogonCheckButton:Hide();
         if GRM_UI.GRM_RosterLoadOnLogonCheckButton:GetChecked() then
             GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][2] = true;
         else
@@ -2941,6 +3034,17 @@ GRM_UI.MetaDataInitializeUIrosterLog1 = function()
         end
     end);
 
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ResetDefaultOptionsButton:SetPoint ( "BOTTOMLEFT" , GRM_RosterChangeLogFrame , "BOTTOMLEFT" , 10 , 10 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ResetDefaultOptionsButton:SetSize ( 62 , 37 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ResetDefaultOptionsButtonText:SetPoint ( "CENTER" , GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ResetDefaultOptionsButton );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ResetDefaultOptionsButtonText:SetFont ( GRM_AddonGlobals.FontChoice , GRM_AddonGlobals.FontModifier + 12 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ResetDefaultOptionsButtonText:SetText ( "Restore\nDefaults")
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ResetDefaultOptionsButton:SetScript ( "OnClick" , function( self , button )
+        if button == "LeftButton" then
+            GRM.ResetDefaultSettings();
+        end
+    end);
+
     GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ReportInactiveReturnOverlayNote:SetPoint ( "LEFT" , GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_RosterReportInactiveReturnButtonText , "RIGHT" , 0.5 , 0 );
     GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ReportInactiveReturnOverlayNote:SetBackdrop ( noteBackdrop2 );
     GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ReportInactiveReturnOverlayNote:SetFrameStrata ( "HIGH" );
@@ -3097,6 +3201,7 @@ GRM_UI.MetaDataInitializeUIrosterLog1 = function()
     GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_RosterSyncCheckButton:SetScript ( "OnClick", function()
         if GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_RosterSyncCheckButton:GetChecked() then
             GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][14] = true;
+            GRM_UI.GRM_AddonUsersCoreFrame.GRM_AddonUsersSyncEnabledText:Hide();
             GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_RosterNotifyOnChangesCheckButton:Enable();
             GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_RosterNotifyOnChangesCheckButtonText:SetTextColor ( 1.0 , 0.82 , 0.0 , 1.0 );
             GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_RosterSyncBanList:Enable();
@@ -3113,6 +3218,7 @@ GRM_UI.MetaDataInitializeUIrosterLog1 = function()
             end
         else
             GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][14] = false;
+            GRM_UI.GRM_AddonUsersCoreFrame.GRM_AddonUsersSyncEnabledText:Show();
             GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_RosterNotifyOnChangesCheckButton:Disable();
             GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_RosterNotifyOnChangesCheckButtonText:SetTextColor ( 0.5 , 0.5 , 0.5 , 1 );
             GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_RosterSyncBanList:Disable();
@@ -3541,21 +3647,27 @@ GRM_UI.MetaDataInitializeUIrosterLog2 = function()
     GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ShowOnLogSideFrameText:SetText ( "To Log:" );
 
     -- User with addon installed...
-    GRM_AddonUsersCoreFrame.GRM_AddonUsersCoreFrameText:SetPoint ( "TOP" , GRM_AddonUsersCoreFrame , 0 , - 3.5 );
-    GRM_AddonUsersCoreFrame.GRM_AddonUsersCoreFrameText:SetText ( "GRM Sync Info     ( Ver: " .. string.sub ( GRM_AddonGlobals.Version , string.find ( GRM_AddonGlobals.Version , "R" , -8 ) , #GRM_AddonGlobals.Version ) .. " )" );
-    GRM_AddonUsersCoreFrame.GRM_AddonUsersCoreFrameText:SetFont ( GRM_AddonGlobals.FontChoice , GRM_AddonGlobals.FontModifier + 15 );
-    GRM_AddonUsersCoreFrame.GRM_AddonUsersCoreFrameTitleText:SetPoint ( "TOP" , GRM_AddonUsersCoreFrame , 0 , - 32 );
-    GRM_AddonUsersCoreFrame.GRM_AddonUsersCoreFrameTitleText:SetJustifyH ( "LEFT" );
-    GRM_AddonUsersCoreFrame.GRM_AddonUsersCoreFrameTitleText:SetText ( "NAME                           Sync                          Version" );
-    GRM_AddonUsersCoreFrame.GRM_AddonUsersCoreFrameTitleText:SetFont ( GRM_AddonGlobals.FontChoice , GRM_AddonGlobals.FontModifier + 14 );
-    GRM_AddonUsersScrollChildFrame.GRM_AddonUsersCoreFrameTitleText2:SetPoint ( "CENTER" , GRM_AddonUsersCoreFrame );
+    GRM_UI.GRM_AddonUsersCoreFrame.GRM_AddonUsersCoreFrameText:SetPoint ( "TOP" , GRM_UI.GRM_AddonUsersCoreFrame , 0 , - 3.5 );
+    GRM_UI.GRM_AddonUsersCoreFrame.GRM_AddonUsersCoreFrameText:SetText ( "GRM Sync Info     ( Ver: " .. string.sub ( GRM_AddonGlobals.Version , string.find ( GRM_AddonGlobals.Version , "R" , -8 ) , #GRM_AddonGlobals.Version ) .. " )" );
+    GRM_UI.GRM_AddonUsersCoreFrame.GRM_AddonUsersCoreFrameText:SetFont ( GRM_AddonGlobals.FontChoice , GRM_AddonGlobals.FontModifier + 15 );
+    GRM_UI.GRM_AddonUsersCoreFrame.GRM_AddonUsersCoreFrameTitleText:SetPoint ( "TOP" , GRM_UI.GRM_AddonUsersCoreFrame , 0 , - 32 );
+    GRM_UI.GRM_AddonUsersCoreFrame.GRM_AddonUsersCoreFrameTitleText:SetJustifyH ( "LEFT" );
+    GRM_UI.GRM_AddonUsersCoreFrame.GRM_AddonUsersCoreFrameTitleText:SetText ( "NAME                           Sync                          Version" );
+    GRM_UI.GRM_AddonUsersCoreFrame.GRM_AddonUsersCoreFrameTitleText:SetFont ( GRM_AddonGlobals.FontChoice , GRM_AddonGlobals.FontModifier + 14 );
+    GRM_AddonUsersScrollChildFrame.GRM_AddonUsersCoreFrameTitleText2:SetPoint ( "CENTER" , GRM_UI.GRM_AddonUsersCoreFrame );
     GRM_AddonUsersScrollChildFrame.GRM_AddonUsersCoreFrameTitleText2:SetTextColor ( 0.64 , 0.102 , 0.102 );
     GRM_AddonUsersScrollChildFrame.GRM_AddonUsersCoreFrameTitleText2:SetFont ( GRM_AddonGlobals.FontChoice , GRM_AddonGlobals.FontModifier + 15 );
+    GRM_UI.GRM_AddonUsersCoreFrame.GRM_AddonUsersSyncEnabledText:SetPoint ( "TOP" , GRM_UI.GRM_AddonUsersCoreFrame , 0 , 14 ) ;
+    GRM_UI.GRM_AddonUsersCoreFrame.GRM_AddonUsersSyncEnabledText:SetJustifyH ( "LEFT" );
+    GRM_UI.GRM_AddonUsersCoreFrame.GRM_AddonUsersSyncEnabledText:SetFont ( GRM_AddonGlobals.FontChoice , GRM_AddonGlobals.FontModifier + 13 );
+    GRM_UI.GRM_AddonUsersCoreFrame.GRM_AddonUsersSyncEnabledText:SetText ( "YOUR SYNC IS CURRENTLY DISABLED" );
+    GRM_UI.GRM_AddonUsersCoreFrame.GRM_AddonUsersSyncEnabledText:SetTextColor ( 1 , 0 , 0 , 1 );
+    
     -- Scroll Frame Details
     GRM_AddonUsersScrollBorderFrame:SetSize ( 395 , 175 );
-    GRM_AddonUsersScrollBorderFrame:SetPoint ( "Bottom" , GRM_AddonUsersCoreFrame , -5 , 4 );
+    GRM_AddonUsersScrollBorderFrame:SetPoint ( "Bottom" , GRM_UI.GRM_AddonUsersCoreFrame , -5 , 4 );
     GRM_AddonUsersScrollFrame:SetSize ( 375 , 153 );
-    GRM_AddonUsersScrollFrame:SetPoint ( "RIGHT" , GRM_AddonUsersCoreFrame , -25 , -21 );
+    GRM_AddonUsersScrollFrame:SetPoint ( "RIGHT" , GRM_UI.GRM_AddonUsersCoreFrame , -25 , -21 );
     GRM_AddonUsersScrollFrame:SetScrollChild ( GRM_AddonUsersScrollChildFrame );
     -- Slider Parameters
     GRM_AddonUsersScrollFrameSlider:SetOrientation( "VERTICAL" );
@@ -3566,10 +3678,10 @@ GRM_UI.MetaDataInitializeUIrosterLog2 = function()
         GRM_AddonUsersScrollFrame:SetVerticalScroll( self:GetValue() )
     end);
 
-    GRM_AddonUsersCoreFrame:SetScript ( "OnShow" , GRM.RefreshAddonUserFrames );
+    GRM_UI.GRM_AddonUsersCoreFrame:SetScript ( "OnShow" , GRM.RefreshAddonUserFrames );
 
     -- Let's refresh the frames every 15 seconds or so...
-    GRM_AddonUsersCoreFrame:SetScript ( "OnUpdate" , function ( self , elapsed ) 
+    GRM_UI.GRM_AddonUsersCoreFrame:SetScript ( "OnUpdate" , function ( self , elapsed ) 
         GRM_AddonGlobals.timer5 = GRM_AddonGlobals.timer5 + elapsed;
         if GRM_AddonGlobals.timer5 >= 15 then
             GRM.RegisterGuildAddonUsersRefresh ();
@@ -3577,18 +3689,17 @@ GRM_UI.MetaDataInitializeUIrosterLog2 = function()
         end
     end);
 
-    GRM_AddonUsersCoreFrame:SetScript ( "OnKeyDown" , function ( _ , key )
-        GRM_AddonUsersCoreFrame:SetPropagateKeyboardInput ( true );      -- Ensures keyboard access will default to the main chat window on / or Enter. UX feature.
+    GRM_UI.GRM_AddonUsersCoreFrame:SetScript ( "OnKeyDown" , function ( _ , key )
+        GRM_UI.GRM_AddonUsersCoreFrame:SetPropagateKeyboardInput ( true );      -- Ensures keyboard access will default to the main chat window on / or Enter. UX feature.
         if key == "ESCAPE" then
-            GRM_AddonUsersCoreFrame:SetPropagateKeyboardInput ( false );
-            GRM_AddonUsersCoreFrame:Hide();
+            GRM_UI.GRM_AddonUsersCoreFrame:SetPropagateKeyboardInput ( false );
+            GRM_UI.GRM_AddonUsersCoreFrame:Hide();
         end
     end);
 
     -- BAN LIST FRAME LOGIC AND INITIALIZATION DETAILS!!!
     -- User with addon installed...
     GRM_UI.GRM_CoreBanListFrame.GRM_CoreBanListFrameTitleText:SetPoint ( "TOP" , GRM_CoreBanListFrame , 0 , - 3.5 );
-    GRM_UI.GRM_CoreBanListFrame.GRM_CoreBanListFrameTitleText:SetText ( GRM_AddonGlobals.guildName .. " - Ban List" );
     GRM_UI.GRM_CoreBanListFrame.GRM_CoreBanListFrameTitleText:SetFont ( GRM_AddonGlobals.FontChoice , GRM_AddonGlobals.FontModifier + 15 );
     GRM_UI.GRM_CoreBanListFrame.GRM_CoreBanListFrameTitleText2:SetPoint ( "BOTTOMLEFT" , GRM_CoreBanListScrollBorderFrame, "TOPLEFT" , 15 , -4 );
     GRM_UI.GRM_CoreBanListFrame.GRM_CoreBanListFrameTitleText2:SetTextColor ( 0.64 , 0.102 , 0.102 );
@@ -3645,9 +3756,420 @@ GRM_UI.MetaDataInitializeUIrosterLog2 = function()
     GRM_UI.GRM_BanListAddButtonText:SetText ( "Add" );
     GRM_UI.GRM_BanListAddButtonText :SetFont( GRM_AddonGlobals.FontChoice , GRM_AddonGlobals.FontModifier + 12 );
 
+    -- Add Ban Frame and details..
+    GRM_UI.GRM_AddBanFrame:SetPoint ( "CENTER" , UIPanel );
+    GRM_UI.GRM_AddBanFrame:SetSize ( 300 , 210 );
+    GRM_UI.GRM_AddBanFrame:SetFrameStrata ( "DIALOG" );
+    GRM_UI.GRM_AddBanFrame:SetToplevel ( true );
+    GRM_UI.GRM_AddBanFrame:EnableMouse ( true );
+    GRM_UI.GRM_AddBanFrame:SetMovable ( true );    
+    GRM_UI.GRM_AddBanFrame:RegisterForDrag ( "LeftButton" );
+    GRM_UI.GRM_AddBanFrame:SetScript ( "OnDragStart" , GRM_UI.GRM_CoreBanListFrame.StartMoving );
+    GRM_UI.GRM_AddBanFrame:SetScript( "OnDragStop" , GRM_UI.GRM_CoreBanListFrame.StopMovingOrSizing );
+    
+    GRM_UI.GRM_AddBanFrameInnerBorder:SetPoint ( "BOTTOM" , GRM_UI.GRM_AddBanFrame , -1.5 , -3 );
+    GRM_UI.GRM_AddBanFrameInnerBorder:SetSize ( 305 , 197 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanTitleText:SetPoint ( "TOP" , GRM_UI.GRM_AddBanFrame , 0 , -5 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanTitleText:SetText ( "Add Player to Ban List" );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanTitleText:SetFont( GRM_AddonGlobals.FontChoice , GRM_AddonGlobals.FontModifier + 12 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelectionText:SetPoint ( "TOPLEFT" , GRM_UI.GRM_AddBanFrameInnerBorder , "TOPLEFT" , 18 , -20 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelectionText:SetText ( "Name:" );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelectionText:SetFont( GRM_AddonGlobals.FontChoice , GRM_AddonGlobals.FontModifier + 11 );
+    -- Edit Box Values
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelection:SetPoint ( "LEFT" , GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelectionText , "RIGHT" , 20 , 0 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelection:SetSize ( 125 , 20 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelection:SetTextInsets( 2 , 3 , 3 , 2 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelection:SetMaxLetters ( 12 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelection:SetFont( GRM_AddonGlobals.FontChoice , GRM_AddonGlobals.FontModifier + 9 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelection:EnableMouse( true );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelection:SetAutoFocus( false );
+
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelection:SetPoint ( "TOPLEFT" , GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelection , "BOTTOMLEFT" , 0 , -2 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelection:SetSize ( 125 , 20 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelection:SetTextInsets( 2 , 3 , 3 , 2 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelection:SetMaxLetters ( 50 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelection:SetFont( GRM_AddonGlobals.FontChoice , GRM_AddonGlobals.FontModifier + 9 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelection:EnableMouse( true );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelection:SetAutoFocus( false );
+
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBoxFrame:SetPoint ( "TOPLEFT" , GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownClassSelected , "BOTTOMLEFT" , 0 , -3 );
+    -- GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBoxFrame:SetFrameStrata ( "DIALOG" );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBoxFrame:SetBackdrop ( noteBackdrop2 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBoxFrame:SetSize ( 128 , 60 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBoxFrame:EnableMouse ( true );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBoxFrame:SetScript ( "OnMouseDown" , function ( self , button )
+        if button == "LeftButton" then
+            GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:SetFocus();
+        end
+    end);
+
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:SetPoint ( "TOPLEFT" , GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBoxFrame , "TOPLEFT" , 2 , -2 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:SetSize ( 125 , 60 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:SetTextInsets( 2 , 3 , 3 , 2 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:SetMaxLetters ( 155 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:SetFont( GRM_AddonGlobals.FontChoice , GRM_AddonGlobals.FontModifier + 8 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:EnableMouse( true );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:SetAutoFocus( false );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:SetMultiLine( true );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:SetSpacing ( 1 );
+
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelectionText:SetPoint ( "TOPLEFT" , GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelectionText , "BOTTOMLEFT" , 0 , -10 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelectionText:SetText ( "Server:" );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelectionText:SetFont( GRM_AddonGlobals.FontChoice , GRM_AddonGlobals.FontModifier + 11 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanClassSelectionText:SetPoint ( "TOPLEFT" , GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelectionText , "BOTTOMLEFT" , 0 , -10 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanClassSelectionText:SetText ( "Class:" );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanClassSelectionText:SetFont( GRM_AddonGlobals.FontChoice , GRM_AddonGlobals.FontModifier + 11 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBoxText:SetPoint ( "TOPLEFT" , GRM_UI.GRM_AddBanFrame.GRM_AddBanClassSelectionText , "BOTTOMLEFT" , 0 , -10 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBoxText:SetText ( "Reason:" );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBoxText:SetFont( GRM_AddonGlobals.FontChoice , GRM_AddonGlobals.FontModifier + 11 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelectionWarningText:SetPoint ( "BOTTOM" , GRM_UI.GRM_AddBanFrame , 0 , 16 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelectionWarningText:SetText ( "It is CRITICAL the player's name and server are spelled correctly for accurate tracking and notifications." );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelectionWarningText:SetWordWrap ( true );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelectionWarningText:SetWidth ( 250 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelectionWarningText:SetTextColor ( 1 , 0 , 0 , 1 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelectionWarningText:SetFont ( GRM_AddonGlobals.FontChoice , GRM_AddonGlobals.FontModifier + 11 );
+
+    -- Edibox controls
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:SetScript ( "OnEscapePressed" , function() 
+        GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:ClearFocus();
+    end);
+
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:SetScript ( "OnEnterPressed" , function() 
+        GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:ClearFocus();
+    end);
+
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:SetScript ( "OnCursorChanged" , function( self , text )
+        if GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:GetHeight() > 56 then
+            local text =  GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:GetText();
+            GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:SetText ( string.sub ( text , 1 , #text - 1 ) );
+        end
+    end);
+
+    -- Confirm Button Values
+    -- Bring up the window for the ban list!!!
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanConfirmButton:SetSize ( 55 , 40 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanConfirmButton:SetPoint ( "TOPRIGHT" , GRM_UI.GRM_AddBanFrameInnerBorder , "TOPRIGHT" , -30 , -25 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanConfirmButtonText:SetPoint ( "CENTER" , GRM_UI.GRM_AddBanFrame.GRM_AddBanConfirmButton , 0 , -1.5 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanConfirmButtonText:SetFont ( GRM_AddonGlobals.FontChoice , GRM_AddonGlobals.FontModifier + 9 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanConfirmButtonText:SetText ( "Submit\nBan" );
+
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelection:SetScript ( "OnEnterPressed" , function()
+        GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelection:ClearFocus();
+    end);
+
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelection:SetScript ( "OnTabPressed" , function()
+        GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelection:ClearFocus();
+        GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrame:Hide();
+        if IsShiftKeyDown() then
+            GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:SetFocus();
+        else
+            GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelection:SetFocus();
+            GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelection:SetCursorPosition ( 0 );
+            GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelection:HighlightText ( 0 );
+        end
+    end);
+
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelection:SetScript ( "OnEnterPressed" , function()
+        GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelection:ClearFocus();
+    end);
+
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelection:SetScript ( "OnTabPressed" , function()
+        GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelection:ClearFocus();
+        GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrame:Hide();
+        if IsShiftKeyDown() then
+            GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelection:SetFocus();
+            GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelection:SetCursorPosition ( 0 );
+            GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelection:HighlightText ( 0 );
+        else
+            GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownMenu:Show();        
+        end
+    end);
+
+
+    -- CLASS DROP DOWN MENU 
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownClassSelected:SetPoint ( "TOPLEFT" , GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelection , "BOTTOMLEFT" , -3.8 , -4 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownClassSelected:SetSize (  129 , 18 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownClassSelectedText:SetPoint ( "CENTER" , GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownClassSelected );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownClassSelectedText:SetWidth ( 129 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownClassSelectedText:SetFont ( GRM_AddonGlobals.FontChoice , GRM_AddonGlobals.FontModifier + 10 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownMenu:SetPoint ( "TOP" , GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownClassSelected , "BOTTOM" );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownMenu:SetWidth ( 129 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownMenu:SetFrameStrata ( "DIALOG" );
+
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownMenuButton:SetPoint ( "LEFT" , GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownClassSelected , "RIGHT" , -1 , -0.5 );
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownMenuButton:SetSize ( 20 , 17 );
+
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownMenu:SetScript ( "OnKeyDown" , function ( _ , key )
+        GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownMenu:SetPropagateKeyboardInput ( true );      -- Ensures keyboard access will default to the main chat window on / or Enter. UX feature.
+        if key == "ESCAPE" then
+            GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownMenu:SetPropagateKeyboardInput ( false );
+            GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownMenu:Hide();
+            GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownClassSelected:Show();
+        elseif key == "TAB" then
+            GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrame:Hide();
+            GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownMenu:Hide();
+            if IsShiftKeyDown() then
+                GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelection:SetFocus();
+            else
+                GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:SetFocus();
+            end
+        end
+    end);
+
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownMenu:SetScript ( "OnHide" , function()
+        GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrame:Hide();
+    end);
+
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:SetScript ( "OnTabPressed" , function()
+        GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:ClearFocus();
+        GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrame:Hide();
+        if IsShiftKeyDown() then
+            GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownMenu:Show();
+        else
+            GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelection:SetFocus();            
+        end
+    end);
+
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:SetScript ( "OnEditFocusGained" , function()
+        GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:HighlightText ( 0 );
+    end);
+
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:SetScript ( "OnEditFocusLost" , function()
+        GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:HighlightText ( #GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:GetText() );
+    end);
+    
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownClassSelected:SetScript ( "OnShow" , function() 
+        GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownMenu:Hide();
+    end)
+
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownMenuButton:SetScript ( "OnMouseDown" , function( _ , button ) 
+        if button == "LeftButton" then
+            if  GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownMenu:IsVisible() then
+                    GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownMenu:Hide();
+            else
+                if GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownMenu:IsVisible() then
+                    GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownMenu:Hide();
+                end
+                GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownMenu:Show();
+            end
+        end
+    end);
+
+    -- Resets the values on loading the "Add Ban" window...
+    GRM_UI.GRM_AddBanFrame:SetScript ( "OnShow" , function()
+        GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelection:SetFocus();
+        GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelection:SetText ( "" );
+        GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelection:ClearFocus();
+        GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelection:SetText ( GetRealmName() );
+        GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownClassSelectedText:SetText ( GRM_Localize ( "DEATHKNIGHT" ) );
+        GRM_AddonGlobals.tempAddBanClass = "DEATHKNIGHT";
+        GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownClassSelectedText:SetTextColor ( 0.77 , 0.12 , 0.23 , 1.0 );
+        GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:SetText ( "Reason Banned?" );
+        GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownMenu:Hide();
+        GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrame:Hide();
+        
+        GRM.PopulateClassDropDownMenu();
+    end)
+
+    GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrame:SetPoint ( "TOP" , GRM_UI.GRM_AddBanFrame , "BOTTOM" , 0 , 0 );
+    GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrame:SetSize ( 306 , 100 );
+    GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrame:EnableKeyboard ( true );
+    GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrame:SetToplevel ( true );
+    GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrame:SetFrameStrata ( "DIALOG" );
+
+    GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrameYesButton:SetPoint ( "BOTTOMLEFT" , GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrame , "BOTTOMLEFT" , 25 , 20 );
+    GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrameYesButton:SetSize ( 50 , 30 );
+    GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrameYesButtonText:SetPoint ( "CENTER" , GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrameYesButton );
+    GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrameYesButtonText:SetText ( "Confirm" );
+    GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrameYesButtonText:SetFont ( GRM_AddonGlobals.FontChoice , GRM_AddonGlobals.FontModifier + 10 );
+
+    GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrameCancelButton:SetPoint ( "BOTTOMRIGHT" , GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrame , "BOTTOMRIGHT" , -25 , 20 );
+    GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrameCancelButton:SetSize ( 50 , 30 );
+    GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrameCancelButtonText:SetPoint ( "CENTER" , GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrameCancelButton );
+    GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrameCancelButtonText:SetFont ( GRM_AddonGlobals.FontChoice , GRM_AddonGlobals.FontModifier + 10 );
+    GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrameCancelButtonText:SetText ( "Cancel" );
+
+    GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrameText:SetPoint ( "TOP" , GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrame , 0 , -20 );
+    GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrameText:SetText ( "Confirm Ban for the Following Player?" );
+    GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrameText:SetFont( GRM_AddonGlobals.FontChoice , GRM_AddonGlobals.FontModifier + 11 );
+    GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrameText2:SetPoint ( "TOP" , GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrameText , "BOTTOM" , 0 , -5 );
+    GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrameText2:SetFont( GRM_AddonGlobals.FontChoice , GRM_AddonGlobals.FontModifier + 11 );
+
+    GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrameCancelButton:SetScript ( "OnClick" , function ( self , button )
+        if button == "LeftButton" then
+            GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrame:Hide();
+        end
+    end);
+
+    GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrame:SetScript ( "OnKeyDown" , function ( _ , key )
+        GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrame:SetPropagateKeyboardInput ( true );      -- Ensures keyboard access will default to the main chat window on / or Enter. UX feature.
+        if key == "ESCAPE" then
+            GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrame:SetPropagateKeyboardInput ( false );
+            GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrame:Hide();
+        end
+    end);
+
+    GRM_UI.GRM_AddBanFrame.GRM_AddBanConfirmButton:SetScript ( "OnClick" , function ( _ , button)
+        if button == "LeftButton" then
+            -- Run some logic... and if it is good, confirm popup window pop
+            local name = GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelection:GetText();
+            local server = GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelection:GetText();
+            local needsToReEnter = false;
+
+            if #name <= 1 or not GRM.IsValidName( name ) then
+                DEFAULT_CHAT_FRAME:AddMessage ( "Please Enter a Valid Player Name" , 1.0 , 0.84 , 0 );
+                GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelection:SetFocus();
+                needsToReEnter = true;
+            end
+            if #server <= 1 or tonumber ( server ) ~= nil then
+                DEFAULT_CHAT_FRAME:AddMessage ( "Please Enter a Valid Server Name" , 1.0 , 0.84 , 0 );
+                GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelection:SetFocus();
+                needsToReEnter = true;
+            end
+
+            if not needsToReEnter then
+                -- Popupwindow confirm.
+                GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelection:ClearFocus();
+                GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelection:ClearFocus();
+                GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:ClearFocus();
+                GRM_UI.GRM_AddBanFrame.GRM_AddBanDropDownMenu:Hide();
+
+                GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrameText2:SetText ( GRM.Trim( GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelection:GetText() ) .. "-" .. GRM.Trim( GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelection:GetText() ) );
+                local classColors = GRM.GetClassColorRGB ( GRM_AddonGlobals.tempAddBanClass );
+                GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrameText2:SetTextColor ( classColors[1] , classColors[2] , classColors[3] , 1 );
+                GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrame:Show();
+            end
+        end
+    end);
+
+    -- So escape key can hide the frames.
+    GRM_UI.GRM_AddBanFrame:SetScript ( "OnKeyDown" , function ( _ , key )
+        GRM_UI.GRM_AddBanFrame:SetPropagateKeyboardInput ( true );      -- Ensures keyboard access will default to the main chat window on / or Enter. UX feature.
+        if key == "ESCAPE" then
+            GRM_UI.GRM_AddBanFrame:SetPropagateKeyboardInput ( false );
+            GRM_UI.GRM_AddBanFrame:Hide();
+        end
+    end);
+
+    GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrameYesButton:SetScript ( "OnClick" , function ( self , button )
+        if button == "LeftButton" then
+            -- This is where the actual logic for doling out the ban takes place!!!
+            
+            -- Required info to add the player...
+            local fullName = GRM.Trim( GRM_UI.GRM_AddBanFrame.GRM_AddBanNameSelection:GetText() ) .. "-" .. string.gsub ( string.gsub ( GRM.Trim( GRM_UI.GRM_AddBanFrame.GRM_AddBanServerSelection:GetText() ) , "-" , "" ) , "%s+" , "" );
+            local banReason = GRM.Trim ( GRM_UI.GRM_AddBanFrame.GRM_AddBanReasonEditBox:GetText() );
+            if banReason == "Reason Banned?" or banReason == nil then
+                banReason = "";
+            end
+            local memberInfoToAdd = {
+                fullName,
+                GuildControlGetRankName ( GuildControlGetNumRanks() ),
+                GuildControlGetNumRanks() - 1,
+                1,
+                "",
+                "",
+                GRM_AddonGlobals.tempAddBanClass,
+                1,
+                "",
+                100,
+                false,
+                1,
+                false,
+                0
+            }
+
+            -- Ok, let's check if this player is already currently in the guild.
+            local isFoundInLeft = false;
+            local isFoundInGuild = false;
+            local indexFound = 0;
+            for i = 2 , #GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
+                if GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1] == fullName then
+                    isFoundInLeft = true;
+                    indexFound = i;
+                    break;
+                end
+            end
+
+            if not isFoundInLeft then
+                for j = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
+                    if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][1] == fullName then
+                        isFoundInGuild = true;
+                        indexFound = j;
+                        break;
+                    end
+                end
+            end
+
+            if isFoundInLeft then
+                GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][indexFound][17][1] = true;
+                GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][indexFound][17][2] = time();
+                GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][indexFound][17][3] = false;
+                GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][indexFound][18] = banReason;
+            
+            elseif isFoundInGuild then
+                GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][indexFound][17][1] = true;
+                GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][indexFound][17][2] = time();
+                GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][indexFound][17][3] = false;
+                GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][indexFound][18] = banReason;
+                
+            else
+                -- Add ban of in-guild guildie with notification!!!
+                GRM.AddMemberToLeftPlayers ( memberInfoToAdd , GRM.GetTimestamp() , time() , GRM.GetTimestamp() , time() - 5000 );
+
+                -- Now, let's implement the ban!
+                for i = 2 , #GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
+                    if GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1] == fullName then
+                        GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][17][1] = true;
+                        GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][17][2] = time();
+                        GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][17][3] = false;
+                        GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][18] = banReason;
+                        break;
+                    end
+                end
+            end
+            -- Finally, close the window
+            GRM_UI.GRM_AddBanFrame.PopupWindowConfirmFrame:Hide();
+            GRM_UI.GRM_AddBanFrame:Hide();
+
+            if banReason == "" then
+                banReason = "None Given";
+            end
+
+            local logEntry = ( GRM.GetTimestamp() .. " : " .. GRM.SlimName ( GRM_AddonGlobals.addonPlayerName ) .. " has BANNED " .. GRM.SlimName ( fullName ) .. " from the guild!!!" );
+            if banReason ~= "None Given" then
+                GRM.AddLog ( 18 , "Reason Banned: " .. banReason );
+            end
+            GRM.AddLog ( 17 , logEntry );
+        
+            -- Report the change to chat window...
+            if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][13][13] then
+                DEFAULT_CHAT_FRAME:AddMessage ( GRM.SlimName ( GRM_AddonGlobals.addonPlayerName ) .. " has BANNED " .. GRM.SlimName ( fullName ) .. " from the guild!!!" , 1.0 , 0 , 0 );
+                DEFAULT_CHAT_FRAME:AddMessage ( "Reason Banned: " .. banReason , 1.0 , 1.0 , 1.0 );
+            end
+        
+            GRM.BuildLog();
+
+            -- Live Sync the ban
+            if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][14] and GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][21] then
+                GRMsync.SendMessage ( "GRM_SYNC" , GRM_AddonGlobals.PatchDayString .. "?GRM_BAN?" .. GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. tostring ( GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][22] ) .. "?" .. fullName .. "?" .. tostring ( false ) .. "?" .. banReason .. "?" .. GRM_AddonGlobals.tempAddBanClass , "GUILD" );
+            end
+
+            -- and Update the live frames too!
+            if GRM_UI.GRM_CoreBanListFrame:IsVisible() then
+                GRM.RefreshBanListFrames();
+            end
+        end
+    end);
+
+    GRM_UI.GRM_BanListAddButton:SetScript ( "OnClick" , function( self , button )
+        if button == "LeftButton" then
+            GRM_UI.GRM_AddBanFrame:Show();
+        end
+    end);
     -- For when the frame appears
     GRM_UI.GRM_CoreBanListFrame:SetScript ( "OnShow" , function()
         -- Reset the highlights and some certain frames...
+        GRM_UI.GRM_CoreBanListFrame.GRM_CoreBanListFrameTitleText:SetText ( GRM_AddonGlobals.guildName .. " - Ban List" );
         GRM_UI.GRM_CoreBanListFrame.GRM_CoreBanListFrameSelectedNameText:Hide();
         GRM_UI.GRM_CoreBanListFrame.GRM_CoreBanListFrameText:SetText ( "Select\na Player" );
         

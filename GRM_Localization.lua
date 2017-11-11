@@ -44,6 +44,19 @@ local phrases = {
     { "Officer's Note:" , "Offiziersnotiz:" , "Nota de oficial:" , "Nota de oficial:" , "Note d'officier :" , "Nota degli ufficiali:" , "Nota de oficial:" , "Заметка для офицеров:" , "길드관리자 쪽지:" , "官员备注:" , "幹部註記:" },
     { "Zone:" , "Zone:" , "Zona:" , "Zona:" , "Zone:" , "Zona:" , "Zone:" , "Зона:" , "지역:" , "地区：" , "區域：" },
     
+    -- CLASSES
+    { "DEATHKNIGHT" },
+    { "DEMONHUNTER" }, 
+    { "DRUID" },
+    { "HUNTER" }, 
+    { "MAGE" }, 
+    { "MONK" },
+    { "PALADIN" }, 
+    { "PRIEST" }, 
+    { "ROGUE" }, 
+    { "SHAMAN" }, 
+    { "WARLOCK" }, 
+    { "WARRIOR" }
 }
 
 -- Method:          GRM_Localize ( string );
@@ -67,7 +80,7 @@ GRM_Localize = function ( phrase )
     return result;
 end
 
--- Method:          GRM_GetFontChoice()
+-- Method:          GRM_GetFontChoice() -- Not necessary for the most part as I can use "STANDARD_TEXT_FONT" - but, just in case...
 -- What it Does:    Selects the proper font for the given locale of the addon user.
 -- Purpose:         To ensure no ???? are in place and all characters are accounted for.
 GRM_GetFontChoice = function()
@@ -81,7 +94,7 @@ GRM_GetFontChoice = function()
         result = "FONTS\\2002.TTF";
     elseif localizationIndex == 10 then
         -- Mandarin Chines
-        result = "Fonts\\ARKai_T.ttf";
+        result = "Fonts\\ARKai_T.TTF";
     elseif localizationIndex == 11 then
         -- Taiwanese
         result = "FONTS\\blei00d.TTF";

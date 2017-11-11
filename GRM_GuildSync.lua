@@ -1,6 +1,6 @@
 -- For Sync controls!
 -- Author: Arkaan... aka "TheGenomeWhisperer"
--- Version 7.3.2R1.100
+-- Version 7.3.2R1.104
 -- To hold all Sync Methods/Functions
 GRMsync = {};
 
@@ -66,6 +66,7 @@ GRMsyncGlobals.SyncCount6 = 1;
 GRMsyncGlobals.SyncCount7 = 2;              -- For the ban list sync.
 GRMsyncGlobals.TimeSinceLastSyncAction = 0; -- Evertime sync action occurs, timer is reset!
 GRMsyncGlobals.ErrorCD = 10;                -- 10 seconds delay... if no action detected, sync failed and it will retrigger...
+GRMsyncGlobals.numSyncAttempts = 0;         -- If sync fails, it will retry 1 time. This is the counter for attempts.
 GRMsyncGlobals.syncTempDelay = false;
 GRMsyncGlobals.syncTempDelay2 = false;
 GRMsyncGlobals.finalSyncDataCount = 1;
@@ -666,7 +667,9 @@ GRMsync.CheckBanListChange = function ( msg , sender )
     local name = string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 );
     msg = string.sub ( msg , string.find ( msg , "?" ) + 1 );
     local banAlts = string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 );
-    local reason = string.sub ( msg , string.find ( msg , "?" ) + 1 );
+    msg = string.sub ( msg , string.find ( msg , "?" ) + 1 );
+    local reason = string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 );
+    local class = string.sub ( msg , string.find ( msg , "?" ) + 1 );
     local timeEpoch = time();
 
     if reason == "No Reason Given" then
@@ -674,11 +677,14 @@ GRMsync.CheckBanListChange = function ( msg , sender )
     end
 
     -- First things first, let's find player!
+    local isFound = false;
     for j = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
         if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][1] == name then
             -- The initial ban of the player.
+            isFound = true;
             GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][17][1] = true;
             GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][17][2] = timeEpoch;
+            GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][17][3] = false;
             GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][18] = reason;
 
             -- Next thing is IF alts are to be banned, this will ban them all as well!
@@ -692,6 +698,7 @@ GRMsync.CheckBanListChange = function ( msg , sender )
                                 -- Banning the alts one by one in the for loop
                                 GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][17][1] = true;
                                 GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][17][2] = timeEpoch;
+                                GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][17][3] = false;
                                 GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][18] = reason;
 
                                 break;
@@ -702,6 +709,54 @@ GRMsync.CheckBanListChange = function ( msg , sender )
             end
             break;
         end
+    end
+
+    -- let's check the left player's on live sync
+    if not isFound then
+        for i = 2 , #GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
+            if GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1] == name then
+                isFound = true;
+                GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][17][1] = true;
+                GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][17][2] = timeEpoch;
+                GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][17][3] = false;
+                GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][18] = reason;
+    
+                break;
+            end
+        end
+    end
+
+    -- OMG, if player is still not found... this is a brand new name added
+    if not isFound then
+        -- Add ban of in-guild guildie with notification!!!
+        local memberInfoToAdd = {
+            name,
+            GuildControlGetRankName ( GuildControlGetNumRanks() ),
+            GuildControlGetNumRanks() - 1,
+            1,
+            "",
+            "",
+            class,
+            1,
+            "",
+            100,
+            false,
+            1,
+            false,
+            0
+        }
+        GRM.AddMemberToLeftPlayers ( memberInfoToAdd , GRM.GetTimestamp() , time() , GRM.GetTimestamp() , time() - 5000 );
+        -- Now, let's implement the ban!
+        for i = 2 , #GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
+            if GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1] == name then
+                GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][17][1] = true;
+                GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][17][2] = timeEpoch;
+                GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][17][3] = false;
+                GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][18] = reason;
+                break;
+            end
+        end
+
     end
 
     -- Add ban info to the log.
@@ -733,6 +788,8 @@ GRMsync.CheckBanListChange = function ( msg , sender )
             chat:AddMessage ( "Reason Banned: " .. reason , 1.0 , 1.0 , 1.0 );
         end
     end
+
+    GRM.BuildLog();
 
     -- Refresh Frames!
     if GRM_UI.GRM_CoreBanListFrame:IsVisible() then
@@ -958,6 +1015,7 @@ end
 -- Purpose:         Data sync
 GRMsync.SendJDPackets = function()
     -- Initiate Data sending
+    GRMsyncGlobals.TimeSinceLastSyncAction = time();
     if GRMsyncGlobals.SyncOK and not GRMsyncGlobals.syncTempDelay then
         GRMsync.SendMessage ( "GRM_SYNC" , GRM_AddonGlobals.PatchDayString .. "?GRM_START?" .. GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. tostring ( #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] - 1 ) , GRMsyncGlobals.channelName );         -- MSG = number of expected values to be sent.
     end
@@ -989,7 +1047,7 @@ end
 -- Purpose:         Data sync
 GRMsync.SendPDPackets = function()
     -- Initiate Data sending
-
+    GRMsyncGlobals.TimeSinceLastSyncAction = time();
     if GRMsyncGlobals.SyncOK and not GRMsyncGlobals.syncTempDelay then
         GRMsync.SendMessage ( "GRM_SYNC" , GRM_AddonGlobals.PatchDayString .. "?GRM_START?" .. GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. tostring ( #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] - 1 ) , GRMsyncGlobals.channelName );         -- MSG = number of expected values to be sent.
     end
@@ -1052,6 +1110,9 @@ end
 -- Purpose:         Data sync
 GRMsync.SendBANPackets = function()
     -- Initiate Data sending
+    GRMsyncGlobals.TimeSinceLastSyncAction = time();
+    -- For sync error check help
+    GRMsync.SendMessage ( "GRM_SYNC" , GRM_AddonGlobals.PatchDayString .. "?GRM_BANSYNC4?" .. GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. " ?" , GRMsyncGlobals.channelName );    
     if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][21] then
         if GRMsyncGlobals.SyncOK and not GRMsyncGlobals.syncTempDelay then
             GRMsync.SendMessage ( "GRM_SYNC" , GRM_AddonGlobals.PatchDayString .. "?GRM_START?" .. GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. tostring ( #GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] - 1 ) , GRMsyncGlobals.channelName );         -- MSG = number of expected values to be sent.
@@ -1129,6 +1190,7 @@ end
 -- What it Does:    Broadcasts to the leader all ALT information
 -- Purpose:         Data sync
 GRMsync.SendAltPackets = function()
+    GRMsyncGlobals.TimeSinceLastSyncAction = time();
     local msg = "";
     if not GRMsyncGlobals.syncTempDelay2  then
         if GRMsyncGlobals.SyncOK and not GRMsyncGlobals.syncTempDelay then
@@ -1223,6 +1285,7 @@ end
 -- What it Does:    Broadcasts to the leader all MAIN information
 -- Purpose:         Data sync
 GRMsync.SendMainPackets = function()
+    GRMsyncGlobals.TimeSinceLastSyncAction = time();
     if GRMsyncGlobals.SyncOK and not GRMsyncGlobals.syncTempDelay then
         GRMsync.SendMessage ( "GRM_SYNC" , GRM_AddonGlobals.PatchDayString .. "?GRM_START?" .. GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. tostring ( #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] - 1 ) , GRMsyncGlobals.channelName );         -- MSG = number of expected values to be sent.
     end
@@ -1266,14 +1329,74 @@ end
 -- What it Does:    On the giver ErrorCD interval, determines if sync has failed by time since last sync action has occcurred. 
 -- Purpose:         To exit out the sync attempt and retry in an efficiennt non, time-wasting way.
 GRMsync.ErrorCheck = function()
-    if GRMsyncGlobals.currentlySyncing and ( time() - GRMsyncGlobals.TimeSinceLastSyncAction ) >= GRMsyncGlobals.ErrorCD then
-        if #GRMsyncGlobals.SyncQue > 0 then
-            chat:AddMessage ( "GRM: Sync Failed with " .. GRM.SlimName ( GRMsyncGlobals.CurrentSyncPlayer ) .. "... \nInitiating Sync with Guild Again!"  , 1.0 , 0.84 , 0 );
-            GRMsyncGlobals.currentlySyncing = false;
-            GRMsync.InitiateDataSync();
+    GuildRoster();
+    if GRMsyncGlobals.DesignatedLeader == GRM_AddonGlobals.addonPlayerName then
+        if GRMsyncGlobals.currentlySyncing and ( time() - GRMsyncGlobals.TimeSinceLastSyncAction ) >= GRMsyncGlobals.ErrorCD then
+
+            -- Check if player is offline...
+            local playerIsOnline = GRM.IsGuildieOnline ( GRMsyncGlobals.CurrentSyncPlayer );
+
+            -- We already tried to sync, now abord to 2nd.
+            if playerIsOnline then
+                if GRMsyncGlobals.numSyncAttempts == 1 then
+                    table.remove ( GRMsyncGlobals.SyncQue , 1 );
+                    GRMsyncGlobals.numSyncAttempts = 0;
+                    -- Sync failed, this is 2nd attempt, AND, another person is in que.
+                    if #GRMsyncGlobals.SyncQue > 0 then
+                        chat:AddMessage ( "GRM: Sync Failed with " .. GRM.SlimName ( GRMsyncGlobals.CurrentSyncPlayer ) .. " a 2nd time... \nInitiating Sync with " .. GRMsyncGlobals.SyncQue[1] .. " Instead!"  , 1.0 , 0.84 , 0 );
+                        GRMsyncGlobals.currentlySyncing = false;
+                        GRMsync.InitiateDataSync();
+                    -- Sync failed, this is 2nd attempt, but no one else is in the que. Just end it.
+                    else
+                        chat:AddMessage ( "GRM: Sync Failed with " .. GRM.SlimName ( GRMsyncGlobals.CurrentSyncPlayer ) .. " a 2nd time..."  , 1.0 , 0.84 , 0 );
+                    end   
+                elseif #GRMsyncGlobals.SyncQue > 0 then
+                    GRMsyncGlobals.numSyncAttempts = GRMsyncGlobals.numSyncAttempts + 1;
+                    chat:AddMessage ( "GRM: Sync Failed with " .. GRM.SlimName ( GRMsyncGlobals.CurrentSyncPlayer ) .. "... \nInitiating Sync Attempt Again!"  , 1.0 , 0.84 , 0 );
+                    GRMsyncGlobals.currentlySyncing = false;
+                    GRMsync.InitiateDataSync();
+                end
+            else
+                table.remove ( GRMsyncGlobals.SyncQue , 1 );
+                GRMsyncGlobals.numSyncAttempts = 0;
+                GRMsyncGlobals.currentlySyncing = false;
+                if #GRMsyncGlobals.SyncQue > 0 then
+                    chat:AddMessage ( "GRM: Sync Failed with " .. GRM.SlimName ( GRMsyncGlobals.CurrentSyncPlayer ) .. "\nThe Player Appears to Be Offline.\nInitiating Sync with " .. GRMsyncGlobals.SyncQue[1] .. " Instead!" , 1.0 , 0.84 , 0 );
+                    GRMsync.InitiateDataSync();
+                else
+                    chat:AddMessage ( "GRM: Sync Failed with " .. GRM.SlimName ( GRMsyncGlobals.CurrentSyncPlayer ) .. "\nThe Player Appears to Be Offline." , 1.0 , 0.84 , 0 );
+                end
+            end
+        elseif GRMsyncGlobals.currentlySyncing and #GRMsyncGlobals.SyncQue > 0 then
+            C_Timer.After ( GRMsyncGlobals.ErrorCD , GRMsync.ErrorCheck );
         end
-    elseif GRMsyncGlobals.currentlySyncing and #GRMsyncGlobals.SyncQue > 0 then
-        C_Timer.After ( GRMsyncGlobals.ErrorCD , GRMsync.ErrorCheck );
+    else
+        if GRMsyncGlobals.currentlySyncing and ( time() - GRMsyncGlobals.TimeSinceLastSyncAction ) >= GRMsyncGlobals.ErrorCD then
+            local playerIsOnline = GRM.IsGuildieOnline ( GRMsyncGlobals.DesignatedLeader );
+            if GRMsyncGlobals.numSyncAttempts == 0 then
+                if not playerIsOnline then
+                    chat:AddMessage ( "GRM: Sync Failed with " .. GRM.SlimName ( GRMsyncGlobals.DesignatedLeader ) .. "\nThe Player Appears to Be Offline." , 1.0 , 0.84 , 0 );
+                else
+                    GRMsyncGlobals.numSyncAttempts = GRMsyncGlobals.numSyncAttempts + 1;
+                    chat:AddMessage ( "GRM: Sync Failed with " .. GRM.SlimName ( GRMsyncGlobals.DesignatedLeader ) .. "\nReconfiguring... then retrying!" , 1.0 , 0.84 , 0 );
+                end
+                GRMsync.TriggerFullReset();
+                -- Now, let's add a brief delay, 3 seconds, to trigger sync again
+                C_Timer.After ( 10.1 , GRMsync.Initialize );
+            else
+                if not playerIsOnline then
+                    chat:AddMessage ( "GRM: Sync Failed with " .. GRM.SlimName ( GRMsyncGlobals.DesignatedLeader ) .. " a Second Time!\nThe Player Appears to Be Offline Now." , 1.0 , 0.84 , 0 );
+                    GRMsync.TriggerFullReset();
+                    -- Now, let's add a brief delay, 3 seconds, to trigger sync again
+                    C_Timer.After ( 10.1 , GRMsync.Initialize );
+                else
+                    GRMsyncGlobals.numSyncAttempts = 0;
+                    chat:AddMessage ( "GRM: Sync Failed with " .. GRM.SlimName ( GRMsyncGlobals.DesignatedLeader ) .. " a Second Time!\nThere Might be a Problem With Their Sync.\nWhile Undesirable, Ask Them to /reload to Fix It." , 1.0 , 0.84 , 0 );
+                end
+            end
+        elseif GRMsyncGlobals.currentlySyncing then
+            C_Timer.After ( GRMsyncGlobals.ErrorCD , GRMsync.ErrorCheck );  
+        end
     end
 end
 
@@ -1288,6 +1411,7 @@ GRMsync.InitiateDataSync = function ()
             GRMsyncGlobals.currentlySyncing = true;
             GRMsyncGlobals.CurrentSyncPlayer = GRMsyncGlobals.SyncQue[1];
             if GRMsyncGlobals.SyncOK then
+                GRMsync.ResetReportTables();
                 GRMsync.ResetTempTables();
                 GRMsyncGlobals.TimeSinceLastSyncAction = time();
                 if GRM_AddonGlobals.TemporarySync then
@@ -1297,9 +1421,8 @@ GRMsync.InitiateDataSync = function ()
                 end
                 GRMsync.SendMessage ( "GRM_SYNC" , GRM_AddonGlobals.PatchDayString .. "?GRM_REQJDDATA?" .. GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRMsyncGlobals.SyncQue[1] , GRMsyncGlobals.channelName );
             end
-            table.remove ( GRMsyncGlobals.SyncQue , 1 );
-
             -- If it fails to sync, after 10 seconds, it retries...
+            GuildRoster();
             C_Timer.After ( GRMsyncGlobals.ErrorCD , GRMsync.ErrorCheck );
         end
     end
@@ -1437,6 +1560,9 @@ GRMsync.SubmitFinalSyncData = function()
     -- Do a quick check if anyone else added themselves to the que in the last millisecond, and if so, REPEAT!
     -- Setup repeat here.
     -----------------------------------
+    -- We made it... remove from the syncQue
+    table.remove ( GRMsyncGlobals.SyncQue , 1 );
+    GRMsyncGlobals.numSyncAttempts = 0;
     if #GRMsyncGlobals.SyncQue > 0 then
         GRMsyncGlobals.currentlySyncing = false;
         GRMsync.InitiateDataSync();
@@ -1894,91 +2020,148 @@ GRMsync.CheckChanges = function ( msg )
 
     elseif msg == "BAN" then
         -- Skip this all if player restrict ban list sync
-        if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][21] then
-            if #GRMsyncGlobals.BanReceivedTemp == GRMsyncGlobals.NumPlayerDataExpected then -- { name , timeStampOfBanCHange , banStatus , reason }
-                local isFound;
-
-                -- Let's check my own changes now...
-                -- First, left players...
-                local tag = "";
-                local reason = "";
-                for i = 2 , #GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
-                    isFound = false;
-                    if GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][17][1] or GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][17][3] then  -- if banned or unbanned is on my playersThatLeft...
-                        if GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][17][1] then
-                            tag = "ban";
-                        elseif GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][17][3] then
-                            tag = "unban";
-                        end
-                        for j = 1 , #GRMsyncGlobals.BanReceivedTemp do
-                            if GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1] == GRMsyncGlobals.BanReceivedTemp[j][1] then
-                                isFound = true;
-                                -- No need to carry on...
-                                break;
-                            end
-                        end
-
-                        if not isFound then
-                            -- Player was not found on the ban list
-                            reason = GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][18];
-                            if reason == "" then
-                                reason = "No Reason Given";
-                            end
-                            if tag == "ban" or tag == "unban" then
-                                table.insert ( GRMsyncGlobals.BanReceivedTemp , { GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1] , 0 , "noban" , reason } );
-                            end
-                            -- Send request to ADD player w/ban or unban status.
-                            GRMsync.SendMessage ( "GRM_SYNC" , GRM_AddonGlobals.PatchDayString .. "?GRM_ADDLEFT?" .. GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1] .. "?" .. GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][4] .. "?" .. tostring ( GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][5] ) .. "?" .. tostring ( GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][6] ) .. "?" .. GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][9] .. "?" .. GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][15][#GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][15]] .. "?" .. tostring ( GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][16][#GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][16]] ) .. "?" .. GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][2] .. "?" .. tostring ( GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][3] .. "?" .. tag )  , GRMsyncGlobals.channelName );    -- (name , rank, rankID, level , class , leftguilddate, leftguildEpochMeta , oldJoinDate, OldJoinDateMeta)
+        if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][21] then -- { name , timeStampOfBanCHange , banStatus , reason }
+            local isFound;
+            -- Let's check my own changes now...
+            -- First, left players...
+            local tag = "";
+            local reason = "";
+            for i = 2 , #GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
+                isFound = false;
+                if GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][17][1] or GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][17][3] then  -- if banned or unbanned is on my playersThatLeft...
+                    if GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][17][1] then
+                        tag = "ban";
+                    elseif GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][17][3] then
+                        tag = "unban";
+                    end
+                    for j = 1 , #GRMsyncGlobals.BanReceivedTemp do
+                        if GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1] == GRMsyncGlobals.BanReceivedTemp[j][1] then
+                            isFound = true;
+                            -- No need to carry on...
+                            break;
                         end
                     end
-                end
 
-                -- Now, let's check current players!
-                for i = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
-                    isFound = false;
-                    
-                    if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][17][1] or GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][17][3] then  -- if banned or unbanned is on my playersThatLeft...
-                        if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][17][1] then
-                            tag = "ban";
-                        elseif GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][17][3] then
-                            tag = "unban";
+                    if not isFound then
+                        -- Player was not found on the ban list
+                        reason = GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][18];
+                        if reason == "" then
+                            reason = "No Reason Given";
                         end
-                        for j = 1 , #GRMsyncGlobals.BanReceivedTemp do
-                            if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1] == GRMsyncGlobals.BanReceivedTemp[j][1] then
-                                isFound = true;
-                                -- No need to carry on...
-                                break;
-                            end
+                        if tag == "ban" or tag == "unban" then
+                            table.insert ( GRMsyncGlobals.BanReceivedTemp , { GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1] , 0 , "noban" , reason } );
                         end
-
-                        if not isFound then
-                            reason = GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][18];
-                            if reason == "" then
-                                reason = "No Reason Given";
-                            end
-                            -- Player was not found on the ban list
-                            -- Send request to ADD player w/ban or unban status.
-                            GRMsync.SendMessage ( "GRM_SYNC" , GRM_AddonGlobals.PatchDayString .. "?GRM_ADDCUR?" .. GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][22] .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1] .. "?" .. tag .. "?" .. tostring ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][17][2] ) .. "?" .. reason , GRMsyncGlobals.channelName );    -- (name , ban/unban , timestamp of ban change)
-                        end
+                        -- Send request to ADD player w/ban or unban status.
+                        GRMsync.SendMessage ( "GRM_SYNC" , GRM_AddonGlobals.PatchDayString .. "?GRM_ADDLEFT?" .. GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1] .. "?" .. GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][4] .. "?" .. tostring ( GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][5] ) .. "?" .. tostring ( GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][6] ) .. "?" .. GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][9] .. "?" .. GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][15][#GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][15]] .. "?" .. tostring ( GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][16][#GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][16]] ) .. "?" .. GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][2] .. "?" .. tostring ( GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][3] .. "?" .. tag )  , GRMsyncGlobals.channelName );    -- (name , rank, rankID, level , class , leftguilddate, leftguildEpochMeta , oldJoinDate, OldJoinDateMeta)
                     end
                 end
+            end
+
+            -- Now, let's check current players!
+            for i = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
+                isFound = false;
                 
-                for i = 1 , #GRMsyncGlobals.BanReceivedTemp do
-                    isFound = false;
-                    for j = 2 , #GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
-                        if GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][1] == GRMsyncGlobals.BanReceivedTemp[i][1] then
+                if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][17][1] or GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][17][3] then  -- if banned or unbanned is on my playersThatLeft...
+                    if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][17][1] then
+                        tag = "ban";
+                    elseif GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][17][3] then
+                        tag = "unban";
+                    end
+                    for j = 1 , #GRMsyncGlobals.BanReceivedTemp do
+                        if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1] == GRMsyncGlobals.BanReceivedTemp[j][1] then
+                            isFound = true;
+                            -- No need to carry on...
+                            break;
+                        end
+                    end
+
+                    if not isFound then
+                        reason = GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][18];
+                        if reason == "" then
+                            reason = "No Reason Given";
+                        end
+                        -- Player was not found on the ban list
+                        -- Send request to ADD player w/ban or unban status.
+                        GRMsync.SendMessage ( "GRM_SYNC" , GRM_AddonGlobals.PatchDayString .. "?GRM_ADDCUR?" .. GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][22] .. "?" .. GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1] .. "?" .. tag .. "?" .. tostring ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][17][2] ) .. "?" .. reason , GRMsyncGlobals.channelName );    -- (name , ban/unban , timestamp of ban change)
+                    end
+                end
+            end
+
+            for i = 1 , #GRMsyncGlobals.BanReceivedTemp do
+                isFound = false;
+                for j = 2 , #GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
+                    if GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][1] == GRMsyncGlobals.BanReceivedTemp[i][1] then
+                        isFound = true;
+                        -- Let's first check if they have diff. info.
+                        if GRMsyncGlobals.BanReceivedTemp[i][3] ~= "noban" or ( GRMsyncGlobals.BanReceivedTemp[i][3] == "noban" and ( GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][17][1] or GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][17][3] ) ) then
+                            local banStatus = false;
+                            if GRMsyncGlobals.BanReceivedTemp[i][3] == "ban" then
+                                banStatus = true;
+                            end
+
+                            if banStatus ~= GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][17][1] then
+                                
+                                local addReceived = false;      -- AM I going to add received data, or my own. One or the other needs to be added for sync
+                                if ( currentTime - GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][17][2] ) > ( currentTime - GRMsyncGlobals.BanReceivedTemp[i][2] ) then
+                                    -- Received Data happened more recently! Need to update change!
+                                    addReceived = true;         -- In other words, don't add my own data, add the received data.
+                                end
+
+                                local changeData;
+                                -- Adding Received from other playerZ--[[z]]
+                                if addReceived then
+                                    changeData = GRMsyncGlobals.BanReceivedTemp[i];
+                                
+                                -- Adding my own data, as it is more current
+                                else
+                                    local msgTag = "ban";
+                                    if GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][17][3] then
+                                        msgTag = "unban"
+                                    end
+                                    changeData = { GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][1] , GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][17][2] , msgTag , GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][18] };
+                                end
+                                
+                                -- Let's see if already indexed by another player!
+                                local needToAdd = true;
+                                for r = 1 , #GRMsyncGlobals.BanChanges do
+                                    if changeData[1] == GRMsyncGlobals.BanChanges[r][1] then
+                                        -- If bans are going to be the same, no need to change!
+                                        if changeData[3] == GRMsyncGlobals.BanChanges[r][3] or ( currentTime - changeData[2] ) > ( currentTime - GRMsyncGlobals.BanChanges[2] ) then -- If difference found, but the other change was more recent, no need to add.
+                                            needToAdd = false;
+                                        end
+
+                                        -- If needToAdd is still true, then we need to remove the old index.
+                                        if needToAdd then
+                                            table.remove ( GRMsyncGlobals.BanChanges , r );
+                                        end
+                                    end
+                                end
+                                
+                                -- If needToAdd is still true, then we need to remove the old index.
+                                if needToAdd then
+                                    table.insert ( GRMsyncGlobals.BanChanges , changeData );
+                                end
+                            end
+                        end
+                        break;
+                    end
+                end
+
+                -- if not IsFound then...
+                if not isFound then
+                    for j = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
+                        if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][1] == GRMsyncGlobals.BanReceivedTemp[i][1] then
                             isFound = true;
                             -- Let's first check if they have diff. info.
-                            if GRMsyncGlobals.BanReceivedTemp[i][3] ~= "noban" or ( GRMsyncGlobals.BanReceivedTemp[i][3] == "noban" and ( GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][17][1] or GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][17][3] ) ) then
+                            if GRMsyncGlobals.BanReceivedTemp[i][3] ~= "noban" or ( GRMsyncGlobals.BanReceivedTemp[i][3] == "noban" and ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][17][1] or GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][17][3] ) ) then
                                 local banStatus = false;
                                 if GRMsyncGlobals.BanReceivedTemp[i][3] == "ban" then
                                     banStatus = true;
                                 end
 
-                                if banStatus ~= GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][17][1] then
-                                    
+                                if banStatus ~= GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][17][1] then
                                     local addReceived = false;      -- AM I going to add received data, or my own. One or the other needs to be added for sync
-                                    if ( currentTime - GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][17][2] ) > ( currentTime - GRMsyncGlobals.BanReceivedTemp[i][2] ) then
+                                    if ( currentTime - GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][17][2] ) > ( currentTime - GRMsyncGlobals.BanReceivedTemp[i][2] ) then
                                         -- Received Data happened more recently! Need to update change!
                                         addReceived = true;         -- In other words, don't add my own data, add the received data.
                                     end
@@ -1991,12 +2174,11 @@ GRMsync.CheckChanges = function ( msg )
                                     -- Adding my own data, as it is more current
                                     else
                                         local msgTag = "ban";
-                                        if GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][17][3] then
+                                        if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][17][3] then
                                             msgTag = "unban"
                                         end
-                                        changeData = { GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][1] , GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][17][2] , msgTag , GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][18] };
+                                        changeData = { GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][1] , GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][17][2] , msgTag , GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][18] };
                                     end
-                                    
                                     -- Let's see if already indexed by another player!
                                     local needToAdd = true;
                                     for r = 1 , #GRMsyncGlobals.BanChanges do
@@ -2012,7 +2194,7 @@ GRMsync.CheckChanges = function ( msg )
                                             end
                                         end
                                     end
-                                    
+
                                     -- If needToAdd is still true, then we need to remove the old index.
                                     if needToAdd then
                                         table.insert ( GRMsyncGlobals.BanChanges , changeData );
@@ -2022,71 +2204,11 @@ GRMsync.CheckChanges = function ( msg )
                             break;
                         end
                     end
-
-                    -- if not IsFound then...
-                    if not isFound then
-                        for j = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
-                            if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][1] == GRMsyncGlobals.BanReceivedTemp[i][1] then
-                                isFound = true;
-                                -- Let's first check if they have diff. info.
-                                if GRMsyncGlobals.BanReceivedTemp[i][3] ~= "noban" or ( GRMsyncGlobals.BanReceivedTemp[i][3] == "noban" and ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][17][1] or GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][17][3] ) ) then
-                                    local banStatus = false;
-                                    if GRMsyncGlobals.BanReceivedTemp[i][3] == "ban" then
-                                        banStatus = true;
-                                    end
-    
-                                    if banStatus ~= GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][17][1] then
-                                        local addReceived = false;      -- AM I going to add received data, or my own. One or the other needs to be added for sync
-                                        if ( currentTime - GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][17][2] ) > ( currentTime - GRMsyncGlobals.BanReceivedTemp[i][2] ) then
-                                            -- Received Data happened more recently! Need to update change!
-                                            addReceived = true;         -- In other words, don't add my own data, add the received data.
-                                        end
-    
-                                        local changeData;
-                                        -- Adding Received from other playerZ--[[z]]
-                                        if addReceived then
-                                            changeData = GRMsyncGlobals.BanReceivedTemp[i];
-                                        
-                                        -- Adding my own data, as it is more current
-                                        else
-                                            local msgTag = "ban";
-                                            if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][17][3] then
-                                                msgTag = "unban"
-                                            end
-                                            changeData = { GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][1] , GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][17][2] , msgTag , GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][18] };
-                                        end
-                                        -- Let's see if already indexed by another player!
-                                        local needToAdd = true;
-                                        for r = 1 , #GRMsyncGlobals.BanChanges do
-                                            if changeData[1] == GRMsyncGlobals.BanChanges[r][1] then
-                                                -- If bans are going to be the same, no need to change!
-                                                if changeData[3] == GRMsyncGlobals.BanChanges[r][3] or ( currentTime - changeData[2] ) > ( currentTime - GRMsyncGlobals.BanChanges[2] ) then -- If difference found, but the other change was more recent, no need to add.
-                                                    needToAdd = false;
-                                                end
-    
-                                                -- If needToAdd is still true, then we need to remove the old index.
-                                                if needToAdd then
-                                                    table.remove ( GRMsyncGlobals.BanChanges , r );
-                                                end
-                                            end
-                                        end
-
-                                        -- If needToAdd is still true, then we need to remove the old index.
-                                        if needToAdd then
-                                            table.insert ( GRMsyncGlobals.BanChanges , changeData );
-                                        end
-                                    end
-                                end
-                                break;
-                            end
-                        end
-                    end
                 end
-
-                GRMsyncGlobals.BanReceivedTemp = {};
-                if GRMsyncGlobals.SyncOK then
-                    GRMsync.SendMessage ( "GRM_SYNC" , GRM_AddonGlobals.PatchDayString .. "?GRM_REQALTDATA?" .. GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRMsyncGlobals.CurrentSyncPlayer , GRMsyncGlobals.channelName );
-                end
+            end
+            GRMsyncGlobals.BanReceivedTemp = {};
+            if GRMsyncGlobals.SyncOK then
+                GRMsync.SendMessage ( "GRM_SYNC" , GRM_AddonGlobals.PatchDayString .. "?GRM_REQALTDATA?" .. GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. GRMsyncGlobals.CurrentSyncPlayer , GRMsyncGlobals.channelName );
             end
         else
             GRMsyncGlobals.BanReceivedTemp = {};
@@ -2398,7 +2520,6 @@ GRMsync.SetLeader = function ( leader )
                 elseif GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][16] then
                     chat:AddMessage ( "GRM: Syncing Data With Guildies Now..."  , 1.0 , 0.84 , 0 );
                 end
-                
             end
         end
     elseif leader == GRM_AddonGlobals.addonPlayerName then
@@ -2621,7 +2742,6 @@ GRMsync.RegisterCommunicationProtocols = function()
                 -- sender = GRMsync.SyncName ( sender , "enGB" ) -- This will eventually be localized
                 -- Sender must not equal themselves...
                 if sender ~= GRM_AddonGlobals.addonPlayerName then
-
                     -- Version Control Check First....
                     -- First, see if they are on compatible list.
                     local isFound = false;
@@ -2667,17 +2787,16 @@ GRMsync.RegisterCommunicationProtocols = function()
                         senderRankRequirement = tonumber ( string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 ) );
                     else
                         -- If this is nil, you are getting spammed from player with VERY old version
-                        chat:AddMessage ( "|cff00c8ffGRM: |cffffffff" .. GRM.SlimName ( sender ) .. " tried to Sync with you, but their addon is outdated\n. |cffff0044Remind them to update!" );
+                        chat:AddMessage ( "|cff00c8ffGRM: |cffffffff" .. GRM.SlimName ( sender ) .. " tried to Sync with you, but their addon is outdated.\n |cffff0044Remind them to update!" );
                         return;
                     end
-
                     -- Sender is not the designatedleader then return... Higher means lower in-game... 1 = guild leader; 10 = lowest initiate rank. So, if rank is higher than the restricted, it won't work. -- if th senderRankRequirement is lower than the receiving player, then that means it won't sync either.
                     if sender ~= GRMsyncGlobals.DesignatedLeader and ( GRM.GetGuildMemberRankID ( sender ) > GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] or senderRankRequirement < GRM.GetGuildMemberRankID ( GRM_AddonGlobals.addonPlayerName ) ) then        -- If player's rank is below settings threshold, ignore message.
                         return
                     elseif abortSync and not isFound then
                         -- placing the abortSync notification AFTER the rank check to avoid confusion and not get the error message if someone is not proper sync rank.
                         table.insert ( GRMsyncGlobals.IncompatibleAddonUsers , sender );
-                        chat:AddMessage ( "|cff00c8ffGRM: |cffffffff" .. GRM.SlimName ( sender ) .. " tried to Sync with you, but their addon is outdated\n. |cffff0044Remind them to update!" );
+                        chat:AddMessage ( "|cff00c8ffGRM: |cffffffff" .. GRM.SlimName ( sender ) .. " tried to Sync with you, but their addon is outdated.\n |cffff0044Remind them to update!" );
                         return;
                     elseif not abortSync and not isFound then
                         table.insert ( GRMsyncGlobals.CompatibleAddonUsers , sender );
@@ -2730,19 +2849,24 @@ GRMsync.RegisterCommunicationProtocols = function()
                                 GRMsync.CheckUnbanListChangeLive ( msg , sender );                  -- For live unban occurrences
                             elseif prefix2 == "GRM_BANSYNCUP" then
                                 GRMsync.BanManagementPlayersThatLeft ( msg , sender , prefix2 );    -- For sync analysis final report changes!
+                                GRMsyncGlobals.TimeSinceLastSyncAction = time();
                             elseif prefix2 == "GRM_BANSYNC" then
                                 GRMsyncGlobals.TimeSinceLastSyncAction = time();                    -- For collecting sync data...
                                 GRMsync.CollectData ( msg , prefix2 );
                             elseif prefix2 == "GRM_BANSYNC2" and GRMsyncGlobals.IsElectedLeader and sender == GRMsyncGlobals.CurrentSyncPlayer then
+                                GRMsyncGlobals.TimeSinceLastSyncAction = time();
                                 GRMsync.UpdateLeftPlayerInfo ( msg );
                             elseif prefix2 == "GRM_BANSYNC3" then
                                 GRMsyncGlobals.TimeSinceLastSyncAction = time();                    -- For collecting sync data...
                                 GRMsyncGlobals.NumPlayerDataExpected = GRMsyncGlobals.NumPlayerDataExpected + 1;        -- Need to increment up by 1 for data verification purposes.
                                 GRMsync.CollectData ( msg , prefix2 );
                             elseif prefix2 == "GRM_ADDCUR" then
+                                GRMsyncGlobals.TimeSinceLastSyncAction = time();
                                 GRMsync.UpdateCurrentPlayerInfo ( msg );                            -- For some outlier circumstances of people that have rejoined, or been manually made as banned but are still in guild.
                             end
                         end
+                    elseif prefix2 == "GRM_BANSYNC4" and GRMsyncGlobals.IsElectedLeader and sender == GRMsyncGlobals.CurrentSyncPlayer then
+                        GRMsyncGlobals.TimeSinceLastSyncAction = time();                    -- In case lots of data to cycle through, this is just a checkin with the sync leader to let you know its still sending data.                        
                     elseif prefix2 == "GRM_ADDLEFT" then
                         GRMsync.UpdateLeftPlayerInfo ( msg );
                                        
@@ -2776,13 +2900,34 @@ GRMsync.RegisterCommunicationProtocols = function()
 
                     -- Only the leader will hear this message!
                     elseif prefix2 == "GRM_REQUESTSYNC" and GRMsyncGlobals.IsElectedLeader then
-                        table.insert ( GRMsyncGlobals.SyncQue , sender );
+                        -- Ensure it is not a double add...
+                        isFound = false;
+                        for i = 1 , #GRMsyncGlobals.SyncQue do
+                            if GRMsyncGlobals.SyncQue[i] == sender then
+                                isFound = true;
+                                break;
+                            end
+                        end
+                        if not isFound then
+                            table.insert ( GRMsyncGlobals.SyncQue , sender );
+                        end
                     
+                        -- Redundancies... for some cleanup of edge cases where leader sync failed, or got trapped.
+                        C_Timer.After ( 12.5 , function()
+                            if ( GRMsyncGlobals.currentlySyncing and ( time() - GRMsyncGlobals.TimeSinceLastSyncAction ) >= 12.5 ) or ( not GRMsyncGlobals.currentlySyncing and #GRMsyncGlobals.SyncQue > 0 ) then
+                                GRMsyncGlobals.currentlySyncing = false;
+                                GRMSync.InitiateDataSync();
+                            end
+                        end)
+                            
                     -- PLAYER DATA REQ FROM LEADERS
                     -- Leader has requesated your Join Date Data!
                     elseif prefix2 == "GRM_REQJDDATA" and msg == GRM_AddonGlobals.addonPlayerName then
                         -- Start forwarding Join Date data...
                         GRMsyncGlobals.currentlySyncing = true;
+                        -- Initialize the error check now as you are now the front of the que being currently sync'd
+                        GuildRoster();
+                        C_Timer.After ( GRMsyncGlobals.ErrorCD , GRMsync.ErrorCheck );
                         GRMsync.SendJDPackets();
 
                     elseif prefix2 == "GRM_REQPDDATA" and msg == GRM_AddonGlobals.addonPlayerName then
@@ -2798,7 +2943,6 @@ GRMsync.RegisterCommunicationProtocols = function()
                         -- forwarding player MAIN status.
                     elseif prefix2 == "GRM_REQMAIN" and msg == GRM_AddonGlobals.addonPlayerName then
                         GRMsync.SendMainPackets();
-
 
                     -- DATA FLOW INITIATION AND STOP CONTROLS
                     -- Initializes the starting value
@@ -2836,27 +2980,34 @@ GRMsync.RegisterCommunicationProtocols = function()
                     -- AFTER DATA RECEIVED AND ANALYZED, SEND UPDATES!!!
                     -- THESE WILL HEAD TO THE SAME METHODS AS LIVE SYNC, WITH A COUPLE CHANGES BASED ON UNIQUE MESSAGE HEADER.
                     -- Sync the Join Dates!
-                    elseif prefix2 == "GRM_JDSYNCUP" then 
+                    elseif prefix2 == "GRM_JDSYNCUP" then
+                        GRMsyncGlobals.TimeSinceLastSyncAction = time();
                         GRMsync.CheckJoinDateChange ( msg , sender , prefix2 );
 
                     -- Sync the Promo Dates!
                     elseif prefix2 == "GRM_PDSYNCUP" then
+                        GRMsyncGlobals.TimeSinceLastSyncAction = time();
                         GRMsync.CheckPromotionDateChange ( msg , sender , prefix2 );
 
                     -- Final sync of ALT player info
                     elseif prefix2 == "GRM_ALTSYNCUP" then
+                        GRMsyncGlobals.TimeSinceLastSyncAction = time();
                         GRMsync.CheckAddAltChange ( msg , sender , prefix2 );
 
                     -- Final sync of Removing alts
                     elseif prefix2 == "GRM_REMSYNCUP" then
+                        GRMsyncGlobals.TimeSinceLastSyncAction = time();
                         GRMsync.CheckRemoveAltChange ( msg , sender , prefix2 );
                     
                     -- Final sync on Main Status
                     elseif prefix2 == "GRM_MAINSYNCUP" then
+                        GRMsyncGlobals.TimeSinceLastSyncAction = time();
                         GRMsync.CheckMainSyncChange ( msg );
 
                     -- Final Announce!!!
                     elseif prefix2 == "GRM_COMPLETE" then
+                        GRMsyncGlobals.TimeSinceLastSyncAction = time();
+                        GRMsyncGlobals.currentlySyncing = false;
                         GRMsync.FinalAnnounce ();
                     end
                 end
