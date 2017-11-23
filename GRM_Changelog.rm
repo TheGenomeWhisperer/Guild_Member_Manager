@@ -1,3 +1,50 @@
+**VERSION 7.3.2R1.109 - DATE: 19 Nov, 2017**
+
+* OOPS! Uploaded sync.lua file with the sync helpers still in it (my test version). You would be getting a ton of sync spam as it transmitted data. This is hidden now and should not be scene lol
+
+
+**VERSION 7.3.2R1.108 - DATE: 18 Nov, 2017**
+
+*Very important Sync bug fix that I broke in a recent update*
+
+* Bug Fix1: Sync would only work with 2 players in any guild larger than 50ish memebrs. If more than 1 person was online with the addon installed, it would fail endlessly and keep retrying. How annoying! Simple fix really, It just made the mistake of testing my new error checks worked properly in a guild that was too small and not a larger guild which faces throttle sync issues across the server.
+
+
+**VERSION 7.3.2R1.107 - DATE: 15 Nov, 2017**
+
+*I was trying to get another big project finished, but it's just not quite ready. I will have more time this weekend to work on it. So, very minor fix here since this is an annoying bug.*
+
+**BUG FIXES**
+
+* Bug Fix1: If a player had the "Add Join Date" to public/officer note disabled, it would report to the log that the note was changed, but then it would report the note was removed because it would scan the data and show it never actually was. This should no longer do it.
+
+
+**VERSION 7.3.2R1.106 - DATE: 12 Nov, 2017**
+
+**Minor Feature**
+
+* Ability to add "Join Date" to either the officer OR public note, in the options window. It will auto-default to public note if you use certain addons (like "epgp")
+
+**QUALITY OF LIFE**
+
+* More live updating frames. For example, the zone timer will now update live the time passed.
+
+* New slash command to bring up the ban list:  /roster ban or banlist
+
+* Buttons now more properly alligned in the options window.
+
+**BUG BIXES**
+
+* Bug Fix1: Issue with namechange detection for very rare cases when players have literally all the same information (same class, lvl, achievement pts, guild rank, guiild rep, same notes), this event actually occurred and got reported to me. Now, the addon will detect if more than 1 player matches for namechange and handle it.
+
+
+**VERSION 7.3.2R1.105 - DATE: 10 Nov, 2017**
+
+**BUG FIX**
+
+* One minor quick fix... if you tried to remove a ban from a player, you'd get a Lua error and frames would not update. FIXED!
+
+
 **VERSION 7.3.2R1.104 - DATE: 10 Nov, 2017**
 
 **NEW FEATURE**
