@@ -20,9 +20,9 @@ SLASH_GRM1 = '/roster';
 GRM_AddonGlobals = {};
 
 -- Addon Details:
-GRM_AddonGlobals.Version = "7.3.2R1.104";
-GRM_AddonGlobals.PatchDay = 1510382521;             -- In Epoch Time
-GRM_AddonGlobals.PatchDayString = "1510382521";     -- 2 Versions saves on conversion computational costs... just keep one stored in memory. Extremely minor gains, but very useful if syncing thousands of pieces of data in large guilds.
+GRM_AddonGlobals.Version = "7.3.2R1.109";
+GRM_AddonGlobals.PatchDay = 1511125534;             -- In Epoch Time
+GRM_AddonGlobals.PatchDayString = "1511125534";     -- 2 Versions saves on conversion computational costs... just keep one stored in memory. Extremely minor gains, but very useful if syncing thousands of pieces of data in large guilds.
 GRM_AddonGlobals.Patch = "7.3.2";
 
 -- Initialization Useful Globals 
@@ -36,7 +36,7 @@ GRM_AddonGlobals.faction = UnitFactionGroup ( "PLAYER" );
 GRM_AddonGlobals.rank = 1;
 GRM_AddonGlobals.FID = 0;        -- index for Horde = 1; Ally = 2
 GRM_AddonGlobals.logGID = 0;     -- index of the guild, so no need for repeat lookups.
-GRM_AddonGlobals.saveGID = 0;    -- Needs a separate GID "Guild Index ID" because it may not match the log index depending on if a log entry is cleared vs guild info, whcih can be separate.
+GRM_AddonGlobals.saveGID = 0;    -- Needs a separate GID "Guild Index ID" because it may not match the log index depending on if a log entry is cleared vs guild info, which can be separate.
 GRM_AddonGlobals.setPID = 0;     -- Since settings are player unique, PID = Player ID
 
 -- To ensure frame initialization occurse just once... what a waste in resources otherwise.
@@ -107,6 +107,7 @@ GRM_AddonGlobals.numPlayersRequestingGuildInv = 0;
 GRM_AddonGlobals.guildFinderReported = false;
 GRM_AddonGlobals.changeHappenedExitScan = false;
 GRM_AddonGlobals.currentName = "";
+GRM_AddonGlobals.currentNameIndex = 2;
 GRM_AddonGlobals.RecursiveStop = false;
 GRM_AddonGlobals.isChecked = false;
 GRM_AddonGlobals.isChecked2 = false;
@@ -182,7 +183,7 @@ UI_Events.GRM_NumGuildiesText = UI_Events:CreateFontString ( "GRM_NumGuildiesTex
 
 -- Method:          GRM.ClearPermData()
 -- What it Does:    Resets all the saved data back to nothing... and does not rebuid it.
--- Purpose:         Mainly for use if ever there is a need to purge the data, in beta, without rebuilding the roster.
+-- Purpose:         Mainly for use if ever there is a need to purge the data
 GRM.ClearPermData = function()
     -- SPECIAL NOTE (if ever needed);
 
@@ -267,7 +268,7 @@ GRM.LoadSettings = function()
             false,                                                                                                  -- 17) Only announce the anniversary of players set as the "main"
             true,                                                                                                   -- 18) Scan for changes
             true,                                                                                                   -- 19) Sync only with players who have current version or higher.
-            true,                                                                                                   -- 20) ''
+            true,                                                                                                   -- 20) Add Join Date to Officer Note = true, Public Note = false
             true,                                                                                                   -- 21) Sync Ban List
             2,                                                                                                      -- 22) Rank player must be to send or receive Ban List sync updates!
             0,                                                                                                      -- 23) ''
@@ -324,7 +325,7 @@ GRM.LoadSettings = function()
                     needsUpdate = false;
                     break;
                 else
-                    GRM_AddonSettings_Save[i][j][2][22] = 2;      -- Updatingr rank to general officer rank to be edited.
+                    GRM_AddonSettings_Save[i][j][2][22] = 2;      -- Updating rank to general officer rank to be edited.
                 end
             end
             if not needsUpdate then     -- No need to cycle through everytime. Resource saving here!
@@ -378,8 +379,7 @@ GRM.ResetDefaultSettings = function()
         false,                                                                                                  -- 17) Only announce the anniversary of players set as the "main"
         true,                                                                                                   -- 18) Scan for changes
         true,                                                                                                   -- 19) Sync only with players who have current version or higher.
-
-        true,                                                                                                   -- 20) ''
+        true,                                                                                                   -- 20) Add Join Date to Officer Note = true, Public Note = false
         true,                                                                                                   -- 21) Sync Ban List
         2,                                                                                                      -- 22) Rank player must be to send or receive Ban List sync updates!
         0,                                                                                                      -- 23) ''
@@ -531,6 +531,7 @@ GRM.GetGuildMemberRankID = function( name )
     return result;
 end
 
+-- DEPRACATED PATCH 7.3 - NO LONGER USEFUL
 -- Method:          GRM.GetRankPermissions(...)
 -- What it Does:    Returns an array of booleans, in string form, of all the permissions of the guild rank tagged
 -- Purpose:         Useful to keep track of permissions, such as if player has access to guild chat channel. If restricted, sync will not work.
@@ -618,7 +619,6 @@ GRM.IsGuildieOnline = function ( name )
 end
 
 
-
 -----------------------------------
 --------- Version Tracking --------
 --------- Addon User Tracking -----
@@ -681,7 +681,7 @@ GRM.RegisterVersionCheck = function()
     end);
 end
 
--- Method:          RegisterGuildAddonUsersRefresh ( boolean )
+-- Method:          RegisterGuildAddonUsersRefresh ()
 -- What it Does:    Two uses. One, it checks to see if all the people on the list of users with addon installed are still online, and if not, purges them
 --                  and two, requests data from the players again to be updated. This is useful because players may change their settings.
 -- Purpose:         To keep the UI up to date. It is necessary to refresh the info occasionally rather than just on login.
@@ -3706,11 +3706,16 @@ GRM.RecordJoinChanges = function ( memberInfo , simpleName )
                 -- AddPlayerTo MemberHistory
 
                 -- Adding timestamp to new Player.
-                if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][7] and CanEditOfficerNote() then
+                if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][7] and ( CanEditOfficerNote() or CanEditPublicNote() ) then
                     for h = 1 , GRM.GetNumGuildies() do
-                        local name ,_,_,_,_,_,_, oNote = GetGuildRosterInfo( h );
-                        if name == memberInfo[1] and oNote == "" then
-                            GuildRosterSetOfficerNote( h , ( "Rejoined: " .. GRM.Trim ( string.sub ( GRM.GetTimestamp() , 1 , 10 ) ) ) );
+                        local name ,_,_,_,_,_, note , oNote = GetGuildRosterInfo( h );
+                        if name == memberInfo[1] then
+                            local noteToSet = ( "Rejoined: " .. GRM.Trim ( string.sub ( GRM.GetTimestamp() , 1 , 10 ) ) );
+                            if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][20] and CanEditOfficerNote() and ( oNote == "" or oNote == nil ) then
+                                GuildRosterSetOfficerNote( h , noteToSet );
+                            elseif not GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][20] and CanEditPublicNote() and ( note == "" or note == nil ) then
+                                GuildRosterSetPublicNote ( h , noteToSet );
+                            end
                             break;
                         end
                     end
@@ -3739,11 +3744,16 @@ GRM.RecordJoinChanges = function ( memberInfo , simpleName )
 
         -- Adding timestamp to new Player.
         local currentOfficerNote = memberInfo[6];
-        if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][7] and CanEditOfficerNote() then
+        local currentPublicNote = memberInfo[5];
+        if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][7] and ( CanEditOfficerNote() or CanEditPublicNote() ) then
             for s = 1 , GRM.GetNumGuildies() do
-                local name ,_,_,_,_,_,_, oNote = GetGuildRosterInfo ( s );
-                if name == memberInfo[1] and ( oNote == "" or oNote == nil ) then
-                    GuildRosterSetOfficerNote ( s , finalTStamp );
+                local name ,_,_,_,_,_, note , oNote = GetGuildRosterInfo ( s );
+                if name == memberInfo[1] then
+                    if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][20] and CanEditOfficerNote() and ( oNote == "" or oNote == nil ) then
+                        GuildRosterSetOfficerNote( s , finalTStamp );
+                    elseif not GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][20] and CanEditPublicNote() and ( note == "" or note == nil ) then
+                        GuildRosterSetPublicNote ( s , finalTStamp );
+                    end
                     break;
                 end
             end
@@ -3768,13 +3778,25 @@ GRM.RecordJoinChanges = function ( memberInfo , simpleName )
                 GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][22][1][2] = tempTimeStamp;
 
                 if currentOfficerNote == nil or currentOfficerNote == "" then
-                    GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][8] = finalTStamp;
+                    if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][7] and ( CanEditOfficerNote() or CanEditPublicNote() ) then
+                        if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][20] and CanEditOfficerNote() and ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][8] == "" or GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][8] == nil ) then
+                            GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][8] = finalTStamp;
+                        elseif not GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][20] and CanEditPublicNote() and ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][7] == "" or GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][7] == nil ) then
+                            GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][7] = finalTStamp;
+                        end
+                    end
                     -- For SYNC
                     GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][35][1] = tempTimeStamp;
                     GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][35][2] = timeEpoch;
 
                 elseif currentOfficerNote ~= nil and currentOfficerNote ~= "" then
-                    GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][8] = currentOfficerNote;
+                    if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][7] and ( CanEditOfficerNote() or CanEditPublicNote() ) then
+                        if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][20] and CanEditOfficerNote() and ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][8] == "" or GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][8] == nil ) then
+                            GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][8] = currentOfficerNote;
+                        elseif not GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][20] and CanEditPublicNote() and ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][7] == "" or GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][7] == nil ) then
+                            GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][7] = currentPublicNote;
+                        end
+                    end
                     -- For SYNC
                     GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][35][1] = "1 Jan '01 4:20am";  -- Behind the scenes numbers ensuring you are not the person with most current sync info.
                     GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][35][2] = 978348001;
@@ -3970,6 +3992,19 @@ GRM.CheckPlayerChanges = function ( metaData , guildName )
                         elseif k == 5 then
                             GRM.RecordChanges ( k , metaData[j] , GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r] , guildName );
                             GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][7] = metaData[j][5];
+                            -- Update metaframe
+                            if GRM_MemberDetailMetaData ~= nil and GRM_MemberDetailMetaData:IsVisible() and GRM_AddonGlobals.currentName == metaData[j][1] then
+                                if metaData[j][5] == "" then
+                                    if CanEditPublicNote() then
+                                        GRM_noteFontString1:SetText ( "Click here to set a Public Note" );
+                                    else
+                                        GRM_noteFontString1:SetText ( "Unable to Edit Public Note at Rank" );
+                                    end
+                                else
+                                    GRM_noteFontString1:SetText ( metaData[j][5] );
+                                end
+                                GRM_PlayerNoteEditBox:SetText ( metaData[j][5] );
+                            end
                         -- Officer Note
                         elseif k == 6 and CanViewOfficerNote() then
                             if metaData[j][k] == nil or GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][8] == nil then
@@ -3977,6 +4012,18 @@ GRM.CheckPlayerChanges = function ( metaData , guildName )
                             else
                                 GRM.RecordChanges ( k , metaData[j] , GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r] , guildName );
                                 GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][8] = metaData[j][6];
+                            end
+                            if GRM_MemberDetailMetaData ~= nil and GRM_MemberDetailMetaData:IsVisible() and GRM_AddonGlobals.currentName == metaData[j][1] then
+                                if metaData[j][6] == "" then
+                                    if CanEditOfficerNote() then
+                                        GRM_noteFontString2:SetText ( "Click here to set an Officer's Note" );
+                                    else
+                                        GRM_noteFontString2:SetText ( "Unable to Edit Officer Note at Rank" );
+                                    end
+                                else
+                                    GRM_noteFontString2:SetText ( metaData[j][6] );
+                                end
+                                GRM_PlayerOfficerNoteEditBox:SetText (  metaData[j][6] );
                             end
                         end
 
@@ -4076,16 +4123,40 @@ GRM.CheckPlayerChanges = function ( metaData , guildName )
     end
     -- Final check on players that left the guild to see if they are namechanges.CanViewOfficerNote
     local playerNotMatched = true;
+    local numMatches = {};
     if #leavingPlayers > 0 and #newPlayers > 0 then
         for k = 1 , #leavingPlayers do
+            playerNotMatched = false;
             for j = 1 , #newPlayers do
-               if ( leavingPlayers[k] ~= nil and newPlayers[j] ~= nil ) and leavingPlayers[k][9] == newPlayers[j][7] -- Class is the sane
-                    and leavingPlayers[k][5] == newPlayers[j][3]  -- Guild Rank is the same
-                        and ( newPlayers[j][10] >= leavingPlayers[k][29] - 50 and newPlayers[j][10] <= leavingPlayers[k][29] + 100 ) then -- In other words, sometimes patches can remove achievements, so gives negative cushion, but assumes they didn't gain 100 + pts since last you noticed
+               if ( leavingPlayers[k] ~= nil and newPlayers[j] ~= nil ) and leavingPlayers[k][9] == newPlayers[j][7]    -- Class is the sane
+                    and leavingPlayers[k][5] == newPlayers[j][3]                                                        -- Guild Rank is the same
+                        and leavingPlayers[k][31] == newPlayers[j][12]                                                  -- Guild Rep Rank is the same
+                            and leavingPlayers[k][7] == newPlayers[j][5]                                                -- Player note is the same
+                                and ( newPlayers[j][10] >= leavingPlayers[k][29] - 50 and newPlayers[j][10] <= leavingPlayers[k][29] + 100 ) then -- In other words, sometimes patches can remove achievements, so gives negative cushion, but assumes they didn't gain 100 + pts since last you noticed
+                    -- Match Found!!!
+                    table.insert ( numMatches , newPlayers[j] );
+                end
+            end
 
-                    -- PLAYER IS A NAMECHANGE!!!
+            if #numMatches >= 1 then
+                -- PLAYER IS A NAMECHANGE!!!
+                if #numMatches > 1 then
+                    -- More than 1 namechange match!!! This is tricky, so we will let the player know
+                    local result = leavingPlayers[k][1] .. " Seems to Have Name-Changed, but the new name is one of the following: \n" .. GRM.SlimName ( numMatches[1][1] );
+
+                    for m = 2 , #numMatches do
+                        result = result .. " or " .. GRM.SlimName ( numMatches[m][1] );
+                    end
+                    -- Report it to chat...
+                    if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][13][8] then
+                        chat:AddMessage( result, 0.9 , 0.82 , 0.62 );
+                    end
+                    -- Insert it into the log.
+                    table.insert ( GRM_LogReport_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.logGID] , { 11 , result } );
+
+                else
                     playerNotMatched = false;
-                    GRM.RecordChanges ( 12 , newPlayers[j] , leavingPlayers[k] , guildName );
+                    GRM.RecordChanges ( 12 , numMatches[1] , leavingPlayers[k] , guildName );
                     for r = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
                         if leavingPlayers[k][9] == GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][9] -- Mathching the Leaving player to historical index so it can be identified and new name stored.
                             and leavingPlayers[k][5] == GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][5]
@@ -4095,11 +4166,11 @@ GRM.CheckPlayerChanges = function ( metaData , guildName )
                             if #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][11] > 0 then
                                 local tempNameToReAddAltTo = GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][11][1][1];
                                 GRM.RemoveAlt ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][11][1][1] , GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][1] , guildName , false , 0 );
-                                GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][1] = newPlayers[j][1]; -- Changing the name...
+                                GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][1] = numMatches[1][1]; -- Changing the name...
                                 -- Now, let's re-add him back.
                                 GRM.AddAlt ( tempNameToReAddAltTo , GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][1] , guildName , false , 0 );
                             else
-                                GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][1] = newPlayers[j][1]; -- Changing the name!
+                                GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][1] = numMatches[1][1]; -- Changing the name!
                             end
 
                             break
@@ -4123,6 +4194,7 @@ GRM.CheckPlayerChanges = function ( metaData , guildName )
                     end
                 end
             end
+
             -- Player not matched! For sure this player has left the guild!
             if playerNotMatched then
                 GRM.RecordChanges ( 11 , leavingPlayers[k] , leavingPlayers[k] , guildName );
@@ -4925,13 +4997,22 @@ GRM.SetJoinDate = function ( _ , button )
                 GRM_JoinDateText:SetText ( string.sub ( joinDate , 9 ) );
                 
                 -- Update timestamp to officer note.
-                if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][7] and CanEditOfficerNote() then
+                local noteDestination = "none";
+                if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][7] and ( CanEditOfficerNote() or CanEditPublicNote() ) then
                     for h = 1 , GRM.GetNumGuildies() do
-                        local guildieName ,_,_,_,_,_,_, oNote = GetGuildRosterInfo( h );
-                        if guildieName == name and oNote == "" then
-                            GuildRosterSetOfficerNote ( h , joinDate );
-                            GRM_noteFontString2:SetText ( joinDate );
-                            GRM_PlayerOfficerNoteEditBox:SetText ( joinDate );
+                        local guildieName ,_,_,_,_,_, note , oNote = GetGuildRosterInfo( h );
+                        if name == guildieName then
+                            if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][20] and CanEditOfficerNote() and ( oNote == "" or oNote == nil ) then
+                                noteDestination = "officer";
+                                GuildRosterSetOfficerNote( h , joinDate );
+                                GRM_noteFontString2:SetText ( joinDate );
+                                GRM_PlayerOfficerNoteEditBox:SetText ( joinDate );
+                            elseif not GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][20] and CanEditPublicNote() and ( note == "" or note == nil ) then
+                                noteDestination = "public";
+                                GuildRosterSetPublicNote ( h , joinDate );
+                                GRM_noteFontString1:SetText ( joinDate );
+                                GRM_PlayerNoteEditBox:SetText ( joinDate );
+                            end                            
                             break;
                         end
                     end
@@ -4959,7 +5040,7 @@ GRM.SetJoinDate = function ( _ , button )
 
                 -- Let's send the changes out as well!
                 if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][14] then
-                    GRMsync.SendMessage ( "GRM_SYNC" , GRM_AddonGlobals.PatchDayString .. "?GRM_JD?" .. GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. name .. "?" .. joinDate .. "?" .. finalTStamp .. "?" .. finalEpochStamp .. "?" .. tostring ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][35][2] ) , "GUILD");
+                    GRMsync.SendMessage ( "GRM_SYNC" , GRM_AddonGlobals.PatchDayString .. "?GRM_JD?" .. GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. name .. "?" .. joinDate .. "?" .. finalTStamp .. "?" .. finalEpochStamp .. "?" .. tostring ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][35][2] .. "?" .. noteDestination ) , "GUILD");
                 end
                 break;
             end
@@ -5865,6 +5946,9 @@ GRM.KickPromoteOrJoinPlayer = function ( self , msg , text )
             GRM.BuildLog();
 
             GRM_AddonGlobals.pause = false;
+            if GRM_UI.GRM_CoreBanListFrame:IsVisible() then
+                GRM.RefreshBanListFrames();
+            end
         
         elseif ( string.find ( text , GRM_Localize ( "has promoted" ) ) ~= nil or string.find ( text , GRM_Localize ( "has demoted" ) ) ~= nil ) and string.sub ( text , 1 , string.find ( text , " " ) -1 ) == GRM.SlimName ( GRM_AddonGlobals.addonPlayerName ) then
             GRM_AddonGlobals.changeHappenedExitScan = true;
@@ -5876,6 +5960,9 @@ GRM.KickPromoteOrJoinPlayer = function ( self , msg , text )
             GuildRoster();
             GRM_AddonGlobals.trackingTriggered = false;
             QueryGuildEventLog();
+            if GRM_UI.GRM_CoreBanListFrame:IsVisible() then
+                GRM.RefreshBanListFrames();
+            end
         end
 
     elseif msg == "CHAT_MSG_SYSTEM" and string.find ( text , GRM_Localize ( "joined the guild." ) ) ~= nil then
@@ -5883,7 +5970,10 @@ GRM.KickPromoteOrJoinPlayer = function ( self , msg , text )
         GuildRoster();
         GRM_AddonGlobals.trackingTriggered = false;
         QueryGuildEventLog();
-        -- Adds player in case of long delay...
+        -- Adds player in case of long delay... updates ban list live if necessary as well.
+        if GRM_UI.GRM_CoreBanListFrame:IsVisible() then
+            GRM.RefreshBanListFrames();
+        end
     end
 end
 
@@ -6056,9 +6146,22 @@ GRM.PopulateMemberDetails = function( handle )
 
         for r = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
             if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][1] == handle then   --- Player Found in MetaData Logs
+                GRM_AddonGlobals.currentNameIndex = r;
                 -- Trigger Check for Any Changes
                 GuildRoster();
 
+                for i = 1 , GRM.GetNumGuildies() do
+                    local fullName, _, _, _, _, zone, _, _, isOnline = GetGuildRosterInfo ( i );
+                    if fullName == handle then
+                        GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][33] = isOnline;
+                        if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][28] ~= zone then
+                            GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][32] = time();    -- Resets the time
+                        end
+                        GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][28] = zone;
+                        break;
+                    end                    
+                end
+                
                 --- CLASS
                 local classColors = GRM.GetClassColorRGB ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][9] );
                 GRM_MemberDetailNameText:SetTextColor ( classColors[1] , classColors[2] , classColors[3] , 1.0 );
@@ -6188,7 +6291,7 @@ GRM.PopulateMemberDetails = function( handle )
                         finalONote = GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][8];
                     end
                     if finalONote == "Click here to set an Officer's Note" and CanEditOfficerNote() ~= true then
-                        finalONote = "Unable to Add Officer Note at Rank";
+                        finalONote = "Unable to Edit Officer Note at Rank";
                     end
                     GRM_noteFontString2:SetText ( finalONote );
                     if finalONote ~= "Click here to set an Officer's Note" then
@@ -6723,6 +6826,9 @@ local function GR_RosterFrame ()
                 end
             end
         end
+    end
+    if GRM_MemberDetailMetaData.GRM_MemberDetailMetaZoneInfoTimeText2:IsVisible() then
+        GRM_MemberDetailMetaData.GRM_MemberDetailMetaZoneInfoTimeText2:SetText ( GRM.GetTimePassed ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][GRM_AddonGlobals.currentNameIndex][32] ) );
     end
 
     if GuildRosterFrame:IsVisible() ~= true or ( GuildRosterViewDropdownText:IsVisible() and GuildRosterViewDropdownText:GetText() == "Professions" ) then
@@ -7568,6 +7674,17 @@ GRM.SlashCommandSyncInfo = function()
     end
 end
 
+-- Method:          GRM.SlashCommandBan()
+-- What it Does:    It opens the ban list window.
+-- Purpose:         Ease of access of the ban list for the power user!
+GRM.SlashCommandBan = function()
+    if GRM_UI.GRM_CoreBanListFrame:IsVisible() then
+        GRM_UI.GRM_CoreBanListFrame:Hide();
+    else
+        GRM_UI.GRM_CoreBanListFrame:Show();
+    end
+end
+
 -- SLASH COMMAND LOGIC
 SlashCmdList["GRM"] = function ( input )
     -- if input is invalid or is just a blank info... print details on addon.
@@ -7623,6 +7740,12 @@ SlashCmdList["GRM"] = function ( input )
         if inGuild then
             GRM.SlashCommandSyncInfo();
         end
+
+    -- For opening the BanList
+    elseif command == "ban" or command == "banlist" then
+        if inGuild then
+            GRM.SlashCommandBan();
+        end        
 
     -- FOR FUN!!!
     elseif command == "hail" then
@@ -8054,9 +8177,9 @@ GRM.ActivateAddon = function ( self , event , addon )
 
         -- MISC Quality of Life Settings...
         -- Addon Compatibility Detection
-        -- EPGP uses officer notes and is an incredibly popular addon. This now ensures auto-adding officer notes does not occur.
+        -- EPGP uses officer notes and is an incredibly popular addon. This now ensures auto-adding not will default to PUBLIC note rather than officer.
         if GRM_AddonGlobals.setPID ~= 0 and IsAddOnLoaded("epgp") then
-            GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][7] = false;
+            GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][20] = false;
         end
 
         if IsInGuild() then
@@ -8119,11 +8242,11 @@ Initialization:SetScript ( "OnEvent" , GRM.ActivateAddon );
 
     -- Search of the News Window
     -- GUILD EVENT INFO -- Potential huge feature to add
-            -- GUILD EVENT AND RAID GROUP INFO
-            -- Mark attendance for all in raid +1
-            -- Request Assist Button  -- Requests assist from raid leader auto with press of a button it messages them.
-            -- Invite everyone online in guild to party/raid
-            -- Add method that increments up by 1 a tracker on num events attended, the date, total events attended, for each person that is in the raid group.
+        -- GUILD EVENT AND RAID GROUP INFO
+        -- Mark attendance for all in raid +1
+        -- Request Assist Button  -- Requests assist from raid leader auto with press of a button it messages them.
+        -- Invite everyone online in guild to party/raid
+        -- Add method that increments up by 1 a tracker on num events attended, the date, total events attended, for each person that is in the raid group.
     -- INTERESTING GUILD STATISTICS
         -- Like number of legendaries collected this week
         -- Notable achievements, like Prestige advancements, rare achievements, etc.
@@ -8133,9 +8256,9 @@ Initialization:SetScript ( "OnEvent" , GRM.ActivateAddon );
         -- Is it possible to identify player's achievements without being close to them?
         -- Notable high ilvl notifications with adjustable threshold to trigger it, for editable updating for expansion update flexibility
         -- Analysis of close-to-get achievements?
+        -- useful tools only guild leader can see'... Like gkick all, or something.
     -- MAGIC TOOL BOX for guild leader ??
-        -- useful tools only guild leader can see... Like gkick all, or something.
-    -- Ability to export data to useful format.
+    -- Ability to ex port data to useful format./
     -- Ability to choose how you would like your timestamps to look.
     -- Sort guild roster by "Time in guild" - possible in built-in UI? - need to complete "Total time in the guild".
 
@@ -8166,18 +8289,16 @@ Initialization:SetScript ( "OnEvent" , GRM.ActivateAddon );
     -------------------------------------
     ----- BUSY work ---------------
     -------------------------------------
+
+    -- Include the server name on a player that leaves or is kicked from the guild, as well as the color coding of the class...
+    -- Need to finish the sync updates on the syncups and the temp files...
+    -- ClearAll should have option for just guild. Maybe /roster clearguild
     -- GRM.IsValidName -- get ASCII byte values for the other 4 regions.
-    -- Add /roster ban
-    -- add /roster banlist
-    -- Build Font selection dropdown menu. Also add Language selection dropdown menu. Add Checkbox to manually
-    -- Ability to add someone to ban list (good for retroactive banning if you have a list before you installed the addon)
-    -- Ability to remove from ban list (you can do this now if they rejoin, you can ignore ban which removes it, but this will be a little better.
     -- Sync the history of promotions and demotions as well.
     -- Potentially have it say "currently syncing" next to player's name... on addon users window
 
     -- GetHoursSinceLastOnline() is not truly exact as it does not account for leap year and specific month counts depending on the day and so on. It just averages all months to be an avg of 730hrs each Mostly accurate, but if leap year it could be a day off.
     -- Upon changing format option -- addon scans a bunch of officer noters, determines formats are different... Asks player if they wish to change officer note format for all automatically.
-    -- Add option to put join date in public OR Officer note.
     -- Modify Timestamp format ( only modify on the display of the timestamp )
 
     -- BIRTHDAYS
@@ -8194,4 +8315,5 @@ Initialization:SetScript ( "OnEvent" , GRM.ActivateAddon );
     -- If Mature language filter is on
     -- 4 letter word == !@#$ !@#$%^ or ^&*!  
   
---- Changelog
+    -- CHANGELOG
+        -- Fixed an issue where I made it so everyone now appeared online in my last update. Oops!
