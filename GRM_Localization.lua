@@ -1,6 +1,5 @@
 -- LOCALIZATION Logic and translations and fonts
 
-
 -- Set Localization index
 -- Core Lua File will already be loaded before this one, so no need to encapsulate in a function.
 local localizationIndex = 0;

@@ -1,6 +1,6 @@
 -- For Sync controls!
 -- Author: Arkaan... aka "TheGenomeWhisperer"
--- Version 7.3.2R1.109
+-- Version 7.3.2R1.110
 -- To hold all Sync Methods/Functions
 GRMsync = {};
 
@@ -1015,7 +1015,6 @@ end
 -- What it Does:    Broadcasts to the leader all join date information
 -- Purpose:         Data sync
 GRMsync.SendJDPackets = function()
-    print("sendJD");
     -- Initiate Data sending
     GRMsyncGlobals.dateSentComplete = false;
     GRMsyncGlobals.TimeSinceLastSyncAction = time();
@@ -1049,7 +1048,6 @@ end
 -- What it Does:    Broadcasts to the leader all promo date information
 -- Purpose:         Data sync
 GRMsync.SendPDPackets = function()
-    print("sendPD");
     -- Initiate Data sending
     GRMsyncGlobals.TimeSinceLastSyncAction = time();
     if GRMsyncGlobals.SyncOK and not GRMsyncGlobals.syncTempDelay then
@@ -1113,7 +1111,6 @@ end
 -- What it Does:    Broadcasts to the leader all Ban information
 -- Purpose:         Data sync
 GRMsync.SendBANPackets = function()
-    print("sendBAN");
     -- Initiate Data sending
     GRMsyncGlobals.TimeSinceLastSyncAction = time();
     -- For sync error check help
@@ -1195,7 +1192,6 @@ end
 -- What it Does:    Broadcasts to the leader all ALT information
 -- Purpose:         Data sync
 GRMsync.SendAltPackets = function()
-    print("sendAlt");
     GRMsyncGlobals.TimeSinceLastSyncAction = time();
     local msg = "";
     if not GRMsyncGlobals.syncTempDelay2  then
@@ -1291,7 +1287,6 @@ end
 -- What it Does:    Broadcasts to the leader all MAIN information
 -- Purpose:         Data sync
 GRMsync.SendMainPackets = function()
-    print("sendMain");
     GRMsyncGlobals.TimeSinceLastSyncAction = time();
     if GRMsyncGlobals.SyncOK and not GRMsyncGlobals.syncTempDelay then
         GRMsync.SendMessage ( "GRM_SYNC" , GRM_AddonGlobals.PatchDayString .. "?GRM_START?" .. GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?" .. tostring ( #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] - 1 ) , GRMsyncGlobals.channelName );         -- MSG = number of expected values to be sent.
@@ -1468,7 +1463,6 @@ end
 -- Purpose:         So leader can send out current, updated sync info.
 GRMsync.SubmitFinalSyncData = function()
     GRMsyncGlobals.TimeSinceLastSyncAction = time();
-    print("finalSyncMethod")
     -- Ok send of the Join Date updates!
     if #GRMsyncGlobals.JDChanges > 0 and not GRMsyncGlobals.finalSyncProgress[1] then
         local joinDate = "";
@@ -1495,7 +1489,6 @@ GRMsync.SubmitFinalSyncData = function()
         GRMsyncGlobals.finalSyncDataCount = 1;
         GRMsyncGlobals.finalSyncProgress[1] = true;
     end
-    print("pddone")
     -- Promo date sync!
     if #GRMsyncGlobals.PDChanges > 0 and not GRMsyncGlobals.finalSyncProgress[2] then
         local promotionDate = "";
@@ -1517,7 +1510,6 @@ GRMsync.SubmitFinalSyncData = function()
         GRMsyncGlobals.finalSyncDataCount = 1;
         GRMsyncGlobals.finalSyncProgress[2] = true;
     end
-    print("jddone")
     -- BAN changes sync!
     if #GRMsyncGlobals.BanChanges > 0 and not GRMsyncGlobals.finalSyncProgress[3] then
         for i = GRMsyncGlobals.finalSyncDataCount , #GRMsyncGlobals.BanChanges do
@@ -1537,13 +1529,11 @@ GRMsync.SubmitFinalSyncData = function()
         GRMsyncGlobals.finalSyncDataCount = 1;
         GRMsyncGlobals.finalSyncProgress[3] = true;
     end
-    print("bandone")
     -- ALT changes sync for adding alts!
     if #GRMsyncGlobals.AltRemoveChanges > 0 and not GRMsyncGlobals.finalSyncProgress[4] then
         for i = GRMsyncGlobals.finalSyncDataCount , #GRMsyncGlobals.AltRemoveChanges do  -- ( playerName , altName )
             if GRMsyncGlobals.SyncOK then
                 GRMsyncGlobals.finalSyncDataCount = GRMsyncGlobals.finalSyncDataCount + 1;
-                print("Removing: " .. GRMsyncGlobals.AltRemoveChanges[i][1] .. "'s alt - " .. GRMsyncGlobals.AltRemoveChanges[i][2] );
                 GRMsync.SendMessage ( "GRM_SYNC" , GRM_AddonGlobals.PatchDayString .. "?GRM_REMSYNCUP?" .. GRMsyncGlobals.AltRemoveChanges[i][4] .. "?" .. tostring ( GRMsyncGlobals.AltRemoveChanges[i][5] ) .. "?" .. GRMsyncGlobals.AltRemoveChanges[i][1] .. "?" .. GRMsyncGlobals.AltRemoveChanges[i][2] .. "?" .. tostring ( GRMsyncGlobals.AltRemoveChanges[i][3] ) , GRMsyncGlobals.channelName );
                 -- Do my own changes too!
                 if ( GRMsyncGlobals.CurrentSyncPlayerRankID <= GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] and GRMsyncGlobals.CurrentSyncPlayerRankRequirement >= GRMsyncGlobals.CurrentLeaderRankID ) then                    
@@ -1558,7 +1548,6 @@ GRMsync.SubmitFinalSyncData = function()
         GRMsyncGlobals.finalSyncDataCount = 1;
         GRMsyncGlobals.finalSyncProgress[4] = true;
     end
-    print("altREMdone")
     -- ALT changes sync for adding alts!
     if #GRMsyncGlobals.AltAddChanges > 0 and not GRMsyncGlobals.finalSyncProgress[5] then
         for i = GRMsyncGlobals.finalSyncDataCount , #GRMsyncGlobals.AltAddChanges do  -- ( playerName , altName )
@@ -1579,7 +1568,6 @@ GRMsync.SubmitFinalSyncData = function()
         GRMsyncGlobals.finalSyncDataCount = 1;
         GRMsyncGlobals.finalSyncProgress[5] = true;
     end
-    print("altADDdone")
 
     -- MAIN STATUS CHECK!
     if #GRMsyncGlobals.AltMainChanges > 0 and not GRMsyncGlobals.finalSyncProgress[6] then
@@ -1600,7 +1588,6 @@ GRMsync.SubmitFinalSyncData = function()
         GRMsyncGlobals.finalSyncDataCount = 1;
         GRMsyncGlobals.finalSyncProgress[6] = true;
     end
-    print("mainDone")
     -- Ok all done! Reset the tables!
     GRMsync.ResetReportTables();
     GRMsyncGlobals.finalSyncDataCount = 1;
@@ -1613,11 +1600,9 @@ GRMsync.SubmitFinalSyncData = function()
     table.remove ( GRMsyncGlobals.SyncQue , 1 );
     GRMsyncGlobals.numSyncAttempts = 0;
     if #GRMsyncGlobals.SyncQue > 0 then
-        print("test1 - Syncing with " .. #GRMsyncGlobals.SyncQue .. " more players");
         GRMsyncGlobals.currentlySyncing = false;
         GRMsync.InitiateDataSync();
     else
-        print("test2")
         GRMsync.SendMessage ( "GRM_SYNC" , GRM_AddonGlobals.PatchDayString .. "?GRM_COMPLETE?" .. GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] .. "?0" , GRMsyncGlobals.channelName );
 
         -- Disable sync again if necessary!
@@ -1816,7 +1801,7 @@ GRMsync.CollectAltRemData = function ( msg )
             break;
         end
     end
-
+    -- Alt not found yet... let's build the profile.
     if index == -1 then
         table.insert ( GRMsyncGlobals.AltRemReceivedTemp , { name , {} } ); 
     end
@@ -1851,15 +1836,13 @@ GRMsync.AddToProperAltTable = function ( name , altName , timeStamp , toAddAlt ,
     local currentTime = time();
     local needsAdding = true;
     local isAlreadyAdded = false;
-    print(#GRMsyncGlobals.AltRemoveChanges);
-    print(#GRMsyncGlobals.AltAddChanges);
     -- POSSIBLY ADDING!
     if toAddAlt then
     -- If I am going to add it, then make sure it is not on the finalized Remove table, and if it is, compare timestamps
     -- if it IS to be added to the final ADD table, then ensure it is not already there as well!
         if #GRMsyncGlobals.AltRemoveChanges > 0 then
             for i = 1 , #GRMsyncGlobals.AltRemoveChanges do
-                if GRMsyncGlobals.AltRemoveChanges[i][1] == name and GRMsyncGlobals.AltRemoveChanges[i][2] == altName then
+                if ( GRMsyncGlobals.AltRemoveChanges[i][1] == name and GRMsyncGlobals.AltRemoveChanges[i][2] == altName ) or ( GRMsyncGlobals.AltRemoveChanges[i][1] == altName and GRMsyncGlobals.AltRemoveChanges[i][2] == name ) then
                     -- Ok, match is found! We need to check timestamps now!
                     if ( currentTime - timeStamp ) > ( currentTime - GRMsyncGlobals.AltRemoveChanges[i][3] ) then
                         -- This means that the player set to be added is actually set to be removed by a more recent entry!
@@ -1888,7 +1871,6 @@ GRMsync.AddToProperAltTable = function ( name , altName , timeStamp , toAddAlt ,
 
             if not isAlreadyAdded then
                 -- Add it here!
-                print ( name .. " has been added as an alt.")
                 table.insert ( GRMsyncGlobals.AltAddChanges , { name , altName , timeStamp , syncName , syncRankRestrictID } );
             end
         end
@@ -1899,7 +1881,7 @@ GRMsync.AddToProperAltTable = function ( name , altName , timeStamp , toAddAlt ,
     -- IF it IS certain to be removed, ensure that it is not already on the Remove table to avoid double adds.
         if #GRMsyncGlobals.AltAddChanges > 0 then
             for i = 1 , #GRMsyncGlobals.AltAddChanges do
-                if GRMsyncGlobals.AltAddChanges[i][1] == name and GRMsyncGlobals.AltAddChanges[i][2] == altName then
+                if ( GRMsyncGlobals.AltAddChanges[i][1] == name and GRMsyncGlobals.AltAddChanges[i][2] == altName ) or ( GRMsyncGlobals.AltAddChanges[i][1] == altName and GRMsyncGlobals.AltAddChanges[i][2] == name ) then
                     -- Ok, match is found! We need to check timestamps now!
                     if ( currentTime - timeStamp ) > ( currentTime - GRMsyncGlobals.AltAddChanges[i][3] ) then
                         -- This means that the player set to be added is actually set to be removed by a more recent entry!
@@ -1929,7 +1911,6 @@ GRMsync.AddToProperAltTable = function ( name , altName , timeStamp , toAddAlt ,
 
             if not isAlreadyAdded then
                 -- Add it here!
-                print ( name .. " has been removed as an alt.")
                 table.insert ( GRMsyncGlobals.AltRemoveChanges , { name , altName , timeStamp , syncName , syncRankRestrictID } );
             end
         end
@@ -2428,7 +2409,7 @@ GRMsync.CheckAltChanges = function()
                             local addLeadersData = false;
                             local syncPlayerEpoch = -1;
                             for m = 1 , #GRMsyncGlobals.AltRemReceivedTemp do
-                                if GRMsyncGlobals.AltRemReceivedTemp[m][1] == GRMsyncGlobals.AltReceivedTemp[j][1] then -- Ok, alt remove
+                                if GRMsyncGlobals.AltRemReceivedTemp[m][1] == leaderListOfAlts[i][1] then -- Ok, an alt has been removed by the receiving player "currentSyncPlayer" - we don't yet know if the alt we are looking for is the removed one
 
                                     -- If there are no added values, no need to do extra work!
                                     if #GRMsyncGlobals.AltRemReceivedTemp[m][2] > 0 then
@@ -2456,7 +2437,7 @@ GRMsync.CheckAltChanges = function()
                                         addLeadersData = true;              -- No need to do any work if the received's data has ZERO removed players to begin with!
                                     end
 
-                                    break;
+                                        break;
                                 end
                             end
 
@@ -2470,7 +2451,7 @@ GRMsync.CheckAltChanges = function()
                         end
 
                     end
-
+                    altIsMatched = false;
                     -- STEP2: RECEIVED DATA
                     -- Comparing alt lists held by received...
                     for r = 1 , #GRMsyncGlobals.AltReceivedTemp[j][2] do
@@ -2491,7 +2472,7 @@ GRMsync.CheckAltChanges = function()
                             -- Ok, the ONLY way to know what is the correct course of action:
                             -- If I am going to ADD this, I must do 2 things. First, check if the leader has them on the removed list, and if so, Second, compare timestamps to know proper action (whichever was most recent.)
                             for m = 1 , #leaderListOfRemovedAlts do
-                                if leaderListOfRemovedAlts[m][1] == leaderListOfAlts[i][1] then -- Ok, alt remove
+                                if leaderListOfRemovedAlts[m][1] == GRMsyncGlobals.AltReceivedTemp[j][1] then -- Ok, an alt has been removed by leader... we know this now. We don't yet know if the alt we are looking for is the one removed
 
                                     -- If there are no added values, no need to do extra work!
                                     if #leaderListOfRemovedAlts[m][2] > 0 then
@@ -2517,16 +2498,16 @@ GRMsync.CheckAltChanges = function()
                                         end
 
                                     else
-                                        addReceivedAltData = true;              -- No need to do any work if the received's data has ZERO removed players to begin with!
+                                        addReceivedAltData = true;              -- No need to do any work if the received's data has ZERO removed players to begin with!                                            
                                     end
 
                                     break;
                                 end
                             end
-                            if addReceivedAltData then
-                                GRMsync.AddToProperAltTable ( GRMsyncGlobals.AltReceivedTemp[j][1] , GRMsyncGlobals.AltReceivedTemp[j][2][r][1] , GRMsyncGlobals.AltReceivedTemp[j][2][r][2] , false , GRMsyncGlobals.CurrentSyncPlayer , GRMsyncGlobals.CurrentSyncPlayerRankRequirement );
+                            if addReceivedAltData then                               
+                                GRMsync.AddToProperAltTable ( GRMsyncGlobals.AltReceivedTemp[j][1] , GRMsyncGlobals.AltReceivedTemp[j][2][r][1] , GRMsyncGlobals.AltReceivedTemp[j][2][r][2] , true , GRMsyncGlobals.CurrentSyncPlayer , GRMsyncGlobals.CurrentSyncPlayerRankRequirement );
                             else
-                                GRMsync.AddToProperAltTable ( GRMsyncGlobals.AltReceivedTemp[j][1] , GRMsyncGlobals.AltReceivedTemp[j][2][r][1] , epochStampLeader , true , GRMsyncGlobals.DesignatedLeader , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] );
+                                GRMsync.AddToProperAltTable ( GRMsyncGlobals.AltReceivedTemp[j][1] , GRMsyncGlobals.AltReceivedTemp[j][2][r][1] , epochStampLeader , false , GRMsyncGlobals.DesignatedLeader , GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] );
                             end                                
                         end
                     end
@@ -3059,7 +3040,6 @@ GRMsync.RegisterCommunicationProtocols = function()
 
                     -- Final sync of Removing alts
                     elseif prefix2 == "GRM_REMSYNCUP" then
-                        print("Remove Syncup success!!!")
                         GRMsyncGlobals.TimeSinceLastSyncAction = time();
                         GRMsync.CheckRemoveAltChange ( msg , sender , prefix2 );
                     

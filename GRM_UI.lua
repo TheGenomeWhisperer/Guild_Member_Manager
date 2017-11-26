@@ -332,7 +332,7 @@ GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText6 = GRM_UI.GRM_RosterLoadOnLo
 GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText7 = GRM_UI.GRM_RosterLoadOnLogonCheckButton:CreateFontString ( "GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText7" , "OVERLAY" , "GameFontNormal" );
 GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText8 = GRM_UI.GRM_RosterLoadOnLogonCheckButton:CreateFontString ( "GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText8" , "OVERLAY" , "GameFontNormal" );
 GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText9 = GRM_UI.GRM_RosterLoadOnLogonCheckButton:CreateFontString ( "GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText9" , "OVERLAY" , "GameFontNormal" );
-
+GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText10 = GRM_UI.GRM_RosterLoadOnLogonCheckButton:CreateFontString ( "GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText10" , "OVERLAY" , "GameFontNormal" );
 
 -- Kick Recommendation Options
 GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_RosterRecommendKickCheckButton = CreateFrame ( "CheckButton" , "GRM_RosterRecommendKickCheckButton" , GRM_UI.GRM_RosterLoadOnLogonCheckButton , "OptionsSmallCheckButtonTemplate" );
@@ -405,6 +405,7 @@ GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_SyncOptionsButton = CreateFrame ( "Button
 GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_CenterOptionsButton = CreateFrame ( "Button" , "GRM_CenterOptionsButton" , GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_RosterSyncCheckButton , "UIPanelButtonTemplate" );
 GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_HelpOptionsButton = CreateFrame ( "Button" , "GRM_HelpOptionsButton" , GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_RosterSyncCheckButton , "UIPanelButtonTemplate" );
 GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ClearAllOptionsButton = CreateFrame ( "Button" , "GRM_ClearAllOptionsButton" , GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_RosterSyncCheckButton , "UIPanelButtonTemplate" );
+GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ClearGuildOptionsButton = CreateFrame ( "Button" , "GRM_ClearGuildOptionsButton" , GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_RosterSyncCheckButton , "UIPanelButtonTemplate" );
 GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_VersionOptionsButton = CreateFrame ( "Button" , "GRM_VersionOptionsButton" , GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_RosterSyncCheckButton , "UIPanelButtonTemplate" );
 GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_SyncInfoOptionsButton = CreateFrame ( "Button" , "GRM_SyncInfoOptionsButton" , GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_RosterSyncCheckButton , "UIPanelButtonTemplate" );
 GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_BanOptionsButton = CreateFrame ( "Button" , "GRM_BanOptionsButton" , GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_RosterSyncCheckButton , "UIPanelButtonTemplate" );
@@ -2701,61 +2702,67 @@ GRM_UI.MetaDataInitializeUIrosterLog1 = function()
     GRM_UI.GRM_RosterCheckBoxSideFrame.OptionsSlashCommandText:SetTextColor ( 0.0 , 0.8 , 1.0 , 1.0 );
 
     -- SLASH COMMAND STRINGS
-    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText:SetPoint ( "TOP" , GRM_UI.GRM_RosterCheckBoxSideFrame.OptionsSlashCommandText , "BOTTOM" ,  0 , - 5 );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText:SetFont ( GRM_AddonGlobals.FontChoice , 14 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText:SetPoint ( "TOP" , GRM_UI.GRM_RosterCheckBoxSideFrame.OptionsSlashCommandText , "BOTTOM" , 0 , - 5 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText:SetFont ( GRM_AddonGlobals.FontChoice , 13 );
     GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText:SetWidth ( 200 );
     GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText:SetJustifyH ( "CENTER" );
     GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText:SetSpacing ( 2 );
     GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText:SetText ( "/roster\n|cffff0000Open Log/Options" );
 
-    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText2:SetPoint ( "TOP" , GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText , "BOTTOM" ,  0 , - 10 );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText2:SetFont ( GRM_AddonGlobals.FontChoice , 14 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText2:SetPoint ( "TOPLEFT" , GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ScanOptionsButton , "TOPRIGHT" , 1 , - 4 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText2:SetFont ( GRM_AddonGlobals.FontChoice , 13 );
     GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText2:SetWidth ( 200 );
     GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText2:SetJustifyH ( "LEFT" );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText2:SetText( "|cffffd100scan: |cffff0000Trigger scan for\n          changes manually" );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText2:SetText( "|cffff0000Trigger scan for\nchanges manually" );
 
-    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText3:SetPoint ( "TOP" , GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText2 , "BOTTOM" ,  0 , - 12 );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText3:SetFont ( GRM_AddonGlobals.FontChoice , 14 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText3:SetPoint ( "TOPLEFT" , GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_SyncOptionsButton , "TOPRIGHT" , 1 , - 4 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText3:SetFont ( GRM_AddonGlobals.FontChoice , 13 );
     GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText3:SetWidth ( 200 );
     GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText3:SetJustifyH ( "LEFT" );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText3:SetText( "|cffffd100sync: |cffff0000Trigger sync one\n          time manually" );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText3:SetText( "|cffff0000Trigger sync one\ntime manually" );
     
 
-    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText4:SetPoint ( "TOP" , GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText3 , "BOTTOM" ,  0 , - 12 );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText4:SetFont ( GRM_AddonGlobals.FontChoice , 14 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText4:SetPoint ( "TOPLEFT" , GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_CenterOptionsButton , "TOPRIGHT" , 1 , - 4 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText4:SetFont ( GRM_AddonGlobals.FontChoice , 13 );
     GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText4:SetWidth ( 200 );
     GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText4:SetJustifyH ( "LEFT" );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText4:SetText( "|cffffd100reset: |cffff0000Centers log window" );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText4:SetText( "|cffff0000Centers all Windows" );
     
-    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText5:SetPoint ( "TOP" , GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText4 , "BOTTOM" ,  0 , - 12 );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText5:SetFont ( GRM_AddonGlobals.FontChoice , 14 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText5:SetPoint ( "TOPLEFT" , GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_HelpOptionsButton , "TOPRIGHT" , 1 , - 4 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText5:SetFont ( GRM_AddonGlobals.FontChoice , 13 );
     GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText5:SetWidth ( 200 );
     GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText5:SetJustifyH ( "LEFT" );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText5:SetText( "|cffffd100help:  |cffff0000Slash command info" );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText5:SetText( "|cffff0000Slash command info" );
     
-    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText6:SetPoint ( "TOP" , GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText5 , "BOTTOM" ,  0 , - 12 );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText6:SetFont ( GRM_AddonGlobals.FontChoice , 14 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText6:SetPoint ( "TOPLEFT" , GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ClearAllOptionsButton , "TOPRIGHT" , 1 , - 4 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText6:SetFont ( GRM_AddonGlobals.FontChoice , 13 );
     GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText6:SetWidth ( 200 );
     GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText6:SetJustifyH ( "LEFT" );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText6:SetText( "|cffffd100clearall: |cffff0000Resets ALL data" );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText6:SetText( "|cffff0000Resets ALL data" );
     
-    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText7:SetPoint ( "TOP" , GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText6 , "BOTTOM" ,  0 , - 12 );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText7:SetFont ( GRM_AddonGlobals.FontChoice , 14 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText7:SetPoint ( "TOPLEFT" , GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_VersionOptionsButton , "TOPRIGHT" , 1 , - 4 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText7:SetFont ( GRM_AddonGlobals.FontChoice , 13 );
     GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText7:SetWidth ( 200 );
     GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText7:SetJustifyH ( "LEFT" );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText7:SetText( "|cffffd100version: |cffff0000Report addon ver" );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText7:SetText( "|cffff0000Report addon ver" );
     
-    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText8:SetPoint ( "TOP" , GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText7 , "BOTTOM" ,  0 , - 12 );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText8:SetFont ( GRM_AddonGlobals.FontChoice , 14 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText8:SetPoint ( "TOPLEFT" , GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_SyncInfoOptionsButton , "TOPRIGHT" , 1 , -4 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText8:SetFont ( GRM_AddonGlobals.FontChoice , 13 );
     GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText8:SetWidth ( 200 );
     GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText8:SetJustifyH ( "LEFT" );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText8:SetText( "|cffffd100syncinfo: |cffff0000List addon Users" );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText8:SetText( "|cffff0000List addon Users" );
 
-    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText9:SetPoint ( "TOP" , GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText8     , "BOTTOM" ,  0 , - 12 );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText9:SetFont ( GRM_AddonGlobals.FontChoice , 14 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText9:SetPoint ( "TOPLEFT" , GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_BanOptionsButton , "TOPRIGHT" , 1 , -4 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText9:SetFont ( GRM_AddonGlobals.FontChoice , 13 );
     GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText9:SetWidth ( 200 );
     GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText9:SetJustifyH ( "LEFT" );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText9:SetText( "|cffffd100ban: |cffff0000Open Ban List" );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText9:SetText( "|cffff0000Open Ban List" );
+
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText10:SetPoint ( "TOPLEFT" , GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ClearGuildOptionsButton , "TOPRIGHT" , 1 , - 4 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText10:SetFont ( GRM_AddonGlobals.FontChoice , 13 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText10:SetWidth ( 200 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText10:SetJustifyH ( "LEFT" );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText10:SetText( "|cffff0000Resets Guild data" );
 
     -- Popup window to confirm!
     GRM_RosterConfirmFrame:Hide();
@@ -3057,9 +3064,9 @@ GRM_UI.MetaDataInitializeUIrosterLog1 = function()
     end);
 
     -- Options Slash command buttons
-    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ScanOptionsButton:SetPoint ( "TOPRIGHT" , GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText2 , "TOPLEFT" , -2 , 1 );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ScanOptionsButton:SetSize ( 23 , 20 );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ScanOptionsButton:SetText ( "-" );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ScanOptionsButton:SetPoint ( "TOPLEFT" , GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText , "BOTTOMLEFT" , -15 , -3 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ScanOptionsButton:SetSize ( 75 , 20 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ScanOptionsButton:SetText ( "scan" );
     GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ScanOptionsButton:SetScript ( "OnClick" , function( self , button )
         if button == "LeftButton" then
             if IsInGuild() then
@@ -3068,9 +3075,9 @@ GRM_UI.MetaDataInitializeUIrosterLog1 = function()
         end
     end);
 
-    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_SyncOptionsButton:SetPoint ( "TOPRIGHT" , GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText3 , "TOPLEFT" , -2 , 1 );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_SyncOptionsButton:SetSize ( 23 , 20 );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_SyncOptionsButton:SetText ( "-" );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_SyncOptionsButton:SetPoint ( "TOPRIGHT" , GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText2 , "BOTTOMLEFT" , 0 , -4 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_SyncOptionsButton:SetSize ( 75 , 20 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_SyncOptionsButton:SetText ( "sync" );
     GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_SyncOptionsButton:SetScript ( "OnClick" , function( self , button )
         if button == "LeftButton" then
             if IsInGuild() then
@@ -3079,45 +3086,9 @@ GRM_UI.MetaDataInitializeUIrosterLog1 = function()
         end
     end);
 
-    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_CenterOptionsButton:SetPoint ( "TOPRIGHT" , GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText4 , "TOPLEFT" , -2 , 1 );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_CenterOptionsButton:SetSize ( 23 , 20 );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_CenterOptionsButton:SetText ( "-" );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_CenterOptionsButton:SetScript ( "OnClick" , function( self , button )
-        if button == "LeftButton" then
-            GRM.SlashCommandCenter();
-        end
-    end);
-
-    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ClearAllOptionsButton:SetPoint ( "TOPRIGHT" , GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText6 , "TOPLEFT" , -2 , 1 );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ClearAllOptionsButton:SetSize ( 23 , 20 );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ClearAllOptionsButton:SetText ( "-" );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ClearAllOptionsButton:SetScript ( "OnClick" , function( self , button )
-        if button == "LeftButton" then
-            GRM.SlashCommandClearAll();
-        end
-    end);
-
-    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_HelpOptionsButton:SetPoint ( "TOPRIGHT" , GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText5 , "TOPLEFT" , -2 , 1 );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_HelpOptionsButton:SetSize ( 23 , 20 );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_HelpOptionsButton:SetText ( "-" );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_HelpOptionsButton:SetScript ( "OnClick" , function( self , button )
-        if button == "LeftButton" then
-            GRM.SlashCommandHelp();
-        end
-    end);
-
-    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_VersionOptionsButton:SetPoint ( "TOPRIGHT" , GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText7 , "TOPLEFT" , -2 , 1 );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_VersionOptionsButton:SetSize ( 23 , 20 );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_VersionOptionsButton:SetText ( "-" );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_VersionOptionsButton:SetScript ( "OnClick" , function( self , button )
-        if button == "LeftButton" then
-            GRM.SlashCommandVersion();
-        end
-    end);
-
-    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_SyncInfoOptionsButton:SetPoint ( "TOPRIGHT" , GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText8 , "TOPLEFT" , -2 , 1 );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_SyncInfoOptionsButton:SetSize ( 23 , 20 );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_SyncInfoOptionsButton:SetText ( "-" );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_SyncInfoOptionsButton:SetPoint ( "TOPRIGHT" , GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText3 , "BOTTOMLEFT" , -1 , -4 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_SyncInfoOptionsButton:SetSize ( 75 , 20 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_SyncInfoOptionsButton:SetText ( "syncinfo" );
     GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_SyncInfoOptionsButton:SetScript ( "OnClick" , function( self , button )
         if button == "LeftButton" then
             if IsInGuild() then
@@ -3125,9 +3096,10 @@ GRM_UI.MetaDataInitializeUIrosterLog1 = function()
             end
         end
     end);
-    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_BanOptionsButton:SetPoint ( "TOPRIGHT" , GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText9 , "TOPLEFT" , -2 , 1 );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_BanOptionsButton:SetSize ( 23 , 20 );
-    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_BanOptionsButton:SetText ( "-" );
+
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_BanOptionsButton:SetPoint ( "TOPRIGHT" , GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText8 , "BOTTOMLEFT" , -1 , -4 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_BanOptionsButton:SetSize ( 75 , 20 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_BanOptionsButton:SetText ( "ban" );
     GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_BanOptionsButton:SetScript ( "OnClick" , function( self , button )
         if button == "LeftButton" then
             if IsInGuild() then
@@ -3135,7 +3107,57 @@ GRM_UI.MetaDataInitializeUIrosterLog1 = function()
             end
         end
     end);
+
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_CenterOptionsButton:SetPoint ( "TOPRIGHT" , GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText9 , "BOTTOMLEFT" , -1 , -4 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_CenterOptionsButton:SetSize ( 75 , 20 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_CenterOptionsButton:SetText ( "center" );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_CenterOptionsButton:SetScript ( "OnClick" , function( self , button )
+        if button == "LeftButton" then
+            GRM.SlashCommandCenter();
+        end
+    end);
+
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_HelpOptionsButton:SetPoint ( "TOPRIGHT" , GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText4 , "BOTTOMLEFT" , -1 , -4 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_HelpOptionsButton:SetSize ( 75 , 20 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_HelpOptionsButton:SetText ( "help" );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_HelpOptionsButton:SetScript ( "OnClick" , function( self , button )
+        if button == "LeftButton" then
+            GRM.SlashCommandHelp();
+        end
+    end);
+
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_VersionOptionsButton:SetPoint ( "TOPRIGHT" , GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText5 , "BOTTOMLEFT" , -1 , -4 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_VersionOptionsButton:SetSize ( 75 , 20 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_VersionOptionsButton:SetText ( "version" );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_VersionOptionsButton:SetScript ( "OnClick" , function( self , button )
+        if button == "LeftButton" then
+            GRM.SlashCommandVersion();
+        end
+    end);
+
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ClearAllOptionsButton:SetPoint ( "TOPRIGHT" , GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText7 , "BOTTOMLEFT" , -1 , -4 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ClearAllOptionsButton:SetSize ( 75 , 20 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ClearAllOptionsButton:SetText ( "resetall" );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ClearAllOptionsButton:SetScript ( "OnClick" , function( self , button )
+        if button == "LeftButton" then
+            GRM.SlashCommandClearAll();
+        end
+    end);
+
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ClearGuildOptionsButton:SetPoint ( "TOPRIGHT" , GRM_UI.GRM_RosterCheckBoxSideFrame.SlashCommandText6 , "BOTTOMLEFT" , -1 , -4 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ClearGuildOptionsButton:SetSize ( 75 , 20 );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ClearGuildOptionsButton:SetText ( "resetguild" );
+    GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ClearGuildOptionsButton:SetScript ( "OnClick" , function( self , button )
+        if button == "LeftButton" then
+            GRM.SlashCommandClearGuild();
+        end
+    end);
+
     
+
+    
+    
+
 
     GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ResetDefaultOptionsButton:SetPoint ( "BOTTOMLEFT" , GRM_RosterChangeLogFrame , "BOTTOMLEFT" , 10 , 10 );
     GRM_UI.GRM_RosterCheckBoxSideFrame.GRM_ResetDefaultOptionsButton:SetSize ( 62 , 37 );
