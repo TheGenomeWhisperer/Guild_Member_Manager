@@ -1,3 +1,30 @@
+**VERSION 7.3.2R1.110 - DATE: 24 Nov, 2017**
+
+***MAJOR SYNC ISSUE BUG FIX***
+
+*Ok, I won't get into the technical details, but suffice it to say a few updates back I kind of went in and did some behind-the-scenes updates, optimizing the process, improving some speed aspects of the sync, making the process leaner and so on. I also apparently broke it some aspects of it lol. This was not an easy fix. This was pretty gritty actually, largely because of how much extra work I need to do to actually get a dynamic, retroactive sync working, with this much data, within the limits of this API, and within the limits of throttled server comms by Blizz, all while doing it in a way that is seemless and invisible to the addon user. Welp, ya, I broke a few things without realizing it and I believe I have them working now. Yay!*
+
+* *Of note, I have not yet tested this beyond 5 accounts syncing in a large guild, and it seemed fine. I will need people to report back and if there are issues, so we can get them resolved ASAP!!!*
+
+**QUALITY OF LIFE**
+
+* Player's full name-servername appear in the log when they leave or are kicked from the guild (for you xrealm people!)
+
+* Furthermore, the class is now apparent in the log for the leaving player and any remaining alts
+
+* Ability to clear just the guild data with '/roster resetguild' or from the options
+
+* Options slash command buttons are much more obvious.
+
+**BUG FIXES**
+
+* Everyone appeared online in previous update. Silly bug! Status should now display accurately.
+
+* Again, sync issues should hopefully be resolved now. I have not done a lot of testing, but I have done some. I will need reports.
+
+*Final Note: Not a ton of major updates here, though I am working on a large project. My focus was 100% spent on resolving the sync issue for people. Thank you for your support in reporting issues and patience for me getting them fixed!*
+
+
 **VERSION 7.3.2R1.109 - DATE: 19 Nov, 2017**
 
 * OOPS! Uploaded sync.lua file with the sync helpers still in it (my test version). You would be getting a ton of sync spam as it transmitted data. This is hidden now and should not be scene lol

@@ -20,9 +20,9 @@ SLASH_GRM1 = '/roster';
 GRM_AddonGlobals = {};
 
 -- Addon Details:
-GRM_AddonGlobals.Version = "7.3.2R1.109";
-GRM_AddonGlobals.PatchDay = 1511125534;             -- In Epoch Time
-GRM_AddonGlobals.PatchDayString = "1511125534";     -- 2 Versions saves on conversion computational costs... just keep one stored in memory. Extremely minor gains, but very useful if syncing thousands of pieces of data in large guilds.
+GRM_AddonGlobals.Version = "7.3.2R1.110";
+GRM_AddonGlobals.PatchDay = 1511560858;             -- In Epoch Time
+GRM_AddonGlobals.PatchDayString = "1511560858";     -- 2 Versions saves on conversion computational costs... just keep one stored in memory. Extremely minor gains, but very useful if syncing thousands of pieces of data in large guilds.
 GRM_AddonGlobals.Patch = "7.3.2";
 
 -- Initialization Useful Globals 
@@ -1740,7 +1740,7 @@ end
 -- Purpose:         Easy class color tagging for UI feature.
 GRM.GetClassColorRGB = function ( className )
     local result = {};
-     if className == "DEATHKNIGHT" then
+    if className == "DEATHKNIGHT" then
         result = { 0.77 , 0.12 , 0.23 }
     elseif className == "DEMONHUNTER" then
         result = { 0.64 , 0.19 , 0.79 }
@@ -1764,6 +1764,45 @@ GRM.GetClassColorRGB = function ( className )
         result = { 0.58 , 0.51 , 0.79 }
     elseif className == "WARRIOR" then
         result = { 0.78 , 0.61 , 0.43 }
+    end
+    return result;
+end
+
+-- Method:          GRM.GetStringClassColorByName ( string )
+-- What it Does:    Returns the RGB Hex code of the given class of the player named
+-- Purpose:         Useful for carrying over class name with tagged colors into a string, without needing to change the hwole string's color
+GRM.GetStringClassColorByName = function ( name )
+    local result = "";
+    for j = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do  -- Scanning through all entries
+        if name == GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][1] then -- Matching member leaving to guild saved entry
+            local className = GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][9];
+            if className == "DEATHKNIGHT" then
+                result = "|CFFC41F3B";
+            elseif className == "DEMONHUNTER" then
+                result = "|CFFA330C9";
+            elseif className == "DRUID" then
+                result = "|CFFFF7D0A";
+            elseif className == "HUNTER" then
+                result = "|CFFABD473";
+            elseif className == "MAGE" then
+                result = "|CFF69CCF0";
+            elseif className == "MONK" then
+                result = "|CFF00FF96";
+            elseif className == "PALADIN" then
+                result = "|CFFF58CBA";
+            elseif className == "PRIEST" then
+                result = "|CFFFFFFFF";
+            elseif className == "ROGUE" then
+                result = "|CFFFFF569";
+            elseif className == "SHAMAN" then
+                result = "|CFF0070DE";
+            elseif className == "WARLOCK" then
+                result = "|CFF9482C9";
+            elseif className == "WARRIOR" then
+                result = "|CFFC79C6E";
+            end
+            break
+        end
     end
     return result;
 end
@@ -1877,6 +1916,8 @@ end
 --                  If the alt is re-added, it removes the player from the removed list
 -- Purpose:         Syncing data needs timestamps and thus needs good table management of the metadata of add/remove alts lists.
 GRM.RemovePlayerFromRemovedAltTable = function ( name , index )
+    -- 
+
     if #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][index][37] > 0 then
         for i = 1 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][index][37] do
             if name == GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][index][37][i][1] then
@@ -2815,10 +2856,10 @@ GRM.AddMemberToLeftPlayers = function ( memberInfo , leftGuildDate , leftGuildMe
     
 end
 
--- Method:          GRM.GetGuildEventString ( int , string )
+-- Method:          GRM.GetGuildEventString ( int , string , string )
 -- What it Does:    Gets more exact info from the actual Guild Event Log ( can only be queried once per 10 seconds) as a string
 -- Purpose:         This parses more exact info, like "who" did the kicking, or "who" invited who, and so on.
-GRM.GetGuildEventString = function ( index , playerName )
+GRM.GetGuildEventString = function ( index , playerName , classColorCode )
     -- index 1 = demote , 2 = promote , 3 = remove/quit , 4 = invite/join
     local result = "";
     local eventType = { "demote" , "promote" , "invite" , "join" , "quit" , "remove" };
@@ -2828,10 +2869,10 @@ GRM.GetGuildEventString = function ( index , playerName )
         for i = GetNumGuildEvents() , 1 , -1 do
             local type , p1, p2 = GetGuildEventInfo ( i );
             if p1 ~= nil then                                                 ---or eventType [ 2 ] == type ) and ( p2 ~= nil and p2 == playerName ) and p1 ~= nil then
-                if index == 1 and eventType [ 1 ] == type and p2 ~= nil and p2 == playerName then
+                if index == 1 and eventType [ 1 ] == type and p2 ~= nil and ( p2 == playerName or p2 == GRM.SlimName ( playerName ) ) then
                     result = ( p1 .. " DEMOTED " .. p2 );
                     break;
-                elseif index == 2 and eventType [ 2 ] == type and p2 ~= nil and p2 == playerName then
+                elseif index == 2 and eventType [ 2 ] == type and p2 ~= nil and ( p2 == playerName or p2 == GRM.SlimName ( playerName ) ) then
                     result = ( p1 .. " PROMOTED " .. p2 );
                     break;
                 end
@@ -2843,12 +2884,12 @@ GRM.GetGuildEventString = function ( index , playerName )
             local type , p1, p2 = GetGuildEventInfo ( i );
             if p1 ~= nil then 
                 if eventType [ 5 ] == type or eventType [ 6 ] == type then   -- Quit or Remove
-                    if eventType [ 6 ] == type and p2 ~= nil and p2 == playerName then
-                        result = ( p1 .. " KICKED " .. p2 .. " from the Guild!" );
+                    if eventType [ 6 ] == type and p2 ~= nil and ( p2 == playerName or p2 == GRM.SlimName ( playerName ) ) then
+                        result = ( p1 .. " KICKED " .. classColorCode .. p2 .. "|CFF808080 from the Guild!" );
                         notFound = false;
-                    elseif eventType [ 5 ] == type and p1 == playerName then
+                    elseif eventType [ 5 ] == type and ( p1 == playerName or p1 == GRM.SlimName ( playerName ) ) then
                         -- FOUND!
-                        result = ( p1 .. " has Left the Guild" );
+                        result = ( classColorCode .. playerName .. "|CFF808080 has Left the Guild" );
                         notFound = false;
                     end
                     if notFound ~= true then
@@ -2860,7 +2901,7 @@ GRM.GetGuildEventString = function ( index , playerName )
     elseif index == 4 then
         for i = GetNumGuildEvents() , 1 , -1 do 
             local type , p1, p2 = GetGuildEventInfo ( i );
-            if eventType [ 3 ] == type and p1 ~= nil and p2 ~= nil and p2 == playerName then   -- invite
+            if eventType [ 3 ] == type and p1 ~= nil and p2 ~= nil and ( p2 == playerName or p2 == GRM.SlimName ( playerName ) ) then  -- invite
                 result = ( p1 .. " INVITED " .. p2 .. " to the guild." );
                 break;
             end
@@ -2874,7 +2915,7 @@ end
 -- What it Does:    Returns the 3 RGB colors colors based on the given index on a 1.0 scale
 -- Purpose:         Save on code when need color call. I also did this as a 3 argument return, rather than a single array, just as a proof of concept
 --                  since this whole project was also a bit of a Lua learning moment.
-GRM.GetNMessageRGB = function ( index )
+GRM.GetMessageRGB = function ( index )
     local r = 0;
     local g = 0;
     local b = 0;
@@ -3562,7 +3603,7 @@ GRM.FinalReport = function()
         GRM.BuildLog();
     end
     GRM_AddonGlobals.changeHappenedExitScan = false;
-end  
+end
 
 -- Method:          GRM.RecordKickChanges ( string , string , string , boolean )
 -- What it Does:    Records and logs the changes for when a guildie either is KICKED or leaves the guild
@@ -3571,17 +3612,18 @@ GRM.RecordKickChanges = function ( unitName , simpleName , guildName , playerKic
     local timestamp = GRM.GetTimestamp();
     local logReport = "";
     local tempStringRemove = "";
+    local classColorCode = GRM.GetStringClassColorByName ( unitName );
 
     if not playerKicked then
-        tempStringRemove = GRM.GetGuildEventString ( 3 , simpleName ); -- Kicked from the guild.
+        tempStringRemove = GRM.GetGuildEventString ( 3 , unitName , classColorCode ); -- Kicked from the guild.
         if tempStringRemove ~= nil and tempStringRemove ~= "" then
             logReport = ( timestamp .. " : " .. tempStringRemove );
         else
-            logReport = ( timestamp .. " : " .. simpleName .. " has Left the guild" );
+            logReport = ( timestamp .. " : " .. classColorCode .. unitName .. "|CFF808080 has Left the guild" );
         end
     else
         -- The player kicked them right now!
-        logReport = ( timestamp .. " : " .. GRM.SlimName ( GRM_AddonGlobals.addonPlayerName ) .. " KICKED " .. simpleName .. " from the Guild!" );
+        logReport = ( timestamp .. " : " .. GRM.SlimName ( GRM_AddonGlobals.addonPlayerName ) .. " KICKED " .. classColorCode .. unitName .. "|CFF808080 from the Guild!" );
     end
     
     -- Finding Player's record for removal of current guild and adding to the Left Guild table.
@@ -3611,16 +3653,19 @@ GRM.RecordKickChanges = function ( unitName , simpleName , guildName , playerKic
             if #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][11] > 0 then
                 -- Let's add them to the end of the report
                 local countAlts = #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][11];
+                local altClassColorCode;
                 for m = 1 , countAlts do
                     if m == 1 then
-                        logReport = logReport .. "\n ALTS IN GUILD: " .. GRM.SlimName ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][11][1][1] );
+                        altClassColorCode = GRM.GetStringClassColorByName ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][11][1][1] );
+                        logReport = logReport .. "\n ALTS IN GUILD: " .. altClassColorCode .. GRM.SlimName ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][11][1][1] );
                     else
-                        logReport = logReport .. ", " .. GRM.SlimName ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][11][m][1] );
+                        altClassColorCode = GRM.GetStringClassColorByName ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][11][m][1] );
+                        logReport = logReport .. "|CFF808080, " .. altClassColorCode .. GRM.SlimName ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][j][11][m][1] );
                     end
 
                     -- Just show limited number of alts...
                     if m == 5 and m < countAlts then
-                        logReport = logReport .. " (+" .. ( countAlts - m ) .. " More)";
+                        logReport = logReport .. "|CFF808080 (+" .. ( countAlts - m ) .. " More)";
                         break;
                     end
                 end
@@ -3647,7 +3692,7 @@ GRM.RecordJoinChanges = function ( memberInfo , simpleName )
     -- Check against old member list first to see if returning player!
     local rejoin = false;
     local logReport = "";
-    local tempStringInv = GRM.GetGuildEventString ( 4 , simpleName ); -- For determining who did the invite.
+    local tempStringInv = GRM.GetGuildEventString ( 4 , memberInfo[1] , "" ); -- For determining who did the invite.
 
         for j = 2 , #GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][GRM_AddonGlobals.saveGID] do -- Number of players that have left the guild.
             if memberInfo[1] == GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][GRM_AddonGlobals.saveGID][j][1] then
@@ -3826,7 +3871,7 @@ GRM.RecordChanges = function ( indexOfInfo , memberInfo , memberOldInfo , guildN
 
     -- 2 = Guild Rank Promotion
     if indexOfInfo == 2 then
-        local tempString = GRM.GetGuildEventString ( 2 , simpleName );
+        local tempString = GRM.GetGuildEventString ( 2 , memberInfo[1] , "" );
         if tempString ~= nil and tempString ~= "" then
             logReport = ( GRM.GetTimestamp() .. " : " .. tempString .. " from " .. memberOldInfo[4] .. " to " .. memberInfo[2] );
         else
@@ -3835,7 +3880,7 @@ GRM.RecordChanges = function ( indexOfInfo , memberInfo , memberOldInfo , guildN
         table.insert ( GRM_AddonGlobals.TempLogPromotion , { 1 , logReport , false } );
     -- 9 = Guild Rank Demotion
     elseif indexOfInfo == 9 then
-        local tempString = GRM.GetGuildEventString ( 1 , simpleName );
+        local tempString = GRM.GetGuildEventString ( 1 , memberInfo[1] , "" );
         if tempString ~= nil and tempString ~= "" then
             logReport = ( GRM.GetTimestamp() .. " : " .. tempString .. " from " .. memberOldInfo[4] .. " to " .. memberInfo[2] );
         else
@@ -4683,7 +4728,7 @@ GRM.BuildLog = function()
             end
 
             -- coloring
-            local r , g , b = GRM.GetNMessageRGB ( GRM_LogReport_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.logGID][#GRM_LogReport_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.logGID] - i + 1][1] );
+            local r , g , b = GRM.GetMessageRGB ( GRM_LogReport_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.logGID][#GRM_LogReport_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.logGID] - i + 1][1] );
             local logFontString = GRM_RosterChangeLogScrollChildFrame.allFontStrings[count];
             logFontString:SetPoint ( "TOP" , GRM_RosterChangeLogScrollChildFrame , 7 , -99 );
             logFontString:SetFont ( GRM_AddonGlobals.FontChoice , GRM_AddonGlobals.FontModifier + 11 );   
@@ -5792,7 +5837,7 @@ end
 -- What it Does:    Purges literally ALL saved data, then rebuilds it from scratch as if addon was just installed.
 -- Purpose:         Clear data for any purpose needed.
 GRM.ResetAllSavedData = function()
-    GRM.Report ( "Wiping all saved Roster data! Rebuilding from scratch..." );
+    GRM.Report ( "Wiping all Saved Roster Data Account Wide! Rebuilding from Scratch..." );
 
     GRM_GuildMemberHistory_Save = nil;
     GRM_GuildMemberHistory_Save = {};
@@ -5822,6 +5867,73 @@ GRM.ResetAllSavedData = function()
     -- Hide the window frame so it can quickly be reloaded.
     GRM_MemberDetailMetaData:Hide();
 
+    -- Reset the important guild indexes for data tracking.
+    GRM_AddonGlobals.saveGID = 0;
+    GRM_AddonGlobals.logGID = 0;
+
+    -- Now, let's rebuild...
+    if IsInGuild() then
+        GRM.BuildNewRoster();
+    end
+    -- Update the logFrame if it was open at the time too
+    if GRM_RosterChangeLogFrame:IsVisible() then
+        GRM.BuildLog();
+    end
+
+    -- Update the ban list too!
+    if GRM_CoreBanListFrame:IsVisible() then
+        GRM.RefreshBanListFrames();
+    end
+
+    -- Trigger Sync
+    --Let's re-initiate syncing!
+    if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][14] and not GRMsyncGlobals.currentlySyncing and GRM_AddonGlobals.HasAccessToGuildChat then
+        GRMsync.TriggerFullReset();
+        -- Now, let's add a brief delay, 3 seconds, to trigger sync again
+        C_Timer.After ( 3 , GRMsync.Initialize );
+    end
+end
+
+-- Method:          GRM.ResetGuildSavedData()
+-- What it Does:    Purges all saved data from the guild and only the guild...
+-- Purpose:         Sometimes you don't want to reset everything... just the guild.
+GRM.ResetGuildSavedData = function ( guildName )
+    GRM.Report ( "Wiping all saved Guild data! Rebuilding from scratch..." );
+    -- removing Player Saved metadata of the guild
+    for i = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ] do
+        if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][i][1] == guildName then
+            table.remove ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ] , i );
+            break;
+        end
+    end
+
+    -- Removing Players that left saved metadata
+    for i = 2 , #GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ] do
+        if GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ][i][1] == guildName then
+            table.remove ( GRM_PlayersThatLeftHistory_Save[ GRM_AddonGlobals.FID ] , i );
+            break;
+        end
+    end
+
+    -- Clearing the Guild Log...
+    for i = 2 , #GRM_LogReport_Save[ GRM_AddonGlobals.FID ] do
+        if GRM_LogReport_Save[ GRM_AddonGlobals.FID ][i][1] == guildName then
+            table.remove ( GRM_LogReport_Save[ GRM_AddonGlobals.FID ] , i );
+            break;
+        end
+    end
+
+    -- Clearing the Guild Log...Resetting the add to calendar que
+    for i = 2 , #GRM_CalendarAddQue_Save[ GRM_AddonGlobals.FID ] do
+        if GRM_CalendarAddQue_Save[ GRM_AddonGlobals.FID ][i][1] == guildName then
+            table.remove ( GRM_CalendarAddQue_Save[ GRM_AddonGlobals.FID ] , i );
+            break;
+        end
+    end
+
+    -- Hide the window frame so it can quickly be reloaded.
+    GRM_MemberDetailMetaData:Hide();
+    
     -- Reset the important guild indexes for data tracking.
     GRM_AddonGlobals.saveGID = 0;
     GRM_AddonGlobals.logGID = 0;
@@ -6127,8 +6239,13 @@ GRM.SpeedQueryBankInfoTracking = function( )
 end
 
 
+-------------------------------
+---- GUILD SHARED NOTEPAD -----
+-------------------------------
 
+GRM.AddNote = function()
 
+end
 
 
 -------------------------------
@@ -7640,16 +7757,34 @@ GRM.SlashCommandHelp = function()
 end
 
 -- Method:          GRM.SlashCommandClearAll()
--- What it Does:    
--- Purpose:         
+-- What it Does:    Resets all data account wide, as if the addon was just installed, on the click of the button.
+-- Purpose:         Useful to purge data in case of corruption or trolling or other misc. reasons.
 GRM.SlashCommandClearAll = function()
     GRM_RosterChangeLogFrame:EnableMouse( false );
     GRM_RosterChangeLogFrame:SetMovable( false );
-    GRM_RosterConfirmFrameText:SetText( "Really Clear ALL Saved Data?" );
+    GRM_RosterConfirmFrameText:SetText( "Really Clear All Account-Wide Saved Data?" );
     GRM_RosterConfirmYesButtonText:SetText ( "Yes!" );
     GRM_RosterConfirmYesButton:SetScript ( "OnClick" , function( self , button )
         if button == "LeftButton" then
             GRM.ResetAllSavedData();      --Resetting!
+            GRM_RosterConfirmFrame:Hide();
+        end
+    end);
+    GRM_RosterConfirmFrame:Show();
+end
+
+-- Method:          GRM.SlashCommandClearGuild()
+-- What it Does:    Resets all data guild wide, as if the guild is brand new or newly joined.
+-- Purpose:         Useful to purge the data if someone trolled the guild and made a mess of the data, 
+-- or if there is a major error corrupting the data, but you don't want to wipe all account wide
+GRM.SlashCommandClearGuild = function()
+    GRM_RosterChangeLogFrame:EnableMouse( false );
+    GRM_RosterChangeLogFrame:SetMovable( false );
+    GRM_RosterConfirmFrameText:SetText( "Really Clear All Guild Saved Data?" );
+    GRM_RosterConfirmYesButtonText:SetText ( "Yes!" );
+    GRM_RosterConfirmYesButton:SetScript ( "OnClick" , function( self , button )
+        if button == "LeftButton" then
+            GRM.ResetGuildSavedData( GRM_AddonGlobals.guildName );      --Resetting!
             GRM_RosterConfirmFrame:Hide();
         end
     end);
@@ -7704,10 +7839,15 @@ SlashCmdList["GRM"] = function ( input )
             print ( "Please try again momentarily... Updating the Guild Event Log as we speak!" );
         end
     -- Clears all saved data and resets to as if the addon was just installed. The only thing not reset is the default settings.
-    elseif command == "clearall" then
+    elseif command == "clearall" or command == "resetall" then
         alreadyReported = true;
         GRM.SlashCommandClearAll();
-   
+    
+        -- Clears all saved data specific to the guild...
+    elseif command == "clearguild" or command == "resetguild" then
+        if inGuild then
+            GRM.SlashCommandClearGuild();
+        end
     -- List of all the slash commands at player's disposal.
     elseif command == "help" then
         alreadyReported = true;
@@ -8214,10 +8354,9 @@ Initialization:SetScript ( "OnEvent" , GRM.ActivateAddon );
     ----- POTENTIAL FEATURES ------------
     -------------------------------------
 
-    -- Guild Officer Notepad... Communal notepad anyone can edit...
+    -- Guild Audit window, alphabetical - shows if the players have completed the 3 things: Designated main/alt, Join Date set, Promotion date set.
 
-    -- Option to allow Ban list to be shared with other guildies using the addon.
-    -- Sync ban list between all guilds?
+    -- Guild Officer Notepad... Communal notepad anyone can edit...
 
     -- Groups! Create groups! Allow people to join RBG teams, Raid groups, Mythic groups, Arena teams, Custom... request info of those teams.
     -- Click on the team, it pops up all members of the team w/misc. stats of team.
@@ -8268,8 +8407,6 @@ Initialization:SetScript ( "OnEvent" , GRM.ActivateAddon );
     -- Note will include who note edit originated from.
     -- 500 character count limit of custom note section, for now.
 
-
-    
     -- 3) Custom Notifications/Reminders -  Basically, I want to build in a feature where the player types /roster remind, or something like that, which pops up a window to set a time and date for any kind of reminder the player wants, just type it out. I've written out a rough UI on how I wish this to look, and I think it is going to be killer useful. You could set reminder to minutes or hours from now, to days or months. Very useful for on-the-spot thoughts. 
     -- It will have a custom UI to quickly set a specific time and date, and note reminder
     -- Slash command will be advances as well. For example, instead of just /roster remind, you could type '/roster remind 30 Recheck AH for deals' Rather than popup the UI window, it will just automatically create a reminder 30 minutes from now that will notify you to "Recheck AH for deals" - Use the UI or use the slash command. UI might be necessary for things much further out, but for simple reminders in that game session... quite useful.
@@ -8290,9 +8427,10 @@ Initialization:SetScript ( "OnEvent" , GRM.ActivateAddon );
     ----- BUSY work ---------------
     -------------------------------------
 
-    -- Include the server name on a player that leaves or is kicked from the guild, as well as the color coding of the class...
-    -- Need to finish the sync updates on the syncups and the temp files...
-    -- ClearAll should have option for just guild. Maybe /roster clearguild
+    -- be able to filter the level b 
+    -- GRM Syncinfo window needs 3 fontstrings not 1.
+    -- Option to only show at logon IF there has been any changes...
+    -- Ability to filter level logging of data only at certain invervals.
     -- GRM.IsValidName -- get ASCII byte values for the other 4 regions.
     -- Sync the history of promotions and demotions as well.
     -- Potentially have it say "currently syncing" next to player's name... on addon users window
@@ -8316,4 +8454,3 @@ Initialization:SetScript ( "OnEvent" , GRM.ActivateAddon );
     -- 4 letter word == !@#$ !@#$%^ or ^&*!  
   
     -- CHANGELOG
-        -- Fixed an issue where I made it so everyone now appeared online in my last update. Oops!
