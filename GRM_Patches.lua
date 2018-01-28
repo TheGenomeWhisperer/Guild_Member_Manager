@@ -81,10 +81,12 @@ GRM_Patch.ExpandOptions = function()
     -- Updating settings for all
     for i = 1 , #GRM_AddonSettings_Save do
         for j = 2 , #GRM_AddonSettings_Save[i] do
-            table.insert ( GRM_AddonSettings_Save[i][j][2] , true );        -- 27th option
-            table.insert ( GRM_AddonSettings_Save[i][j][2] , true );        -- 28th option
-            table.insert ( GRM_AddonSettings_Save[i][j][2] , true );        -- 29th option
-            table.insert ( GRM_AddonSettings_Save[i][j][2] , false );       -- 30th option
+            if #GRM_AddonSettings_Save[i][j][2] == 26 then
+                table.insert ( GRM_AddonSettings_Save[i][j][2] , true );        -- 27th option
+                table.insert ( GRM_AddonSettings_Save[i][j][2] , true );        -- 28th option
+                table.insert ( GRM_AddonSettings_Save[i][j][2] , true );        -- 29th option
+                table.insert ( GRM_AddonSettings_Save[i][j][2] , false );       -- 30th option
+            end
         end
     end
 end
@@ -141,3 +143,37 @@ GRM_Patch.EstablishThrottleSlider = function()
         end
     end
 end
+
+-- Introduced Patch R1.126
+-- Ability to add number of options on a specific scale
+GRM_Patch.ExpandOptionsScalable = function( numNewIndexesToAdd , baseNumber , addingBoolean )
+    -- Updating settings for all
+    for i = 1 , #GRM_AddonSettings_Save do
+        for j = 2 , #GRM_AddonSettings_Save[i] do
+            if #GRM_AddonSettings_Save[i][j][2] == baseNumber then
+                for s = 1 , numNewIndexesToAdd do
+                    if addingBoolean then
+                        table.insert ( GRM_AddonSettings_Save[i][j][2] , true );        -- X option position
+                    else
+                        table.insert ( GRM_AddonSettings_Save[i][j][2] , 1 );           -- Adding int instead, placeholder value of 1
+                    end
+                end
+            end
+        end
+    end
+end
+
+-- Introduced Patch R1.126
+-- Minimap Created!!!
+GRM_Patch.SetMinimapValues = function()
+    for i = 1 , #GRM_AddonSettings_Save do
+        for j = 2 , #GRM_AddonSettings_Save[i] do
+            GRM_AddonSettings_Save[i][j][2][25] = 345;
+            GRM_AddonSettings_Save[i][j][2][26] = 78;
+        end
+    end
+end
+
+-- TEST HELPERS
+-- /run local t=GRM_AddonSettings_Save[GRM_AddonGlobals.FID];for i=2,#t do if #t[i][2]>30 then while #t[i][2]>30 do table.remove(t[i][2],#t[i][2])end;end;end;GRM_AddonSettings_Save[GRM_AddonGlobals.FID]=t;
+-- /run for i=2,#GRM_AddonSettings_Save[GRM_AddonGlobals.FID] do print(GRM_AddonSettings_Save[GRM_AddonGlobals.FID][i][2][25])end

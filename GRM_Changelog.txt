@@ -1,3 +1,52 @@
+**VERSION 7.3.2R1.126 DATE: January 28th, 2018**
+
+***HUGE USER EXPERIENCE UPDATE***
+
+*Note: There is still a TON to do, but I knocked out a huge amount of busy features in this update that have just been piling up.*
+
+**NEW FEATURES**
+
+* New1: Players can now sync alt dates with the click of a button! Rather than choose each alt manually to set the date, you can choose to sync in 3 ways: To the alt with the earliest join date, to the main, to the currently selected player
+
+* New2: Minimap Button has been added! Just right-click and drag where you want it!!! (or hide it)
+
+**QUALITY OF LIFE**
+
+QoL1: AddAlt "autocomplete" is now significantly smarter. It will not just alphabetize it, but will do partial word matches to names, it color codes the names to their class, and if they are already grouped as an alt/main it indicates it with <A> or <M> tags
+
+QoL2: Options Window has been a bit overhauled, with sub-tabs for each category. While they are mostly "empty" now, there is a lot of room for further customization as needed as more features are added without getting too cluttered.
+
+QoL3: Players can now Globally sync the addon "settings" among all their alts within the same guild just by putting a check in the box. This syncs per client, so multiboxers will need to check the box for each account.
+
+QoL4: Right-Click the sync speed slider to reset it back to 100%
+
+QoL5: Scroll slider bars now function properly, the way the built in roster does. Clicking them now only moves the bar incrementally rather than jumping the bar to the position of the cursor.
+
+QoL6: The core player detail window now just moves out to the side without hiding when the user clicks on a roster name to bring out the promote/demote/kick window
+
+QoL7: The player no longer displays the main tagging on their own toons, since it is assumed the player knows their own alts!
+
+QoL8: The audit window now has a new button allowing "unknown" to be included in the "complete/incomplete" filter
+
+QoL9: Add an informative note to the "Add to Calender Events" tab, if the player does not have guild permission to add events to the calendar, the addon now informs them of it.
+
+QoL10: ElvUI cleaned up a bit further, addressing a few minor allignment updates, as well as some compatibility issues. Merge request has been sent to addon dev.
+
+QoL11: Several, and I mean several misc little things here and there... from allignment, to tiny bugs, to lots of time sucking things worked on I won't mention in their entirety.
+
+**BUG FIXES**
+
+Bug1: Sync should no longer trigger twice back to back when a player with the addon installed joins a guild
+
+Bug2: Broken settings was the cause of an issue in regards to players that try to open the addon window and it was crashing... This has been resolved. For some players they may need to do a one-time /grm hardreset. But, the issue should not return. This will be noticeable as it will cause some alts they log into to crash the game, whilst some others it is just fine. This is 100% related to an old update that failed to consider a couple of factors upon updating some deprecated features, thus breaking their addon in certain eventual circumstances. This has been fixed.
+
+Bug3: Fixed issue with the hex color code being added to Anniversary event description on the calendar add events.
+
+Bug4: Fixed an issue where if a player is automatically removed from the Events list because the time of the event has passed without the player adding to calendar or removing from the list, it could error in certain circumstances.
+
+Bug5: Fixed an issue where sync message was stating the wrong person was adding an event to the calendar.
+
+
 **VERSION 7.3.2R1.125 DATE: January 13th, 2018**
 
 ***MAJOR ANNOUNCEMENT***
@@ -10,7 +59,7 @@
 
 * New2: Throttle Control slider in the options. Some people might have some sync/disconnect issues. If you find yourself disconnecting, it can be for a variety of reasons. Try throttling the sync speed back a little and see if that resolves it.
 
-**QUALITY OF LIFE
+**QUALITY OF LIFE**
 
 * QoL1: The addon no longer spams your chat window with the updates when logging in. It will inform you of live updates, of course, but you can always just look at the log for the mass of changes when logging in.
 
@@ -33,7 +82,6 @@
 * BugFix2: Somewhat huge bug I noticed that could cause players to end up with a lot of repeat player copies. It seemed to only affect x-realm guilds. So, I did 2 things. I resolved this bug so it will not repeat, and I wrote a script that will parse through your database and clean it all up if it affected you. So, you don't have to do anything. yay!
 
 * BugFix3: More misc. Lua reports on some edge cases here and there.
-
 
 
 **VERSION 7.3.2R1.124 DATE: January 2nd, 2018**

@@ -36,6 +36,9 @@ if GRM_AddonGlobals.Region == "enUS" or not GRM_AddonGlobals.Localized then
     -- BEGIN TRANSLATION WORK HERE --
     ---------------------------------
 
+    -- CHANNEL NOTATION!!!
+    GRM_L["Guild"] = true
+
     -- PLAYER MAIN ROSTER DETAILS WINDOW
     GRM_L["Level: "] = true
     GRM_L["Note:"] = true
@@ -94,7 +97,6 @@ if GRM_AddonGlobals.Region == "enUS" or not GRM_AddonGlobals.Localized then
     GRM_L["Joined"] = true
     GRM_L["Left:"] = true                               -- as in, "Left" the guild
     GRM_L["Rejoined:"] = true                           -- as in, "Rejoined" the guild
-    GRM_L["Right-Click to Set Notification of Status Change"] = true
     GRM_L["Reset Data!"] = true
     GRM_L["Notify When Player is Active"] = true
     GRM_L["Notify When Player Goes Offline"] = true
@@ -237,13 +239,11 @@ if GRM_AddonGlobals.Region == "enUS" or not GRM_AddonGlobals.Localized then
     GRM_L["Add Join Date to:  |cffff0000Officer Note|r"] = true         -- Context: Please keep |cffff0000 for color coding of the text, and the |r to signify the end of color change
     GRM_L["Add Join Date to:  Officer Note"] = true
     GRM_L["Public Note"] = true
-    GRM_L["__________________  OPTIONS  __________________"] = true     -- This is the header of the OPTIONS tab... Please try to keep the "____" even on both sides, but shorten it if necessary to fit properly.
     GRM_L["Scanning Roster:"] = true
     GRM_L["Guild Rank Restricted:"] = true
     GRM_L["Sync:"] = true
     -- Options window -- of note, these are very concise statements. They may need to be adjusted properly in the Options window for proper spacing, so verify they look ok after translating.
     GRM_L["Slash Commands"] = true
-    GRM_L["Open Log"] = true
     GRM_L["Trigger scan for changes manually"] = true
     GRM_L["Trigger sync one time manually"] = true
     GRM_L["Centers all Windows"] = true
@@ -512,6 +512,35 @@ if GRM_AddonGlobals.Region == "enUS" or not GRM_AddonGlobals.Localized then
 
     -- MISC Punctuation
     GRM_L[","] = true                               -- I know in some Asia languages, a comma is not used, but something similar, for example.
+
+    -- Updates 1.126
+    GRM_L["General"] = true
+    GRM_L["General:"] = true
+    GRM_L["Scan"] = true
+    GRM_L["Help"] = true
+    GRM_L["UI"] = true                              -- UI for User Interface. Abbreviation for changing custom UI featuers, like coloring of <M> main
+    GRM_L["Officer"] = true                         -- as in, "Officer" rank
+    GRM_L["Open Addon Window"] = true
+    GRM_L["Sync Addon Settings on All Alts in Same Guild"] = true
+    GRM_L["Show Minimap Button"] = true
+    GRM_L["Player is Not Currently in a Guild"] = true
+    -- tooltips
+    GRM_L["|CFFE6CC7FClick|r to open GRM"] = true                           -- Please maintain the color coding
+    GRM_L["|CFFE6CC7FRight-Click|r and drag to move this button."] = true   -- Likewise, maintain color coding
+    GRM_L["|CFFE6CC7FRight-Click|r to Reset to 100%"] = true                -- for the Options slider tooltip
+    GRM_L["|CFFE6CC7FRight-Click|r to Sync Join Date with Alts"] = true
+    GRM_L["|CFFE6CC7FRight-Click|r to Set Notification of Status Change"] = true
+    -- tooltip end
+    GRM_L["GRM"] = true
+    GRM_L["<A>"] = true                                                     -- This is the "Alt" tag on the Add Alt side window.
+    GRM_L["Include Unknown as Incomplete"] = true                           -- Context: Unknown in the Audit Tab will be hidden if filtering out complete players
+    GRM_L["You Do Not Have Permission to Add Events to Calendar"] = true
+    GRM_L["Please Select Which Join Date to Sync"] = true
+    GRM_L["Sync All Alts to {name}'s Join Date"] = true
+    GRM_L["Sync All Alts to the Earliest Join Date: {name}"] = true
+    GRM_L["Sync All Alts to {name}'s |cffff0000(main)|r Join Date"] = true  -- The coloring ensures that "(main)" maintains the RED color. Please keep it consistent if relevant to your language.
+    GRM_L["Join Date of All Alts is Currently Synced"] = true
+
 end
 
 -- BuildLog() - might have some extra work, conditionally based on localization as it will now have a mix of languages saved to the log, since log is not retroactively changed.

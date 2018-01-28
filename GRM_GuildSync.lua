@@ -1,6 +1,6 @@
 -- For Sync controls!
 -- Author: Arkaan... aka "TheGenomeWhisperer"
--- Version 7.3.2R1.124
+-- Version 7.3.2R1.126
 -- To hold all Sync Methods/Functions
 GRMsync = {};
 
@@ -228,7 +228,7 @@ GRMsync.CheckJoinDateChange = function( msg , sender , prefix )
             -- Let's see if there was a change
             if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][2] ~= finalTStamp and GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][35][2] < epochTimeOfChange then
                 -- do a null check... will be same as button text
-                if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][20][ #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][20] ] ~= nil then
+                if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][20][ #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][20] ] ~= nil or #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][20] > 0 then
                     table.remove ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][20] , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][20] );  -- Removing previous instance to replace
                     table.remove ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][21] , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][21] );
                 end
@@ -351,7 +351,7 @@ GRMsync.EventAddedToCalendarCheck = function ( msg , sender )
         GRM.RefreshAddEventFrame();
         -- Send chat update info.
         if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][16] then
-            chat:AddMessage ( GRM.L ( "\"{custom1}\" event added to the calendar by {name}" , GRM.GetClassifiedName ( name , true ) , nil , nil , title ) , 1.0 , 0.84 , 0 );
+            chat:AddMessage ( GRM.L ( "\"{custom1}\" event added to the calendar by {name}" , GRM.GetClassifiedName ( sender , true ) , nil , nil , title ) , 1.0 , 0.84 , 0 );
         end
     end
 end
@@ -3383,13 +3383,11 @@ GRMsync.RegisterCommunicationProtocols = function()
                     msg = string.sub ( msg , string.find ( msg , "?" ) + 1 );
                     local prefix2 = string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 );
                     msg = string.sub ( msg , string.find ( msg , "?" ) + 1 );
-                    
                     -- Determine if this is a retroactive sync message, or a live sync.
                     if prefix2 == "GRM_JDSYNCUP" or prefix2 == "GRM_PDSYNCUP" or prefix2 == "GRM_ALTSYNCUP" or prefix2 == "GRM_REMSYNCUP" or prefix2 == "GRM_MAINSYNCUP" then
                         sender = string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 );
                         msg = string.sub ( msg , string.find ( msg , "?" ) + 1 );
                     end
-
                     -- To cleanup Lua errors from very old versions trying to communicate...
                     local senderRankRequirement;
                     if string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 ) ~= nil then
@@ -3406,7 +3404,6 @@ GRMsync.RegisterCommunicationProtocols = function()
                         chat:AddMessage ( "|cff00c8ff" .. GRM.L ( "GRM:" ) .. " |cffffffff" .. GRM.L ( "{name} tried to Sync with you, but their addon is outdated." , GRM.GetClassifiedName ( sender , true ) ) .. "\n|cffff0044" .. GRM.L ( "Remind them to update!" ) );
                         return;
                     end
-
                     -- Sender is not the designatedleader then return... Higher means lower in-game... 1 = guild leader; 10 = lowest initiate rank. So, if rank is higher than the restricted, it won't work. -- if the senderRankRequirement is lower than the receiving player, then that means it won't sync either.
                     -- of note, leadership role will not be rank restricted, but it will send out restricted data with rank tags on it so others know not to sync it or not. In the meantime the leader will build a temporary database to parry against during sync
                     if not GRMsyncGlobals.IsElectedLeader and ( prefix2 ~= "GRM_WHOISLEADER" and prefix2 ~= "GRM_IAMLEADER" and prefix2 ~= "GRM_ELECT" and prefix2 ~= "GRM_TIMEONLINE" and prefix2 ~= "GRM_NEWLEADER" ) and sender ~= GRMsyncGlobals.DesignatedLeader and ( GRM.GetGuildMemberRankID ( sender ) > GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] or senderRankRequirement < GRM.GetGuildMemberRankID ( GRM_AddonGlobals.addonPlayerName ) ) then        -- If player's rank is below settings threshold, ignore message.
@@ -3424,7 +3421,6 @@ GRMsync.RegisterCommunicationProtocols = function()
                     ------------------------------------------
                     ----------- LIVE UPDATE TRACKING ---------
                     ------------------------------------------
-
                     -- Varuious Prefix Logic handling now...
                     if prefix2 == "GRM_JD" then
                         GRMsync.CheckJoinDateChange ( msg , sender , prefix2 );
