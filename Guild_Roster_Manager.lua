@@ -57,9 +57,6 @@ GRM_AddonGlobals.trackingTriggered = false;
 -- Guild Status holder for checkover.
 GRM_AddonGlobals.guildStatusChecked = false;
 
--- UI Controls global for reset
-GRM_AddonGlobals.UIIsLoaded = false;
-
 -- Tempt Logs For FinalReport()
 GRM_AddonGlobals.TempNewMember = {};
 GRM_AddonGlobals.TempLogPromotion = {};
@@ -160,11 +157,11 @@ GRM_AddonGlobals.currentAddonUsers = {};
 GRM_AddonGlobals.RosterButtons = {};
 GRM_AddonGlobals.CurrentRank = "";
 
--- Version Control
 GRM_AddonGlobals.VersionChecked = false;
 GRM_AddonGlobals.VersionCheckRegistered = false;
 GRM_AddonGlobals.VersionCheckedNames = {};
 GRM_AddonGlobals.NeedsToAddSelfToList = false;
+
 GRM_AddonGlobals.ActiveStatusQue = {};
 
 -- For Temporary Slash Command Actions
@@ -440,7 +437,7 @@ GRM.ResetDefaultSettings = function()
     end
 
     -- if sync was disabled
-    if ( not GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterSyncCheckButton:GetChecked() or ( GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterSyncBanList:IsEnabled() and not GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterSyncBanList:GetChecked() and GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][21] ) ) and GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][14] then
+    if ( not GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterSyncCheckButton:GetChecked() or ( GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterSyncBanList:IsEnabled() and not GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterSyncBanList:GetChecked() and GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][21] ) ) and GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][14] then
         if not GRMsyncGlobals.currentlySyncing and GRM_AddonGlobals.HasAccessToGuildChat then
             GRM.Report ( GRM.L ( "Reactivating Data Sync..." ) );
             GRMsync.TriggerFullReset();
@@ -731,7 +728,7 @@ end
 GRM.GetGuildMemberRankID = function( name )
     local result = -1;
     -- Prevents errors if the other players sends a sync call too early, it will just ignore it.
-    if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] ~= nil then
+    if #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] ~= nil then
         for i = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
             if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][1] == name then
                 result = GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][i][5];
@@ -884,78 +881,32 @@ GRM.SetLeftPlayersStillOnServer = function( playerNames )
     end);
 end
 
-
-local channelEnum = {
-    ["CHAT_MSG_GUILD"] = "Guild",
-    ["CHAT_MSG_OFFICER"] = "Officer",
-    ["CHAT_MSG_PARTY"] = "Party",
-    ["CHAT_MSG_PARTY_LEADER"] = "Party Leader",
-    ["CHAT_MSG_RAID"] = "Raid",
-    ["CHAT_MSG_RAID_LEADER"] = "Raid Leader",
-    ["CHAT_MSG_INSTANCE_CHAT"] = "Instance",
-    ["CHAT_MSG_INSTANCE_CHAT_LEADER"] = "Instance Leader",
-    ["CHAT_MSG_ACHIEVEMENT"] = "Achievement"
-}
-
-GRM.GetChannelType = function ( channelName )
-    local result = "";
-    for key, y in pairs ( channelEnum ) do
-        if y == channelName then
-            result = key;
-            result = string.gsub ( result , "CHAT_MSG_" , "" ); -- Parses out the CHAT_MSG_ and leaves the title.
-            break;
-        end
-    end
-    return result;
-end
-
-GRM.GetChatRGB = function ( channel )
-    local result = {};
-    if ChatTypeInfo[ channel ] ~= nil then
-        result = { ChatTypeInfo[channel].r , ChatTypeInfo[channel].g , ChatTypeInfo[channel].b , ChatTypeInfo[channel].colorNameByClass };
-    end
-    return result;
-end
-
 -- Method:          GRM.AddMainToChat ( ... )
 -- What it Does:    It adds either a Main tag to the player, or if they are on an alt, includes the name of the main.
 -- Purpose:         Easy to see player name in guild chat, for achievments and so on...
 GRM.AddMainToChat = function( self , event , msg , sender , ... )
-    local result = false;
-    if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][29] then -- and sender ~= GRM_AddonGlobals.addonPlayerName then
+    if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][29] then
+        local result = false;
         local guildData = GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ];
-        local channelName = channelEnum [ event ];
-        local colorCode = GRM.GetChatRGB ( GRM.GetChannelType ( channelName ) );
-        local format = { "none" , "<M>" , "(M)" , "<Main>" , "(Main)" };
         -- Find the player in the guild!
-        if guildData ~= nil then
-            for i = 2 , #guildData do
-                if guildData[i][1] == sender then
-                    -- Let's see if they are the main. If they are, no need to do anything...
-                    if not guildData[i][10] then
-                        if #guildData[i][11] > 0 then
-                            for j = 1 , #guildData[i][11] do
-                                if guildData[i][11][j][5] then
-                                    if channelName ~= "Achievement" then
-                                        -- if colorCode[4] then
-                                        --     sender = GRM.GetClassifiedName ( sender , true );
-                                        -- end
-                                        -- chat:AddMessage ( "[" .. GRM.L ( channelName ) .. "] |cffff0000" .. GRM.L ( "<M>" ) .. "|r(" .. GRM.SlimName ( guildData[i][11][j][1] ) .. ") " .. "[" .. GRM.SlimName ( sender ) .. "]: " .. msg , colorCode[1] , colorCode[2] , colorCode[3] , 1 );
-                                        msg = "|cffff0000" .. GRM.L ( "<M>" ) .. "|r(" .. GRM.SlimName ( guildData[i][11][j][1] ) .. "): " .. msg;
-                                    else
-                                        msg = "|cffff0000" .. GRM.L ( "<M>" ) .. "|r(" .. GRM.SlimName ( guildData[i][11][j][1] ) .. "): " .. msg;
-                                    end
-                                    break;
-                                end
+        for i = 2 , #guildData do
+            if guildData[i][1] == sender then
+                -- Let's see if they are the main. If they are, no need to do anything...
+                if not guildData[i][10] then
+                    if #guildData[i][11] > 0 then
+                        for j = 1 , #guildData[i][11] do
+                            if guildData[i][11][j][5] then
+                                msg = "|cffff0000" .. GRM.L ( "<M>" ) .. "|r(" .. GRM.SlimName ( guildData[i][11][j][1] ) .. "): " .. msg;
+                                break;
                             end
                         end
                     end
-                    break;
                 end
+                break;
             end
         end
     end
-    return result, msg, sender, ... 
+    return false, msg, sender, ... 
 end
 
 -- FOR CHAT FILTERING FOR INFO AND LISTENING... No need to parse it now, but possibly for the future...
@@ -2248,20 +2199,11 @@ end
 -- Purpose:         Nice, simple UI feature for ease of knowing person's class by name color.
 GRM.GetClassifiedName = function ( playerFullName , serverFree )
     local result = GRM.GetStringClassColorByName ( playerFullName );
-    if result == "" then
-        if serverFree then 
-            result = GRM.SlimName ( playerFullName );
-        else
-            result = playerFullName;
-        end
+    if serverFree then
+        return result .. GRM.SlimName ( playerFullName ) .. "|r";
     else
-        if serverFree then
-            result = result .. GRM.SlimName ( playerFullName ) .. "|r";
-        else
-            result = result .. playerFullName .. "|r";
-        end
-    end
-    return result
+        return result .. playerFullName .. "|r";
+    end 
 end
 
 -- Method:          GRM.rgbToHex ( array )
@@ -6626,22 +6568,22 @@ GRM.PopulateOptionsRankDropDown = function ()
     -- populating the frames!
     local buffer = 3;
     local height = 0;
-    GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterSyncRankDropDownMenu.Buttons = GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterSyncRankDropDownMenu.Buttons or {};
+    GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterSyncRankDropDownMenu.Buttons = GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterSyncRankDropDownMenu.Buttons or {};
 
     -- Resetting the buttons!
-    for i = 1 , #GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterSyncRankDropDownMenu.Buttons do
-        GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterSyncRankDropDownMenu.Buttons[i][1]:Hide();
+    for i = 1 , #GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterSyncRankDropDownMenu.Buttons do
+        GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterSyncRankDropDownMenu.Buttons[i][1]:Hide();
     end
     
     local i = 1;
     for count = 1 , GuildControlGetNumRanks() do
-        if not GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterSyncRankDropDownMenu.Buttons[i] then
-            local tempButton = CreateFrame ( "Button" , "rankIndex" .. i , GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterSyncRankDropDownMenu );
-            GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterSyncRankDropDownMenu.Buttons[i] = { tempButton , tempButton:CreateFontString ( "rankIndexText" .. i , "OVERLAY" , "GameFontWhiteTiny" ) }
+        if not GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterSyncRankDropDownMenu.Buttons[i] then
+            local tempButton = CreateFrame ( "Button" , "rankIndex" .. i , GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterSyncRankDropDownMenu );
+            GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterSyncRankDropDownMenu.Buttons[i] = { tempButton , tempButton:CreateFontString ( "rankIndexText" .. i , "OVERLAY" , "GameFontWhiteTiny" ) }
         end
 
-        local RankButtons = GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterSyncRankDropDownMenu.Buttons[i][1];
-        local RankButtonsText = GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterSyncRankDropDownMenu.Buttons[i][2];
+        local RankButtons = GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterSyncRankDropDownMenu.Buttons[i][1];
+        local RankButtonsText = GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterSyncRankDropDownMenu.Buttons[i][2];
         RankButtons:SetWidth ( 110 );
         RankButtons:SetHeight ( 11 );
         RankButtons:SetHighlightTexture ( "Interface\\Buttons\\UI-Panel-Button-Highlight" );
@@ -6653,20 +6595,20 @@ GRM.PopulateOptionsRankDropDown = function ()
         RankButtonsText:SetJustifyH ( "CENTER" );
 
         if i == 1 then
-            RankButtons:SetPoint ( "TOP" , GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterSyncRankDropDownMenu , 0 , -7 );
+            RankButtons:SetPoint ( "TOP" , GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterSyncRankDropDownMenu , 0 , -7 );
             height = height + RankButtons:GetHeight();
         else
-            RankButtons:SetPoint ( "TOP" , GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterSyncRankDropDownMenu.Buttons[i - 1][1] , "BOTTOM" , 0 , -buffer );
+            RankButtons:SetPoint ( "TOP" , GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterSyncRankDropDownMenu.Buttons[i - 1][1] , "BOTTOM" , 0 , -buffer );
             height = height + RankButtons:GetHeight() + buffer;
         end
 
         RankButtons:SetScript ( "OnClick" , function( self , button ) 
             if button == "LeftButton" then
-                local formerRank = GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterSyncRankDropDownSelectedText:GetText();
-                GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterSyncRankDropDownSelectedText:SetText ( RankButtonsText:GetText() );
-                GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterSyncRankDropDownMenu:Hide();
-                GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterSyncRankDropDownSelected:Show();
-                GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] = GRM.GetRankIndex ( GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterSyncRankDropDownSelectedText:GetText() , self );
+                local formerRank = GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterSyncRankDropDownSelectedText:GetText();
+                GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterSyncRankDropDownSelectedText:SetText ( RankButtonsText:GetText() );
+                GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterSyncRankDropDownMenu:Hide();
+                GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterSyncRankDropDownSelected:Show();
+                GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][15] = GRM.GetRankIndex ( GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterSyncRankDropDownSelectedText:GetText() , self );
 
                 -- Retrigger active addon users... Very important to know permissions
                 if not GRM_UI.GRM_RosterChangeLogFrame.GRM_AddonUsersFrame:IsVisible() then
@@ -6689,7 +6631,7 @@ GRM.PopulateOptionsRankDropDown = function ()
         RankButtons:Show();
         i = i + 1;
     end
-    GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterSyncRankDropDownMenu:SetHeight ( height + 15 );
+    GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterSyncRankDropDownMenu:SetHeight ( height + 15 );
 end
 
 -- Method:          GRM.PopulateBanListOptionsDropDown ()
@@ -6699,22 +6641,22 @@ GRM.PopulateBanListOptionsDropDown = function ()
     -- populating the frames!
     local buffer = 3;
     local height = 0;
-    GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterBanListDropDownMenu.Buttons = GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterBanListDropDownMenu.Buttons or {};
+    GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterBanListDropDownMenu.Buttons = GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterBanListDropDownMenu.Buttons or {};
 
     -- Resetting the buttons!
-    for i = 1 , #GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterBanListDropDownMenu.Buttons do
-        GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterBanListDropDownMenu.Buttons[i][1]:Hide();
+    for i = 1 , #GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterBanListDropDownMenu.Buttons do
+        GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterBanListDropDownMenu.Buttons[i][1]:Hide();
     end
     
     local i = 1;
     for count = 1 , GuildControlGetNumRanks() do
-        if not GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterBanListDropDownMenu.Buttons[i] then
-            local tempButton = CreateFrame ( "Button" , "rankIndex" .. i , GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterBanListDropDownMenu );
-            GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterBanListDropDownMenu.Buttons[i] = { tempButton , tempButton:CreateFontString ( "rankIndexText" .. i , "OVERLAY" , "GameFontWhiteTiny" ) }
+        if not GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterBanListDropDownMenu.Buttons[i] then
+            local tempButton = CreateFrame ( "Button" , "rankIndex" .. i , GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterBanListDropDownMenu );
+            GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterBanListDropDownMenu.Buttons[i] = { tempButton , tempButton:CreateFontString ( "rankIndexText" .. i , "OVERLAY" , "GameFontWhiteTiny" ) }
         end
 
-        local RankButtons = GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterBanListDropDownMenu.Buttons[i][1];
-        local RankButtonsText = GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterBanListDropDownMenu.Buttons[i][2];
+        local RankButtons = GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterBanListDropDownMenu.Buttons[i][1];
+        local RankButtonsText = GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterBanListDropDownMenu.Buttons[i][2];
         RankButtons:SetWidth ( 110 );
         RankButtons:SetHeight ( 11 );
         RankButtons:SetHighlightTexture ( "Interface\\Buttons\\UI-Panel-Button-Highlight" );
@@ -6726,20 +6668,20 @@ GRM.PopulateBanListOptionsDropDown = function ()
         RankButtonsText:SetJustifyH ( "CENTER" );
 
         if i == 1 then
-            RankButtons:SetPoint ( "TOP" , GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterBanListDropDownMenu , 0 , -7 );
+            RankButtons:SetPoint ( "TOP" , GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterBanListDropDownMenu , 0 , -7 );
             height = height + RankButtons:GetHeight();
         else
-            RankButtons:SetPoint ( "TOP" , GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterBanListDropDownMenu.Buttons[i - 1][1] , "BOTTOM" , 0 , -buffer );
+            RankButtons:SetPoint ( "TOP" , GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterBanListDropDownMenu.Buttons[i - 1][1] , "BOTTOM" , 0 , -buffer );
             height = height + RankButtons:GetHeight() + buffer;
         end
 
         RankButtons:SetScript ( "OnClick" , function( self , button ) 
             if button == "LeftButton" then
-                local formerRank = GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterBanListDropDownSelectedText:GetText();
-                GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterBanListDropDownSelectedText:SetText ( RankButtonsText:GetText() );
-                GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterBanListDropDownMenu:Hide();
-                GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterBanListDropDownSelected:Show();
-                GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][22] = GRM.GetRankIndex ( GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterBanListDropDownSelectedText:GetText() , self );
+                local formerRank = GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterBanListDropDownSelectedText:GetText();
+                GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterBanListDropDownSelectedText:SetText ( RankButtonsText:GetText() );
+                GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterBanListDropDownMenu:Hide();
+                GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterBanListDropDownSelected:Show();
+                GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][22] = GRM.GetRankIndex ( GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterBanListDropDownSelectedText:GetText() , self );
 
                 -- Re-trigger addon users permissions
                 if not GRM_UI.GRM_RosterChangeLogFrame.GRM_AddonUsersFrame:IsVisible() then
@@ -6757,7 +6699,7 @@ GRM.PopulateBanListOptionsDropDown = function ()
         RankButtons:Show();
         i = i + 1;
     end
-    GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterBanListDropDownMenu:SetHeight ( height + 15 );
+    GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterBanListDropDownMenu:SetHeight ( height + 15 );
 end
 
 -- Method:          GRM.PopulateClassDropDownMenu ()
@@ -6910,11 +6852,11 @@ GRM.CreateOptionsRankDropDown = function ()
         setRankNameBanList = GuildControlGetRankName ( 1 )     -- Default it to guild leader. This scenario could happen if the rank was removed or you change guild but still have old settings.
     end
 
-    GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterSyncRankDropDownSelectedText:SetText( setRankName );
-    GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterBanListDropDownSelectedText:SetText ( setRankNameBanList );
+    GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterSyncRankDropDownSelectedText:SetText( setRankName );
+    GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterBanListDropDownSelectedText:SetText ( setRankNameBanList );
 
-    GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterSyncRankDropDownSelected:Show();
-    GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterBanListDropDownSelected:Show();
+    GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterSyncRankDropDownSelected:Show();
+    GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_RosterBanListDropDownSelected:Show();
 end
 
 -- Method:              GRM.ClearPromoDateHistory ( string )
@@ -8719,7 +8661,6 @@ end
 -- Purpose:         Really, just aesthetics for User Experience. This also is built to be flexible, to account for any given tab.
 GRM.FrameTransition = function( fadeInName , fadeOutName , isOptionsTab )
     if fadeInName ~= nil then
-        fadeInName:Show();
         fadeInName:SetAlpha( fadeInName:GetAlpha() + 0.04 );
     end
     if fadeOutName ~= nil then
@@ -8734,9 +8675,6 @@ GRM.FrameTransition = function( fadeInName , fadeOutName , isOptionsTab )
         if fadeOutName ~= nil then
             fadeOutName:SetAlpha ( 0 );
             fadeOutName:Hide();
-        end
-        if fadeInName ~= nil then
-            fadeInName:SetAlpha ( 1 );
         end
         if isOptionsTab then
             GRM.DisableTabButtons ( false );
@@ -9287,7 +9225,6 @@ local function Tracking()
                         GRM_RosterChangeLogFrame:Show();
                     end
                 end
-                GRM_AddonGlobals.UIIsLoaded = true;
                 
                 -- Determine if player has access to guild chat or is in restricted chat rank
                 GRM.RegisterGuildChatPermission();
@@ -9331,7 +9268,7 @@ GRM.GR_LoadAddon = function()
     KickAndRankChecking:SetScript ( "OnEvent" , GRM.KickPromoteOrJoinPlayer );
     
     if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][29] then
-        local chatEvents = { "CHAT_MSG_GUILD" , "CHAT_MSG_WHISPER" , "CHAT_MSG_GUILD_ACHIEVEMENT" , "CHAT_MSG_PARTY" , "CHAT_MSG_PARTY_LEADER" , "CHAT_MSG_RAID", "CHAT_MSG_RAID_LEADER" , "CHAT_MSG_INSTANCE_CHAT" , "CHAT_MSG_INSTANCE_CHAT_LEADER" , "CHAT_MSG_OFFICER" }
+        local chatEvents = { "CHAT_MSG_GUILD" , "CHAT_MSG_WHISPER" , "CHAT_MSG_GUILD_ACHIEVEMENT" , "CHAT_MSG_PARTY" , "CHAT_MSG_PARTY_LEADER" , "CHAT_MSG_PARTY_LEADER" , "CHAT_MSG_RAID", "CHAT_MSG_RAID_LEADER" , "CHAT_MSG_INSTANCE_CHAT" , "CHAT_MSG_INSTANCE_CHAT_LEADER" , "CHAT_MSG_OFFICER" }
         for i = 1 , #chatEvents do
             ChatFrame_AddMessageEventFilter ( chatEvents[i] , GRM.AddMainToChat );
         end
@@ -9615,13 +9552,14 @@ Initialization:SetScript ( "OnEvent" , GRM.ActivateAddon );
     ----- KNOWN BUGS --------------------
     ------------------------------------
 
-    -- Namechange not finding it occasionally... needs stress testing
+    -- When a player joins the guild, he keeps requesting to sync over and over again...
     -- Ban list sync occasionally wonky, like it syncs partial list, then you sync again and you get the rest... or only the person sharing the data with you syncs to you, but it doesn't pass through a mediator if more than 2 online
     -- Double reporting likely due to stutter elimination delay. Roster needs to be used immediately. More stop checks need to be secured inthe Checking for Changes to ensure it doesn't collect new data whilst holding on to a copy of the guild form the server that might be 1-10 seconds older than current.
     -- Inactive return does not report if < 1hr, only once they have been offline for 1hr or more...
     -- If a player has been offline for 5 years Blizz opens up their name by changing the last few characters... name-change triggers. If multiple name-changes, it won't know which is which
     -- Sync restrictions on data is not working.,.. I was too low of a rank, yet I still got the updates...
     -- Ban list only syncs if it is coming from the sender and the leader updates themselves... what am I missing here? Maybe if they are sending me incorrect info, I should shoot back to them to update it properly...
+    -- Sync complete is triggering for people without any notification that sync has started... maybe erroneous trigger from another player that was not syncing with them? Possibly hide that message...
     -- Potential issue when comparing players that left and are returning... GuildControlGetNumRanks() - if they were a rank that is say 9, but there is only 7 ranks in the guild now, what happens?
     -- If a player goes from not being able to read officer note, to having access, it spams you. That should be known...
     -- Note change spam if you have curse words in note/officer notes and Profanity filter on. Just disable profanity filter for now until I get around to it.
@@ -9631,12 +9569,9 @@ Initialization:SetScript ( "OnEvent" , GRM.ActivateAddon );
     ----- BUSY work ---------------
     -------------------------------------
 
-    -- Fonstring to state on the event window that the player either does not have officer permission to add an event to the calendar, or they have the Options disabled to allow events to be added.
-    -- Up and down arros on the alt selection
-    -- No need to announce yourself as main when you know.
-    -- Right click slider to set sync speed to 100%.
     -- Set all alts same date as main
     -- Make player window not disappear on click, just move out temporarily.
+    -- When reporting that a player is no longer in guild but still has alts, do a check on eahc "Alts In Guild" that they are not also on the list of leaving players.
     -- Ability to disable showing full name (possibly per channel?)
     -- Log should be Clickable to open player window...
     -- On first load, don't print to chat log...
@@ -9659,5 +9594,4 @@ Initialization:SetScript ( "OnEvent" , GRM.ActivateAddon );
     -- 4 letter word == !@#$ !@#$%^ or ^&*!  
   
     -- CHANGELOG:
-    -- Options Window has been completely overhauled, room for growth. New Options!!!
-    -- Right-click the sync speed slider to reset it back to 100%.
+    -- Full localization templates are now ready. Please help contribute in your native tongue if you can!
