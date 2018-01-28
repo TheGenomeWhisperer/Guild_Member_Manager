@@ -1,5 +1,11 @@
 **VERSION 7.3.2R1.126 DATE: January 28th, 2018**
 
+*Minor Update*
+
+* Cleaned up some settings info... fixed it to also be version 7.3.5 not 7.3.2
+
+**VERSION 7.3.2R1.126 DATE: January 28th, 2018**
+
 ***HUGE USER EXPERIENCE UPDATE***
 
 *Note: There is still a TON to do, but I knocked out a huge amount of busy features in this update that have just been piling up.*

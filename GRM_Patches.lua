@@ -175,5 +175,17 @@ GRM_Patch.SetMinimapValues = function()
 end
 
 -- TEST HELPERS
--- /run local t=GRM_AddonSettings_Save[GRM_AddonGlobals.FID];for i=2,#t do if #t[i][2]>30 then while #t[i][2]>30 do table.remove(t[i][2],#t[i][2])end;end;end;GRM_AddonSettings_Save[GRM_AddonGlobals.FID]=t;
+-- Introduced Patch R1.126
+GRM_Patch.CleanupSettings = function ( anyValueGreaterThanThisIndex )
+    local settings = GRM_AddonSettings_Save[GRM_AddonGlobals.FID];
+    for i = 2 , #settings do
+        if #settings[i][2] > anyValueGreaterThanThisIndex then
+            while #settings[i][2] > anyValueGreaterThanThisIndex do
+                table.remove ( settings[i][2] , #settings[i][2] );
+            end
+        end
+    end
+    GRM_AddonSettings_Save[GRM_AddonGlobals.FID] = settings;
+end
+
 -- /run for i=2,#GRM_AddonSettings_Save[GRM_AddonGlobals.FID] do print(GRM_AddonSettings_Save[GRM_AddonGlobals.FID][i][2][25])end

@@ -1,3 +1,331 @@
+**VERSION 7.3.2R1.128 DATE: January 28th, 2018**
+
+*Minor Fix*
+
+* The public and officer note would clear the ability to edit/add them after a few seconds. This was causing some minor errors, but also made it hard to change notes. VERY ANNOYING! This was a new bug added in 1.126 and a slight oversight.
+
+**VERSION 7.3.2R1.127 DATE: January 28th, 2018**
+
+*Minor Update*
+
+* Cleaned up some settings info... fixed it to also be version 7.3.5 not 7.3.2
+
+**VERSION 7.3.2R1.126 DATE: January 28th, 2018**
+
+***HUGE USER EXPERIENCE UPDATE***
+
+*Note: There is still a TON to do, but I knocked out a huge amount of busy features in this update that have just been piling up.*
+
+**NEW FEATURES**
+
+* New1: Players can now sync alt dates with the click of a button! Rather than choose each alt manually to set the date, you can choose to sync in 3 ways: To the alt with the earliest join date, to the main, to the currently selected player
+
+* New2: Minimap Button has been added! Just right-click and drag where you want it!!! (or hide it)
+
+**QUALITY OF LIFE**
+
+QoL1: AddAlt "autocomplete" is now significantly smarter. It will not just alphabetize it, but will do partial word matches to names, it color codes the names to their class, and if they are already grouped as an alt/main it indicates it with <A> or <M> tags
+
+QoL2: Options Window has been a bit overhauled, with sub-tabs for each category. While they are mostly "empty" now, there is a lot of room for further customization as needed as more features are added without getting too cluttered.
+
+QoL3: Players can now Globally sync the addon "settings" among all their alts within the same guild just by putting a check in the box. This syncs per client, so multiboxers will need to check the box for each account.
+
+QoL4: Right-Click the sync speed slider to reset it back to 100%
+
+QoL5: Scroll slider bars now function properly, the way the built in roster does. Clicking them now only moves the bar incrementally rather than jumping the bar to the position of the cursor.
+
+QoL6: The core player detail window now just moves out to the side without hiding when the user clicks on a roster name to bring out the promote/demote/kick window
+
+QoL7: The player no longer displays the main tagging on their own toons, since it is assumed the player knows their own alts!
+
+QoL8: The audit window now has a new button allowing "unknown" to be included in the "complete/incomplete" filter
+
+QoL9: Add an informative note to the "Add to Calender Events" tab, if the player does not have guild permission to add events to the calendar, the addon now informs them of it.
+
+QoL10: ElvUI cleaned up a bit further, addressing a few minor allignment updates, as well as some compatibility issues. Merge request has been sent to addon dev.
+
+QoL11: Several, and I mean several misc little things here and there... from allignment, to tiny bugs, to lots of time sucking things worked on I won't mention in their entirety.
+
+**BUG FIXES**
+
+Bug1: Sync should no longer trigger twice back to back when a player with the addon installed joins a guild
+
+Bug2: Broken settings was the cause of an issue in regards to players that try to open the addon window and it was crashing... This has been resolved. For some players they may need to do a one-time /grm hardreset. But, the issue should not return. This will be noticeable as it will cause some alts they log into to crash the game, whilst some others it is just fine. This is 100% related to an old update that failed to consider a couple of factors upon updating some deprecated features, thus breaking their addon in certain eventual circumstances. This has been fixed.
+
+Bug3: Fixed issue with the hex color code being added to Anniversary event description on the calendar add events.
+
+Bug4: Fixed an issue where if a player is automatically removed from the Events list because the time of the event has passed without the player adding to calendar or removing from the list, it could error in certain circumstances.
+
+Bug5: Fixed an issue where sync message was stating the wrong person was adding an event to the calendar.
+
+
+**VERSION 7.3.2R1.125 DATE: January 13th, 2018**
+
+***MAJOR ANNOUNCEMENT***
+
+*Full Localization templates are now in the addon folder under "locales." I need any help that you can in getting this work translated. It's a lot of work and I don't expect any 1 person to do it all for any specific language. But, any bit that you can add, I will make sure you get the credit and I will incorporate it. Instructions are in each of the Lua files. I wrote my own, 100% in-house localization script, that is significantly leaner than using a publicly available library, like Ace. This also allowed me to customize it a bit for this addon. This was a significant job to put together these templates. Now, all we need is the remainder of the translation work done. Please just upload the file link and send it to me on Discord for any work that you have done. THANK YOU!!!*
+
+**NEW FEATURES**
+
+* New1: The player in chat will be tagged with their "main's" name. If they are on their main or their main/alt status has never been configured it won't show anything, but if they are a main or an alt, this will mark them as such :D - This affects guild/officer/party/raid/instance/whisper chat from guildies
+
+* New2: Throttle Control slider in the options. Some people might have some sync/disconnect issues. If you find yourself disconnecting, it can be for a variety of reasons. Try throttling the sync speed back a little and see if that resolves it.
+
+**QUALITY OF LIFE**
+
+* QoL1: The addon no longer spams your chat window with the updates when logging in. It will inform you of live updates, of course, but you can always just look at the log for the mass of changes when logging in.
+
+* QoL2: The DEL key now properly updates the character count on the note/officer note, MOTD, and guild info edit boxes.
+
+* QoL3: On selecting the MOTD, you now will auto-highlight the whole text. I know, it's minor, but I don't have to click and hit ctrl-A anymore :D
+
+* QoL4: Player names should now properly match ALL log messages to their class color, as well as sync messages, and nearly all aspects of the addon.
+
+* QoL5: On the backend UI Globals are now finally 100% cleaned up into nice and neat, fast, tables. Keeping down on the global code clutter.
+
+* QoL6: Ban List player ranks should now allign properly
+
+* QoL7: New Lua class to hold specific update/player patch data. Cleaner, easier to debug.
+
+**BUG FIXES**
+
+* BugFix1: "Reset Defaults" button should now properly work. I must've broken it recently lol
+
+* BugFix2: Somewhat huge bug I noticed that could cause players to end up with a lot of repeat player copies. It seemed to only affect x-realm guilds. So, I did 2 things. I resolved this bug so it will not repeat, and I wrote a script that will parse through your database and clean it all up if it affected you. So, you don't have to do anything. yay!
+
+* BugFix3: More misc. Lua reports on some edge cases here and there.
+
+
+**VERSION 7.3.2R1.124 DATE: January 2nd, 2018**
+
+*HAPPY NEW YEAR!!!!!*
+
+**NEW FEATURES**
+
+* New1: If a player leaves the guild, and they transferred from the server, the addon will now inform you that the player is no longer on the server, in the log. Thanks @Polgara for the suggestion!
+
+* New2: There are 2 new buttons on the Audit tab to set ALL incomplete promo/join dates to "unknown" (or undo the process)
+
+
+**QUALITY OF LIFE**
+
+* QoL1: Mouseover distance to the right of the chat/log filters, should now only trigger over the checkbox. They used to be very far wide right.
+
+* QoL2: The Ban List will now display the players that are banned that are still in the guild at the TOP of the list, rather than the bottom.
+
+* QoL3: Sync Messages stating that sync is starting should no longer display if everyone else with the addon online at the moment is not compatible to sync with, be it rank permissions or other reasons.
+
+* QoL4: The Addon Users tab now states "Their rank too low" if another player's rank is below your threshold, as before the "Rank too low" some thought it was referring to their own rank.
+
+* QoL5: Promoted/demoted messages are now cleaner and more concise for merged realm guilds.
+
+* QoL6: Event Calendar Manager Buttons are now in the proper position.
+
+* QoL7: "Unique Accounts" number is now fully localized so ALL non-English clients will be able to see this number
+
+* QoL8: Cleaned up some allignment issues with ElvUI AddonSkins (and pushed new updates to the addon dev as well to incorporate)
+
+* QoL9: New HardReset slash command /grm hardreset  -- This will not just wipe the saved data, it purges all, including settings, to be as if addon was just installed day 1. Be cautious. No warning on use. Mostly for quick emergency reset just in case.
+
+* QoL10: If player is in a mega guild that uses "GreenWall" to share comms between all guilds, that use a signigicant amount of backend comms that goes to that internal server cap that can disconnect you, especially if many people chatting in gchat at same time. This addon now detects if the player has that addon loaded, and adjusts the comms appropriately to take into account the extra cross talk.
+
+
+**BUG FIXES**
+
+* Bug1: UI Bug where if player clicked "alt" name on the list of alts, you'd get overlapping frames if editing/adding a join/promo date
+
+* Bug2: Noticed if reporting a namechange, if it couldn't identify which player was the namechange, it would reuse that for all namechangers. This would not be noticeable in most cases, but if you logged on and 2 or more namechanges happened in the guild, it would trigger the bug spam in the log, hence I never noticed it til recently.
+
+* Bug3: Fixed an issue where non-English clients the player window would appear empty when looking at Guild Roster professions window.
+
+* Bug4: Fixed major bug that avoids Lua error and the addon crashing out when a player joins a guild with addon installed
+
+* Bug5: Fixed several other misc. Lua errors that have been reported and are mostly circumstantial cases. Thankfully we are knocking them out. Thank you!
+
+
+**VERSION 7.3.2R1.123 DATE: December 23, 2017**
+
+***BUGFIXES***
+*Ya, my 330am release of my last update I somehow was half-asleept and pushed the update, but a few things in it I forgot to merge, I jsut thought I coded them and merged them. Nope! Sync likely would fail for many as a result. Not anymore!*
+
+
+**VERSION 7.3.2R1.122 DATE: December 23, 2017**
+
+**Continuing Updates on the Audit Log**
+
+**FEATURE UPDATES**
+
+* NEW "Unknown" feature - Don't know their join or promo date? Set it as unknown. Of note, this data does not yet sync.
+
+* The unknown tag will feature in the audit window as a goldish orange
+
+* New checkbox in the Audit Window for filtering so you can choose to see only incomplete guildies
+
+* Additional useful info in Audit window: Num of unique accounts reflected next to number of mains
+
+**QUALITY OF LIFE**
+
+* Frame sizing has been adjusted slightly to be more how it was originally, as this larger frame just feels a bit bulky, right?
+
+**BUG FIXES**
+
+* Bug Fix1: Fixed a circumstance where Lua error could occur when syncing alt data
+
+* Bug Fix2: Fixed circumstance where Lua error could crash sync on join date syncs in some circumstances.
+
+*NOTE: I have heard reports of "double" reporting in the log, or reporting of something be removed and then re-added. I am still investigating this. I have a suspicion what is happening, but I have been having trouble recreating it. I will have this fixed sometime soon.*
+
+
+**VERSION 7.3.2R1.121**
+
+**Minor Bug fix** -- for players with very long server names, they would wrap the text and form a 2nd line, messing the allignment on the Audit Frame. This is fixed.
+
+**VERSION 7.3.2R1.120**
+
+**BUG FIX!!!**
+
+*Ya, notice your screen is locking up momentarily after sync starts? Oops! I accidentally a code and made it so you were refreshing those new audit frames for every sync data sent lol. Ya, that'll crash your game. It is good now.*
+
+
+**VERSION 7.3.2R1.119**
+
+***TWO BIG UPDATES!!!***
+
+**UPDATE 1: Guild Audit**
+
+*Players can now open the audit tab and it will give an accounting of everyone in the entire guild, whether they have their join date/rank promo date/main or alt status determined. To take it a step further, the player can click on their name, if they are missing info, and it will immediately open up the player window where you can add the info together. It updates on the fly*
+
+**UPDATE 2: UI Redesign**
+
+*Tab system for the main roster window. Many other misc. features added as well, like some more mouseover tooltips on add events to calendar window and user sync info.*
+
+**QUALITY OF LIFE**
+
+* QOL1: Minimum Level filter now included on the leveling spam.
+
+* QOL2: On scrolling, hold CONTROL down to scroll super fast. Hold SHIFT to immediately go to top or bottom
+
+* QOL3: Class color coding of the player's names now added everywhere as well.
+
+* QOL4: Online/AFK/Offline status now updates live on the player frame
+
+* QOL5: /grm or /roster both work for slash commands now.
+
+* QOL6: Added compatibility for ElvUI "AddOnSkins" plugin and committed it to the addon dev.
+
+* QOL7: The Right-Click notification system, for player status updates, is now far more efficient and runs independently of the Scan for changes check (as some players may disable it, yet still want to be notified if someone comes back from being AFK).
+
+**BUG FIXES** (so many!)
+
+* Bug Fix1: If Officer/Player note was changed, it was incorrectly reporting it changed from a number.
+
+* Bug Fix2: Major alt-sync issue where if you removed a player listed as an alt, then sync'd with another player they would all reappear! woops! lol
+
+* Bug Fix3: Sync issue if the "syncLeader" behind the scenes goes offline, after having already received the data from another player, whilst in the brief moment of parsing it out, if that player goes offline, the other player would wait indefinitely for callback and ignore all other comms, never completing sync or retrying with another player. This is resolved!
+
+* Bug Fix4: The Log should now properly appear on logon if you have it set to only appear with changes.
+
+* Bug Fix5: Resetting Defaults in the Options should now properly reactive scanning for roster changes
+
+**FINAL NOTE**
+
+*Yes, still tons to do. I REALLY wanted to get a minimap button out with this release, but I just didn't have time. Several other requests from you guys, just know that I have them written down. Please stay on my case about them all! Shoutout to AddOnSkins dev for merging my gitlab commits so quickly for his addon as well.*
+
+**VERSION 7.3.2R1.118**
+
+* Bug Fix1: If guild had more than 250 members, addon would fail to report and build profiles for any new members or acknowledge leaving members properly
+
+**VERSION 7.3.2R1.117 - DATE: 13 Dec, 2017**
+
+* Bug Fix1: Lua error would occur if addon was suggesting player to be removed from guild due to inactivity. New bug introduced when I removed the stutter. Oops!
+
+* Quality of Life: If the mouse was stationary, but you scrolled up and down in the log, the player window would not update until you actually moved the mouse. Now it does.
+
+
+**VERSION 7.3.2R1.116 - DATE: 12 Dec, 2017**
+
+***STUTTER ISSUE FIX***
+
+* Stutter issue is now resolved on mega guilds. Tested on 950+ member guild with no more noticeable stutter, I mean, like 99% reduced.
+
+* Fix minor reporting issue on changes that could delay the report until the next loop'd scan.
+
+
+**VERSION 7.3.2R1.115 - DATE: 11 Dec, 2017**
+
+***EVEN MORE DISCONNECT AND LUA FIXES LOL***
+
+***STUTTER ON SCAN FOR MEGA GUILDS ABOUT 95% REMOVED***
+
+*Well, I guess the massive sync speed update is not without hiccups. I just KNEW things were not going to be ready yet, even though testing on my end said it was good. So many things...*
+
+* Sync should not properly not disconnect you lol.
+
+* Lua error fixed on nil value (it was sending a blank message due to conditional error)
+
+* Ban list sync particularly was having some issues. This is cleaned up now. This was more of a pain than people realize. Here is why. Let's say you are new to the guild, and you want ban list sync'd to you. Well, you don't have metadata profiles built on missing players because they were not in the guild when you were. However, if they rejoin the guild, since they are on the ban list, you need to rebuild their profile with old info, thus you too can trigger active monitoring of erroneous invites. This is problematic though since you don't want a bare template. So, addon checks if the sync person on ban list is in your leftPlayer database, and then if not, it syncs their metadata to you. Well, getting this all to sync right, particularly with my new sync method, was an absolute pain in the... you know. It should now be smoothed out properly. I hope!
+
+
+**VERSION 7.3.2R1.114 - DATE: 11 Dec, 2017**
+
+***ANNOYING DISCONNECTS FIXED***
+
+* Sorry guys, the isssue did not present itself for myself and my smaller guild, but it did in larger, with the new speed sync changes. This should not kick you anymore, I hope. /crossFingers
+
+
+* Accidentally included my debugging version - FIXED!
+
+
+**VERSION 7.3.2R1.113 - DATE: 10 Dec, 2017**
+
+* Accidentally included my debugging version - FIXED!
+
+
+**VERSION 7.3.2R1.112 - DATE: 10 Dec, 2017**
+
+***HUGE NEW FEATURE***
+
+***Massively Increased Sync Speeds:** First off... WARNING! This will not sync well with others and will send them a lot of Lua errors if you do not have the check in the box to only sync with current addon users. Just a warning. Yes, it is still not instant, and unfortunately, it never can be. The reason is that Blizz limits messages across the server in comms that cna be no larger than 254 characters. If you do them too fast, you get disconnected. If you try to send a comm 255 characters or higher, you will disconnect. So, I have no choice but to throttle the speed of them. Now, the new sync method is I fully pack every single comm to capacity by putting them altogether in a giant string, and splitting up the comms with obvious markers for breaks in data and characters and so on. So, I jam pack each string and comm to its full capacity then unpack the data on the other end. It takes a bit more computational power (albeit minimally), but the time savings are massive and worth it.*
+
+* 8x-10x sync speed increase. It really is faster!
+
+**NEW FEATURES**
+
+* Clickable link notification now if a player requests to join guild (opens recruit window)
+
+* New Option to only "Show on Logon" if there have been changes.
+
+**QUALITY OF LIFE**
+
+* Message Headers with "-----" have been removed for allignment purposes. Looks cleaner now
+
+* Adding player to ban list is a little smoother
+
+* SyncInfo window fonts allign properly with all scaling/resolutions.
+
+**BUG FIXES**
+
+* Addon had allignment issues with ElvUI's "AddOnSkins" plugin. Built compatibility and sent it to addon dev. It will be implemented soon.
+
+
+**VERSION 7.3.2R1.111 - DATE: 2 Dec, 2017**
+
+*Note: I have a lot of little misc fixes here and there that I forgot to record as I was knocking them off the "to-do" list, so I will just mention a couple I remember*
+
+***QUALITY OF LIFE***
+
+* QOL1: Officer and Public Note changes now report on a single line to the log for all future changes
+
+* QOL2: To avoid chat spam, player requests to join the guild now tell you how many requests there are rather then displaying all requests
+
+* QOL3: Slash command '/roster recruit' will be used to open the window that shows how many recruits there are.
+
+
+**BUG FIXES**
+
+* Bug Fix1: Sometimes it would erroneously report a player Coming back from being offline, even though they never returned. This is now fixed.
+
+
 **VERSION 7.3.2R1.110 - DATE: 24 Nov, 2017**
 
 ***MAJOR SYNC ISSUE BUG FIX***

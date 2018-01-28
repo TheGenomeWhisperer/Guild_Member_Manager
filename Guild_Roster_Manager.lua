@@ -25,10 +25,10 @@ GRM_L = {};
 GRM_AddonGlobals = {};
 
 -- Addon Details:
-GRM_AddonGlobals.Version = "7.3.2R1.126";
-GRM_AddonGlobals.PatchDay = 1517139678;             -- In Epoch Time
-GRM_AddonGlobals.PatchDayString = "1517139678";     -- 2 Versions saves on conversion computational costs... just keep one stored in memory. Extremely minor gains, but very useful if syncing thousands of pieces of data in large guilds.
-GRM_AddonGlobals.Patch = "7.3.2";
+GRM_AddonGlobals.Version = "7.3.2R1.128";
+GRM_AddonGlobals.PatchDay = 1517182362;             -- In Epoch Time
+GRM_AddonGlobals.PatchDayString = "1517182362";     -- 2 Versions saves on conversion computational costs... just keep one stored in memory. Extremely minor gains, but very useful if syncing thousands of pieces of data in large guilds.
+GRM_AddonGlobals.Patch = "7.3.5";
 GRM_AddonGlobals.LvlCap = 110;
 
 -- Initialization Useful Globals 
@@ -390,6 +390,12 @@ GRM.LoadSettings = function()
         end
 
         -- Introdued Patch R1.126
+        -- Cleans up broken code that might have been causing error.
+        if numericV < 1.126 then
+            GRM_Patch.CleanupSettings ( 30 );
+        end
+
+        -- Introduced Patch R.1.126
         -- Need some more options booleans
         if #GRM_AddonSettings_Save[GRM_AddonGlobals.FID][2][2] == 30 then
             GRM_Patch.ExpandOptionsScalable( 10 , 30 , true );  -- Adding 10 boolean spots
@@ -5710,7 +5716,6 @@ end
 -- Purpose:         In case other players add items to the calendar, this keeps it clean.
 GRM.CalendarQueCheck = function ()
     local tempQue = GRM_CalendarAddQue_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.saveGID];
-    print("test")
     local count = 2;
 
     while count <= #tempQue do
@@ -7985,103 +7990,108 @@ GRM.PopulateMemberDetails = function( handle )
                 GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailRankTxt:Show();
 
                 -- ZONE INFORMATION
-                if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][33] then
-                    if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][28] ~= nil then
-                        GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailMetaZoneInfoZoneText:SetText ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][28] );                                     -- Zone
-                        GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailMetaZoneInfoTimeText2:SetText ( GRM.GetTimePassed ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][32] ) );              -- Time Passed
-                    end
-                    GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailMetaZoneInfoText:Show();
-                    GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailMetaZoneInfoZoneText:Show();
-                    GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailMetaZoneInfoTimeText1:Show();
-                    GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailMetaZoneInfoTimeText2:Show();
-                else
-                    GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailMetaZoneInfoText:Hide();
-                    GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailMetaZoneInfoZoneText:Hide();
-                    GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailMetaZoneInfoTimeText1:Hide();
-                    GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailMetaZoneInfoTimeText2:Hide();
-                end
-
-                --RANK PROMO DATE
-                if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][41] then
-                    GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailRankDateTxt:SetText ( GRM.L ( "Promoted:" ) .. " " .. GRM.L ( "Unknown" ) );
-                    GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailRankDateTxt:Show();
-                    GRM_UI.GRM_MemberDetailMetaData.GRM_SetPromoDateButton:Hide();
-                    GRM_AddonGlobals.rankDateSet = true;
-                else
-                    if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][12] == nil then      --- Promotion has never been recorded!
-                        GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailRankDateTxt:Hide();
-                        GRM_UI.GRM_MemberDetailMetaData.GRM_SetPromoDateButton:Show();
+                if not GRM_UI.GRM_MemberDetailMetaData.GRM_DateSubmitButton:IsVisible() then
+                    if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][33] then
+                        if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][28] ~= nil then
+                            GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailMetaZoneInfoZoneText:SetText ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][28] );                                     -- Zone
+                            GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailMetaZoneInfoTimeText2:SetText ( GRM.GetTimePassed ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][32] ) );              -- Time Passed
+                        end
+                        GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailMetaZoneInfoText:Show();
+                        GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailMetaZoneInfoZoneText:Show();
+                        GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailMetaZoneInfoTimeText1:Show();
+                        GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailMetaZoneInfoTimeText2:Show();
                     else
+                        GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailMetaZoneInfoText:Hide();
+                        GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailMetaZoneInfoZoneText:Hide();
+                        GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailMetaZoneInfoTimeText1:Hide();
+                        GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailMetaZoneInfoTimeText2:Hide();
+                    end
+
+
+                    --RANK PROMO DATE
+                    if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][41] then
+                        GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailRankDateTxt:SetText ( GRM.L ( "Promoted:" ) .. " " .. GRM.L ( "Unknown" ) );
+                        GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailRankDateTxt:Show();
                         GRM_UI.GRM_MemberDetailMetaData.GRM_SetPromoDateButton:Hide();
                         GRM_AddonGlobals.rankDateSet = true;
-                        local day = string.sub ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][12] , 1 , string.find ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][12] , " " ) - 1 );
-                        local month = string.sub ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][12] , string.find ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][12] , " " ) + 1 , string.find ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][12] , " " , -4 ) -1 ); 
-                        local year = string.sub ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][12] , string.find ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][12] , "'" ) + 1 );
-                        GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailRankDateTxt:SetText ( GRM.L ( "Promoted:" ) .. " " .. day .. " " .. GRM.L ( month ) .. " '" .. year );
-                        GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailRankDateTxt:Show();
-                    end
-                end
-
-                -- JOIN DATE
-                if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][40] then
-                    GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailJoinDateButton:Hide();
-                    GRM_UI.GRM_MemberDetailMetaData.GRM_JoinDateText:SetText ( GRM.L ( "Unknown" ) );
-                    GRM_UI.GRM_MemberDetailMetaData.GRM_JoinDateText:Show();
-                else
-                    if #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][20] == 0 then
-                        GRM_UI.GRM_MemberDetailMetaData.GRM_JoinDateText:Hide();
-                        GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailJoinDateButton:Show();
                     else
+                        if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][12] == nil then      --- Promotion has never been recorded!
+                            GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailRankDateTxt:Hide();
+                            GRM_UI.GRM_MemberDetailMetaData.GRM_SetPromoDateButton:Show();
+                        else
+                            GRM_UI.GRM_MemberDetailMetaData.GRM_SetPromoDateButton:Hide();
+                            GRM_AddonGlobals.rankDateSet = true;
+                            local day = string.sub ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][12] , 1 , string.find ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][12] , " " ) - 1 );
+                            local month = string.sub ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][12] , string.find ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][12] , " " ) + 1 , string.find ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][12] , " " , -4 ) -1 ); 
+                            local year = string.sub ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][12] , string.find ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][12] , "'" ) + 1 );
+                            GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailRankDateTxt:SetText ( GRM.L ( "Promoted:" ) .. " " .. day .. " " .. GRM.L ( month ) .. " '" .. year );
+                            GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailRankDateTxt:Show();
+                        end
+                    end
+
+                    -- JOIN DATE
+                    if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][40] then
                         GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailJoinDateButton:Hide();
-                        local t = GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][20][#GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][20]];
-                        local day = string.sub ( t , 1 , string.find ( t , " " ) - 1 );
-                        local month = string.sub ( t , string.find ( t , " " ) + 1 , string.find ( t , " " ) + 3 );
-                        local year = string.sub ( t , string.find ( t , "'" ) + 1 , string.find ( t , "'" ) + 2 );
-                        GRM_UI.GRM_MemberDetailMetaData.GRM_JoinDateText:SetText ( day .. " " .. GRM.L ( month ) .. " '" .. year );
+                        GRM_UI.GRM_MemberDetailMetaData.GRM_JoinDateText:SetText ( GRM.L ( "Unknown" ) );
                         GRM_UI.GRM_MemberDetailMetaData.GRM_JoinDateText:Show();
+                    else
+                        if #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][20] == 0 then
+                            GRM_UI.GRM_MemberDetailMetaData.GRM_JoinDateText:Hide();
+                            GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailJoinDateButton:Show();
+                        else
+                            GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailJoinDateButton:Hide();
+                            local t = GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][20][#GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][20]];
+                            local day = string.sub ( t , 1 , string.find ( t , " " ) - 1 );
+                            local month = string.sub ( t , string.find ( t , " " ) + 1 , string.find ( t , " " ) + 3 );
+                            local year = string.sub ( t , string.find ( t , "'" ) + 1 , string.find ( t , "'" ) + 2 );
+                            GRM_UI.GRM_MemberDetailMetaData.GRM_JoinDateText:SetText ( day .. " " .. GRM.L ( month ) .. " '" .. year );
+                            GRM_UI.GRM_MemberDetailMetaData.GRM_JoinDateText:Show();
+                        end
                     end
                 end
 
                 -- PLAYER NOTE AND OFFICER NOTE EDIT BOXES
-                local finalNote = GRM.L ( "Click here to set a Public Note" );
-                local finalONote = GRM.L ( "Click here to set an Officer's Note" );
-                GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerNoteEditBox:Hide();
-                GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerOfficerNoteEditBox:Hide();
+                if not GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerNoteEditBox:HasFocus() and not GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerOfficerNoteEditBox:HasFocus() then
+                    local finalNote = GRM.L ( "Click here to set a Public Note" );
+                    local finalONote = GRM.L ( "Click here to set an Officer's Note" );
+                    GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerNoteEditBox:Hide();
+                    GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerOfficerNoteEditBox:Hide();
 
-                -- Set Public Note if is One
-                if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][7] ~= nil and GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][7] ~= "" then
-                    finalNote = GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][7];
-                end
-                GRM_UI.GRM_MemberDetailMetaData.GRM_noteFontString1:SetText ( finalNote );
-                if CanEditPublicNote() then
-                    if finalNote ~= GRM.L ( "Click here to set a Public Note" ) then
-                        GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerNoteEditBox:SetText( finalNote );
-                    else
-                        GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerNoteEditBox:SetText( "" );
+                    -- Set Public Note if is One
+                    if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][7] ~= nil and GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][7] ~= "" then
+                        finalNote = GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][7];
                     end
-                elseif finalNote == GRM.L ( "Click here to set a Public Note" ) then
-                    GRM_UI.GRM_MemberDetailMetaData.GRM_noteFontString1:SetText ( GRM.L ( "Unable to Edit Public Note at Rank" ) );
-                end
+                    GRM_UI.GRM_MemberDetailMetaData.GRM_noteFontString1:SetText ( finalNote );
+                    if CanEditPublicNote() then
+                        if finalNote ~= GRM.L ( "Click here to set a Public Note" ) then
+                            GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerNoteEditBox:SetText( finalNote );
+                        else
+                            GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerNoteEditBox:SetText( "" );
+                        end
+                    elseif finalNote == GRM.L ( "Click here to set a Public Note" ) then
+                        GRM_UI.GRM_MemberDetailMetaData.GRM_noteFontString1:SetText ( GRM.L ( "Unable to Edit Public Note at Rank" ) );
+                    end
 
-                -- Set O Note
-                if CanViewOfficerNote() == true then
-                    if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][8] ~= nil and GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][8] ~= "" then
-                        finalONote = GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][8];
-                    end
-                    if finalONote == GRM.L ( "Click here to set an Officer's Note" ) and CanEditOfficerNote() ~= true then
-                        finalONote = GRM.L ( "Unable to Edit Officer Note at Rank" );
-                    end
-                    GRM_UI.GRM_MemberDetailMetaData.GRM_noteFontString2:SetText ( finalONote );
-                    if finalONote ~= GRM.L ( "Click here to set an Officer's Note" ) then
-                        GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerOfficerNoteEditBox:SetText( finalONote );
+                    -- Set O Note
+                    if CanViewOfficerNote() == true then
+                        if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][8] ~= nil and GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][8] ~= "" then
+                            finalONote = GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][8];
+                        end
+                        if finalONote == GRM.L ( "Click here to set an Officer's Note" ) and CanEditOfficerNote() ~= true then
+                            finalONote = GRM.L ( "Unable to Edit Officer Note at Rank" );
+                        end
+                        GRM_UI.GRM_MemberDetailMetaData.GRM_noteFontString2:SetText ( finalONote );
+                        if finalONote ~= GRM.L ( "Click here to set an Officer's Note" ) then
+                            GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerOfficerNoteEditBox:SetText( finalONote );
+                        else
+                            GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerOfficerNoteEditBox:SetText( "" );
+                        end
                     else
-                        GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerOfficerNoteEditBox:SetText( "" );
+                        GRM_UI.GRM_MemberDetailMetaData.GRM_noteFontString2:SetText ( GRM.L ( "Unable to View Officer Note at Rank" ) );
                     end
-                else
-                    GRM_UI.GRM_MemberDetailMetaData.GRM_noteFontString2:SetText ( GRM.L ( "Unable to View Officer Note at Rank" ) );
+                    GRM_UI.GRM_MemberDetailMetaData.GRM_noteFontString2:Show();
+                    GRM_UI.GRM_MemberDetailMetaData.GRM_noteFontString1:Show();
                 end
-                GRM_UI.GRM_MemberDetailMetaData.GRM_noteFontString2:Show();
-                GRM_UI.GRM_MemberDetailMetaData.GRM_noteFontString1:Show();
 
                 -- Last Online
                 if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][33] then
