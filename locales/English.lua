@@ -36,9 +36,6 @@ if GRM_AddonGlobals.Region == "enUS" or not GRM_AddonGlobals.Localized then
     -- BEGIN TRANSLATION WORK HERE --
     ---------------------------------
 
-    -- CHANNEL NOTATION!!!
-    GRM_L["Guild"] = true
-
     -- PLAYER MAIN ROSTER DETAILS WINDOW
     GRM_L["Level: "] = true
     GRM_L["Note:"] = true
@@ -240,7 +237,7 @@ if GRM_AddonGlobals.Region == "enUS" or not GRM_AddonGlobals.Localized then
     GRM_L["Add Join Date to:  |cffff0000Officer Note|r"] = true         -- Context: Please keep |cffff0000 for color coding of the text, and the |r to signify the end of color change
     GRM_L["Add Join Date to:  Officer Note"] = true
     GRM_L["Public Note"] = true
-    GRM_L["_____________________  OPTIONS  _____________________"] = true     -- This is the header of the OPTIONS tab... Please try to keep the "____" even on both sides, but shorten it if necessary to fit properly.
+    GRM_L["__________________  OPTIONS  __________________"] = true     -- This is the header of the OPTIONS tab... Please try to keep the "____" even on both sides, but shorten it if necessary to fit properly.
     GRM_L["Scanning Roster:"] = true
     GRM_L["Guild Rank Restricted:"] = true
     GRM_L["Sync:"] = true
@@ -515,15 +512,6 @@ if GRM_AddonGlobals.Region == "enUS" or not GRM_AddonGlobals.Localized then
 
     -- MISC Punctuation
     GRM_L[","] = true                               -- I know in some Asia languages, a comma is not used, but something similar, for example.
-
-    -- Updates
-    GRM_L["General"] = true
-    GRM_L["General:"] = true
-    GRM_L["Scan"] = true
-    GRM_L["Help"] = true
-    GRM_L["UI"] = true                              -- UI for User Interface. Abbreviation for changing custom UI featuers, like coloring of <M> main
-    GRM_L["Officer"] = true                         -- as in, "Officer" rank
-
 end
 
 -- BuildLog() - might have some extra work, conditionally based on localization as it will now have a mix of languages saved to the log, since log is not retroactively changed.

@@ -10,7 +10,7 @@
 
 * New2: Throttle Control slider in the options. Some people might have some sync/disconnect issues. If you find yourself disconnecting, it can be for a variety of reasons. Try throttling the sync speed back a little and see if that resolves it.
 
-**QUALITY OF LIFE**
+**QUALITY OF LIFE
 
 * QoL1: The addon no longer spams your chat window with the updates when logging in. It will inform you of live updates, of course, but you can always just look at the log for the mass of changes when logging in.
 
@@ -33,6 +33,7 @@
 * BugFix2: Somewhat huge bug I noticed that could cause players to end up with a lot of repeat player copies. It seemed to only affect x-realm guilds. So, I did 2 things. I resolved this bug so it will not repeat, and I wrote a script that will parse through your database and clean it all up if it affected you. So, you don't have to do anything. yay!
 
 * BugFix3: More misc. Lua reports on some edge cases here and there.
+
 
 
 **VERSION 7.3.2R1.124 DATE: January 2nd, 2018**
