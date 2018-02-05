@@ -597,8 +597,8 @@ GRM_UI.GRM_RosterChangeLogFrame.GRM_AuditFrame.GRM_SetPromoUnkownButton.GRM_SetP
 
 -- MINIMAP BUTTON
 GRM_UI.GRM_MinimapButton = CreateFrame ( "Button" , "GRM_MinimapButton" , Minimap );
-GRM_UI.GRM_MinimapButtonIcon = GRM_UI.GRM_MinimapButton:CreateTexture ( "GRM_MinimapButtonIcon" , "BORDER" );
-GRM_UI.GRM_MinimapButtonBorder = GRM_UI.GRM_MinimapButton:CreateTexture ( "GRM_UI.GRM_MinimapButtonBorder" , "OVERLAY" );
+GRM_UI.GRM_MinimapButton.GRM_MinimapButtonIcon = GRM_UI.GRM_MinimapButton:CreateTexture ( "GRM_MinimapButtonIcon" , "BORDER" );
+GRM_UI.GRM_MinimapButton.GRM_MinimapButtonBorder = GRM_UI.GRM_MinimapButton:CreateTexture ( "GRM_MinimapButtonBorder" , "OVERLAY" );
 
 
 
@@ -1341,8 +1341,10 @@ GRM_UI.GR_MetaDataInitializeUIFirst = function()
         end 
     end);
 
-    -- Cancels editing in Note editbox
-    GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerNoteEditBox:SetScript ( "OnEscapePressed" , function ( self ) 
+    -- Method:          GRM_UI.PlayerPublicNoteEditBox()
+    -- What it Does:    Performs the exit note logic where it does not save the public note
+    -- Purpose:         Repeat use, clean logic use
+    GRM_UI.PlayerPublicNoteEditBox = function()
         GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerNoteEditBox:Hide();
         GRM_UI.GRM_MemberDetailMetaData.GRM_NoteCount:Hide();
         defNotes.tempNote = GRM_UI.GRM_MemberDetailMetaData.GRM_noteFontString1:GetText();
@@ -1356,6 +1358,11 @@ GRM_UI.GR_MetaDataInitializeUIFirst = function()
         if GRM_UI.GRM_MemberDetailMetaData.GRM_DateSubmitButton:IsVisible() ~= true then            -- Does not unpause if the date still needs to be selected or canceled.
             GRM_AddonGlobals.pause = false;
         end
+    end
+
+    -- Cancels editing in Note editbox
+    GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerNoteEditBox:SetScript ( "OnEscapePressed" , function ( self ) 
+        GRM_UI.PlayerPublicNoteEditBox();
     end);
 
     -- Updates char count as player types.
@@ -1434,7 +1441,10 @@ GRM_UI.GR_MetaDataInitializeUIFirst = function()
         end
     end);
 
-    GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerOfficerNoteEditBox:SetScript ( "OnEscapePressed" , function ( self ) 
+    -- Method:          GRM_UI.EscapeOfficerNoteEditBox ( EdiitBox )
+    -- What it Does:    Holds the logic for the editbox
+    -- Purpose:         For repeat use...
+    GRM_UI.EscapeOfficerNoteEditBox = function ()
         GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerOfficerNoteEditBox:Hide();
         GRM_UI.GRM_MemberDetailMetaData.GRM_NoteCount:Hide();
         defNotes.tempNote = GRM_UI.GRM_MemberDetailMetaData.GRM_noteFontString2:GetText();
@@ -1448,8 +1458,12 @@ GRM_UI.GR_MetaDataInitializeUIFirst = function()
         if GRM_UI.GRM_MemberDetailMetaData.GRM_DateSubmitButton:IsVisible() ~= true then            -- Does not unpause if the date still needs to be selected or canceled.
             GRM_AddonGlobals.pause = false;
         end
-    end);
+    end
 
+    GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerOfficerNoteEditBox:SetScript ( "OnEscapePressed" , function ( self )
+        GRM_UI.EscapeOfficerNoteEditBox();
+    end);
+    
     -- Updates char count as player types.
     GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerOfficerNoteEditBox:SetScript ( "OnChar" , function ( self , text ) 
         GRM_UI.GRM_MemberDetailMetaData.GRM_NoteCount:SetText( #GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerOfficerNoteEditBox:GetText() .. "/31" );
@@ -2719,14 +2733,14 @@ GRM_UI.PreAddonLoadUI = function()
     GRM_UI.GRM_MinimapButton:SetHeight ( 33 );
     GRM_UI.GRM_MinimapButton:SetPoint ( "TOPLEFT" , Minimap , "TOPLEFT" , 2 , 0 );
     GRM_UI.GRM_MinimapButton:SetHighlightTexture ( "Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight" );
-    GRM_UI.GRM_MinimapButtonIcon:SetWidth ( 20 );
-    GRM_UI.GRM_MinimapButtonIcon:SetHeight ( 20 );
-    GRM_UI.GRM_MinimapButtonIcon:SetPoint ( "CENTER" , GRM_UI.GRM_MinimapButton , -2 , 1 );
-    GRM_UI.GRM_MinimapButtonIcon:SetTexture ( "Interface\\Icons\\garrison_building_magetower" );
-    GRM_UI.GRM_MinimapButtonBorder:SetWidth ( 52 );
-    GRM_UI.GRM_MinimapButtonBorder:SetHeight ( 52 );
-    GRM_UI.GRM_MinimapButtonBorder:SetPoint ( "TOPLEFT" , GRM_UI.GRM_MinimapButton );
-    GRM_UI.GRM_MinimapButtonBorder:SetTexture ( "Interface\\Minimap\\MiniMap-TrackingBorder" );
+    GRM_UI.GRM_MinimapButton.GRM_MinimapButtonIcon:SetWidth ( 20 );
+    GRM_UI.GRM_MinimapButton.GRM_MinimapButtonIcon:SetHeight ( 20 );
+    GRM_UI.GRM_MinimapButton.GRM_MinimapButtonIcon:SetPoint ( "CENTER" , GRM_UI.GRM_MinimapButton , -2 , 1 );
+    GRM_UI.GRM_MinimapButton.GRM_MinimapButtonIcon:SetTexture ( "Interface\\Icons\\garrison_building_magetower" );
+    GRM_UI.GRM_MinimapButton.GRM_MinimapButtonBorder:SetWidth ( 52 );
+    GRM_UI.GRM_MinimapButton.GRM_MinimapButtonBorder:SetHeight ( 52 );
+    GRM_UI.GRM_MinimapButton.GRM_MinimapButtonBorder:SetPoint ( "TOPLEFT" , GRM_UI.GRM_MinimapButton );
+    GRM_UI.GRM_MinimapButton.GRM_MinimapButtonBorder:SetTexture ( "Interface\\Minimap\\MiniMap-TrackingBorder" );
 
 
     GRM_UI.GRM_MinimapButtonInit  = function()
@@ -2757,6 +2771,14 @@ GRM_UI.PreAddonLoadUI = function()
         if vector < 0 then
             vector = vector + 360
         end
+        if GRM_AddonGlobals.setPID == 0 then
+            for i = 2 , #GRM_AddonSettings_Save[GRM_AddonGlobals.FID] do
+                if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][i][1] == GRM_AddonGlobals.addonPlayerName then
+                    GRM_AddonGlobals.setPID = i;
+                    break;
+                end
+            end
+        end
         GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][25] = vector;
         GRM_UI.GRM_MinimapButtonUpdatePos();
     end
@@ -2777,18 +2799,27 @@ GRM_UI.PreAddonLoadUI = function()
         GameTooltip:SetOwner ( self , "ANCHOR_LEFT" );
         GameTooltip:AddLine ( "|CFF00CCFF" .. GRM.L ( "GRM" ) .. " " .. string.sub ( GRM_AddonGlobals.Version , string.find ( GRM_AddonGlobals.Version , "R" ) + 1 ) );
         GameTooltip:AddLine ( GRM.L ( "|CFFE6CC7FClick|r to open GRM" ) );
+        GameTooltip:AddLine( GRM.L ( "|CFFE6CC7FCtrl-Shift-Click|r to Hide this Button." ) );
         GameTooltip:AddLine( GRM.L ( "|CFFE6CC7FRight-Click|r and drag to move this button." ) );
         GameTooltip:Show();
     end)
     GRM_UI.GRM_MinimapButton:SetScript ( "OnClick" , function ( self , button )
         if button == "LeftButton" then
-            if GRM_UI.GRM_RosterChangeLogFrame:IsVisible() then
-                GRM_UI.GRM_RosterChangeLogFrame:Hide();
+            if IsShiftKeyDown() and IsControlKeyDown() then
+                GRM_UI.GRM_MinimapButton:Hide();
+                GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][32] = false;
+                if GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_GeneralOptionsFrame.GRM_ShowMinimapButton ~= nil and GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_GeneralOptionsFrame.GRM_ShowMinimapButton:IsVisible() then
+                    GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_GeneralOptionsFrame.GRM_ShowMinimapButton:SetChecked ( false );
+                end
             else
-                if IsInGuild() then
-                    GRM_UI.GRM_RosterChangeLogFrame:Show();
+                if GRM_UI.GRM_RosterChangeLogFrame:IsVisible() then
+                    GRM_UI.GRM_RosterChangeLogFrame:Hide();
                 else
-                    GRM.Report ( GRM.L ( "GRM:" ) .. " " .. GRM.L ( "Player is Not Currently in a Guild" ) );
+                    if IsInGuild() then
+                        GRM_UI.GRM_RosterChangeLogFrame:Show();
+                    else
+                        GRM.Report ( GRM.L ( "GRM:" ) .. " " .. GRM.L ( "Player is Not Currently in a Guild" ) );
+                    end
                 end
             end
         end
@@ -4440,7 +4471,18 @@ GRM_UI.MetaDataInitializeUIrosterLog2 = function()
         GRM_UI.GRM_RosterChangeLogFrame:SetPropagateKeyboardInput ( true );      -- Ensures keyboard access will default to the main chat window on / or Enter. UX feature.
         if key == "ESCAPE" then
             GRM_UI.GRM_RosterChangeLogFrame:SetPropagateKeyboardInput ( false );
-            GRM_UI.GRM_RosterChangeLogFrame:Hide();
+            if GRM_UI.GRM_MemberDetailMetaData:IsVisible() then
+                if GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerOfficerNoteEditBox ~= nil and GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerOfficerNoteEditBox:HasFocus() then
+                    GRM_UI.EscapeOfficerNoteEditBox();
+                elseif GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerNoteEditBox ~= nil and GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerNoteEditBox:HasFocus() then
+                    GRM_UI.PlayerPublicNoteEditBox();
+                else
+                    GRM_UI.GRM_MemberDetailMetaData:Hide();
+                end
+            else
+                GRM_UI.GRM_RosterChangeLogFrame:Hide();
+            end
+            
         end
     end);
 
