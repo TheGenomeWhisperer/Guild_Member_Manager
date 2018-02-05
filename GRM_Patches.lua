@@ -158,6 +158,10 @@ GRM_Patch.ExpandOptionsScalable = function( numNewIndexesToAdd , baseNumber , ad
                         table.insert ( GRM_AddonSettings_Save[i][j][2] , 1 );           -- Adding int instead, placeholder value of 1
                     end
                 end
+                -- We know it is starting at 30 now.
+                if baseNumber == 30 then
+                    GRM_AddonSettings_Save[i][j][2][31] = false;                        -- This one value should be defaulted to false.
+                end
             end
         end
     end
@@ -186,6 +190,43 @@ GRM_Patch.CleanupSettings = function ( anyValueGreaterThanThisIndex )
         end
     end
     GRM_AddonSettings_Save[GRM_AddonGlobals.FID] = settings;
+end
+
+-- Some Promo dates were erroneously added with a ": 14 Jan '18" format. This fixes that.
+-- Introduced Patch R1.129
+GRM_Patch.CleanupPromoDates = function()
+    local t = GRM_GuildMemberHistory_Save;
+    for i = 1 , #t do                         -- Horde and Alliance
+        for j = 2 , #t[i] do                  -- The guilds in each faction
+            for r = 2 , #t[i][j] do           -- The players in each guild (starts at 2 as position 1 is the name of the guild).
+                if t[i][j][r][12] ~= nil and string.find ( t[i][j][r][12] , ":" ) ~= nil then 
+                    t[i][j][r][12] = string.sub ( t[i][j][r][12] , 3 );
+                    t[i][j][r][36][1] = t[i][j][r][12];
+                end
+            end
+        end
+    end
+
+    -- Save the updates...
+    GRM_GuildMemberHistory_Save = t;
+
+    -- Need to set default setting to sync on all toons to only those with current version. This is to prevent reversion of bug
+    for i = 1 , #GRM_AddonSettings_Save do
+        for j = 2 , #GRM_AddonSettings_Save[i] do
+            GRM_AddonSettings_Save[i][j][2][19] = true;
+        end
+    end
+
+end
+
+-- R1.130
+-- Sync settings across players in the same guild should not have been set to true. This corrects that.
+GRM_Patch.TurnOffDefaultSyncSettingsOption = function()
+    for i = 1 , #GRM_AddonSettings_Save do
+        for j = 2 , #GRM_AddonSettings_Save[i] do
+            GRM_AddonSettings_Save[i][j][2][31] = false;
+        end
+    end
 end
 
 -- /run for i=2,#GRM_AddonSettings_Save[GRM_AddonGlobals.FID] do print(GRM_AddonSettings_Save[GRM_AddonGlobals.FID][i][2][25])end

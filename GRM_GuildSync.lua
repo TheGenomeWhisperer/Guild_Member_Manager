@@ -1,6 +1,6 @@
 -- For Sync controls!
 -- Author: Arkaan... aka "TheGenomeWhisperer"
--- Version 7.3.2R1.128
+-- Version 7.3.5R1.130
 -- To hold all Sync Methods/Functions
 GRMsync = {};
 
@@ -297,7 +297,6 @@ GRMsync.CheckPromotionDateChange = function ( msg , sender , prefix )
     local promotionDate = string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 );
     local epochTimeOfChange = tonumber ( string.sub ( msg , string.find ( msg , "?" ) + 1 ) );
     local slimDate = string.sub ( promotionDate , 11 );
-    
     for r = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ] do
         if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][1] == name then
             if GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][12] ~= slimDate and GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][36][2] < epochTimeOfChange then

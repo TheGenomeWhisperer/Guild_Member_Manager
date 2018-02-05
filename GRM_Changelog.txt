@@ -1,4 +1,19 @@
-**VERSION 7.3.2R1.126 DATE: January 28th, 2018**
+**VERSION 7.3.2R1.129 DATE: January 30th, 2018**
+
+**BUG FIX**
+
+* For some guilds the promo dates were causing a Localization Key error, not finding it, due to a parsing error. This cleans up your database.
+
+*Note, due to the nature of this bug, this will also automatically set to only sync with those with latest update, to prevent a reversion of syncing with bad data. PLEASE ENCOURAGE THEM TO UPDATE ASAP!!!*
+
+
+**VERSION 7.3.2R1.128 DATE: January 28th, 2018**
+
+**Minor Fix**
+
+* The public and officer note would clear the ability to edit/add them after a few seconds. This was causing some minor errors, but also made it hard to change notes. VERY ANNOYING! This was a new bug added in 1.126 and a slight oversight.
+
+**VERSION 7.3.2R1.127 DATE: January 28th, 2018**
 
 *Minor Update*
 
