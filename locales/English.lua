@@ -544,6 +544,9 @@ if GRM_AddonGlobals.Region == "enUS" or not GRM_AddonGlobals.Localized then
     -- Update 1.130
     GRM_L["|CFFE6CC7FCtrl-Shift-Click|r to Hide this Button."] = true
     GRM_L["Invited By:"] = true
+    GRM_L["To avoid storage bloat, a maximum of two save points is currently possible. Please remove one before Continuing."] = true
+    GRM_L["Error: Guild Not Found..."] = true
+    GRM_L["Debugger Start"] = true;
 
 end
 

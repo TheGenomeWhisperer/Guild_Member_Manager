@@ -540,6 +540,13 @@ if GRM_AddonGlobals.Region == "deDE" or not GRM_AddonGlobals.Localized then
     GRM_L["Sync All Alts to {name}'s |cffff0000(main)|r Join Date"] = true  -- The coloring ensures that "(main)" maintains the RED color. Please keep it consistent if relevant to your language.
     GRM_L["Join Date of All Alts is Currently Synced"] = true
     
+    -- Update 1.130
+    GRM_L["|CFFE6CC7FCtrl-Shift-Click|r to Hide this Button."] = true
+    GRM_L["Invited By:"] = true
+    GRM_L["To avoid storage bloat, a maximum of two save points is currently possible. Please remove one before Continuing."] = true
+    GRM_L["Error: Guild Not Found..."] = true
+    GRM_L["Debugger Start"] = true;
+    
 end
 
 -- BuildLog() - might have some extra work, conditionally based on localization as it will now have a mix of languages saved to the log, since log is not retroactively changed.

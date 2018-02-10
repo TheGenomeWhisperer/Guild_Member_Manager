@@ -10,7 +10,7 @@ GRM_Patch.SetupAltTracking = function()
     local guildNotFound = true;
     if GRM_AddonGlobals.guildName ~= nil then
         for i = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ] do
-            if GRM_AddonGlobals.guildName == GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ i ][1] then
+            if GRM_GuildMemberHistory_Save[GRM_AddonGlobals.FID][i][1][1] == GRM_AddonGlobals.guildName and GRM_GuildMemberHistory_Save[GRM_AddonGlobals.FID][i][1][2] == GRM_AddonGlobals.guildCreationDate then
                 guildNotFound = false;
                 break;
             end
@@ -23,7 +23,7 @@ GRM_Patch.SetupAltTracking = function()
 
     if IsInGuild() and not guildNotFound then
         -- guild is found, let's add the guild!
-        table.insert ( GRM_PlayerListOfAlts_Save[ GRM_AddonGlobals.FID ] , { GRM_AddonGlobals.guildName } );  -- alts list, let's create an index for the guild!
+        table.insert ( GRM_PlayerListOfAlts_Save[ GRM_AddonGlobals.FID ] , { { GRM_AddonGlobals.guildName , GRM_AddonGlobals.guildCreationDate } } );  -- alts list, let's create an index for the guild!
 
         -- Insert player name too...
     end
@@ -57,8 +57,8 @@ GRM_Patch.CustomNotepad = function()
     
     -- Need to check if already added to the guild...
     local guildNotFound = true;
-    for i = 2 , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ] do
-        if GRM_AddonGlobals.guildName == GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ i ][1] then
+    for i = 2 , #GRM_GuildNotePad_Save[ GRM_AddonGlobals.FID ] do
+        if GRM_GuildNotePad_Save[GRM_AddonGlobals.FID][i][1][1] == GRM_AddonGlobals.guildName and GRM_GuildNotePad_Save[GRM_AddonGlobals.FID][i][1][2] == GRM_AddonGlobals.guildCreationDate then
             guildNotFound = false;
             break;
         end
@@ -225,6 +225,57 @@ GRM_Patch.TurnOffDefaultSyncSettingsOption = function()
     for i = 1 , #GRM_AddonSettings_Save do
         for j = 2 , #GRM_AddonSettings_Save[i] do
             GRM_AddonSettings_Save[i][j][2][31] = false;
+        end
+    end
+end
+
+-- R1.130
+-- Logic change dictates a reset... People will need to reconfigure.
+GRM_Patch.ResetSyncThrottle = function()
+    for i = 1 , #GRM_AddonSettings_Save do
+        for j = 2 , #GRM_AddonSettings_Save[i] do
+            GRM_AddonSettings_Save[i][j][2][24] = 40;
+        end
+    end
+end
+
+-- R1.130
+-- Added as it appears to be an issue for guilds with the same name, same faction, but different servers...
+GRM_Patch.AddGuildCreationDate = function( index )
+    if GRM_AddonGlobals.guildCreationDate ~= "" then
+        if GRM_GuildMemberHistory_Save[GRM_AddonGlobals.FID][index][1] == GRM_AddonGlobals.guildName then
+            GRM_GuildMemberHistory_Save[GRM_AddonGlobals.FID][index][1] = { GRM_AddonGlobals.guildName , GRM_AddonGlobals.guildCreationDate };
+            
+            -- now need to do the same thing for all the rest...
+            for j = 2 , #GRM_CalendarAddQue_Save[GRM_AddonGlobals.FID] do
+                if GRM_CalendarAddQue_Save[GRM_AddonGlobals.FID][j][1] == GRM_AddonGlobals.guildName then
+                    GRM_CalendarAddQue_Save[GRM_AddonGlobals.FID][j][1] = { GRM_AddonGlobals.guildName , GRM_AddonGlobals.guildCreationDate };
+                end
+            end
+
+            for j = 2 , #GRM_PlayersThatLeftHistory_Save[GRM_AddonGlobals.FID] do
+                if GRM_PlayersThatLeftHistory_Save[GRM_AddonGlobals.FID][j][1] == GRM_AddonGlobals.guildName then
+                    GRM_PlayersThatLeftHistory_Save[GRM_AddonGlobals.FID][j][1] = { GRM_AddonGlobals.guildName , GRM_AddonGlobals.guildCreationDate };
+                end
+            end
+
+            for j = 2 , #GRM_LogReport_Save[GRM_AddonGlobals.FID] do
+                if GRM_LogReport_Save[GRM_AddonGlobals.FID][j][1] == GRM_AddonGlobals.guildName then
+                    GRM_LogReport_Save[GRM_AddonGlobals.FID][j][1] = { GRM_AddonGlobals.guildName , GRM_AddonGlobals.guildCreationDate };
+                end
+            end
+
+            for j = 2 , #GRM_GuildNotePad_Save[GRM_AddonGlobals.FID] do
+                if GRM_GuildNotePad_Save[GRM_AddonGlobals.FID][j][1] == GRM_AddonGlobals.guildName then
+                    GRM_GuildNotePad_Save[GRM_AddonGlobals.FID][j][1] = { GRM_AddonGlobals.guildName , GRM_AddonGlobals.guildCreationDate };
+                end
+            end
+
+            for j = 2 , #GRM_PlayerListOfAlts_Save[GRM_AddonGlobals.FID] do
+                if GRM_PlayerListOfAlts_Save[GRM_AddonGlobals.FID][j][1] == GRM_AddonGlobals.guildName then
+                    GRM_PlayerListOfAlts_Save[GRM_AddonGlobals.FID][j][1] = { GRM_AddonGlobals.guildName , GRM_AddonGlobals.guildCreationDate };
+                end
+            end
         end
     end
 end

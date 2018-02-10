@@ -1,4 +1,63 @@
-**VERSION 7.3.2R1.129 DATE: January 30th, 2018**
+**VERSION 7.3.5R1.130 DATE: February 10th, 2018**
+
+*The Bug Squashing Update!!! And many other Quality of Life improvements. Of note, I have a major FEATURE release coming soon, I just couldn't get it done in time.*
+
+**QUALITY OF LIFE**
+
+* QoL1: The Log will now state the correct date the player joined the guild, was promoted, demoted, or left/quit the guild. If it is unable to find the date because this happened before is visible in the log, it will default to current day, but sync will not take precedence on that.
+
+* QoL2: Added timestamps to the log when promotions/demotions occur whilst online
+
+* QoL3: Hide the minimap with a CTRL-SHFT-CLICK action
+
+* QoL4: Minimap should now properly save its position
+
+* QoL5: On Logon, the left/kicked player info was still spamming the chat window. It should just post to the log now, though it may take a few extra seconds to properly update and receive all the left player info
+
+* QoL6: Plugin for ElvUI "AddonSkins" is now fully updated, with a couple fixes to some overlapping frames.
+
+* QoL7: Addon minimap position will now be unique to each player, whilst all the other addon settings will be shared. Before it was adjusting the minimap position on all alts in guild.
+
+* QoL8: Namechange now properly class colorizes the names in the log.
+
+* QoL9: The Log now sorts the newly joined guildies in a cluster of all those who were able to be determined who invited them.
+
+* QoL10: Timestamp in the public/officer note should also reflect the accurate date they joined now.
+
+* QoL11: It now says "Unknown" in the Ban List if the player was added to the ban list, yet was never in the guild, thus never had a previous rank
+
+* QoL12: Sync throttle speed is being reset due to some issues that crashed people's sync speed to a painfully slow 10%. New logic added to protect universally against all backend comms. This eliminates the need to listen for specific addons and cross talk and instead looks at the global pool of messages as to control the throttle from being disconnected tighter.
+
+* QoL13: New debugging utility: If you get disconnected... log back in with addon on, maybe sync disabled, and type: /run GRM.DebugLog(number)  -- the number being the number of lines of info you wish to see. This is mainly for addon dev use, so I will not include it in the help or slash commands.
+
+
+**BUG FIX**
+
+* Bug1: "Show on Logon" UNCHECKED should no longer bug out the window. Previously, if left unchecked, it would overlap all the options panel frames.
+
+* Bug2: Join Dates should now sync properly, as before there was an issue with current date being added as the join date, then overlappy all sync info erroneously.
+
+* Bug3: Players no longer show the <M> on their own toon online in chat, as they know their own.
+
+* Bug4: Sync addon settings should now properly be disabled by default. This caused a lot of problematic resetting and syncing of settings when logging on different alts. It works properly now, but you may need to review some of your settings.
+
+* Bug5: Right click on the minimap, if not in a guild, should no longer error out.
+
+* Bug6: Minimap should now properly save its position between sessions.
+
+* Bug7: Addon window was not properly loading on logon if player had a check in the box to load. It would take FOREVER! It is better now :)
+
+* Bug8: The ESCAPE key now properly exits the officer/public note, or closes the player Info window, rather than exiting the core GRM window first.
+
+* Bug9: Addon settings should now properly sync when a new alt of yours joins the guild, to the settings of your alts already in the guild, if they have the setting checked to sync.
+
+* Bug10: Players using the Greenwall addon likely saw a decreasing speed of their sync process over time. This was due to a bug. Watching for Greenwall is also no longer necessary as the addon now catches all backend crosstalk between addons.
+
+* Bug11: Fixed a MAJOR bug that affected like less than 0.1% of the population lol. If the player was a member of the same guild, same exact spelling, same faction, but on different servers, it could mess up and load the wrong database. this is now resolved. This required an extensive rework in how the database managed the guild, as well as mapping their "creation dates" and tagging them now, to differntiate them. This still did not differentiate them enough, as an even further edge case the player could be in a guild on different servers that were both created on the same day. Thus, in such a case, I dug even deeper and enabled a full database scan to find the matching guild the player belonged to.
+
+
+
+**VERSION 7.3.5R1.129 DATE: January 30th, 2018**
 
 **BUG FIX**
 
@@ -7,19 +66,19 @@
 *Note, due to the nature of this bug, this will also automatically set to only sync with those with latest update, to prevent a reversion of syncing with bad data. PLEASE ENCOURAGE THEM TO UPDATE ASAP!!!*
 
 
-**VERSION 7.3.2R1.128 DATE: January 28th, 2018**
+**VERSION 7.3.5R1.128 DATE: January 28th, 2018**
 
 **Minor Fix**
 
 * The public and officer note would clear the ability to edit/add them after a few seconds. This was causing some minor errors, but also made it hard to change notes. VERY ANNOYING! This was a new bug added in 1.126 and a slight oversight.
 
-**VERSION 7.3.2R1.127 DATE: January 28th, 2018**
+**VERSION 7.3.5R1.127 DATE: January 28th, 2018**
 
 *Minor Update*
 
 * Cleaned up some settings info... fixed it to also be version 7.3.5 not 7.3.2
 
-**VERSION 7.3.2R1.126 DATE: January 28th, 2018**
+**VERSION 7.3.5R1.126 DATE: January 28th, 2018**
 
 ***HUGE USER EXPERIENCE UPDATE***
 

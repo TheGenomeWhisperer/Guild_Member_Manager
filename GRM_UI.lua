@@ -4636,7 +4636,7 @@ GRM_UI.MetaDataInitializeUIrosterLog2 = function()
             else
                 GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][30] = false;
             end
-            GRM.SetNumUniqueGuildAccounts();
+            GRM.SetGuildInfoDetails();
             GRM.RefreshAuditFrames();
         end
     end);
@@ -4653,7 +4653,7 @@ GRM_UI.MetaDataInitializeUIrosterLog2 = function()
             else
                 GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][33] = false;
             end
-            GRM.SetNumUniqueGuildAccounts();
+            GRM.SetGuildInfoDetails();
             GRM.RefreshAuditFrames();
         end
     end);
@@ -4702,7 +4702,7 @@ GRM_UI.MetaDataInitializeUIrosterLog2 = function()
     end);
 
     GRM_UI.GRM_RosterChangeLogFrame.GRM_AuditFrame:SetScript ( "OnShow" , function()
-        GRM.SetNumUniqueGuildAccounts();
+        GRM.SetGuildInfoDetails();
         GRM.RefreshAuditFrames()
         if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][30] then
             GRM_UI.GRM_RosterChangeLogFrame.GRM_AuditFrame.GRM_AuditFrameShowAllCheckbox:SetChecked ( true );
@@ -5111,22 +5111,6 @@ GRM_UI.MetaDataInitializeUIrosterLog2 = function()
             if banReason == GRM.L ( "Reason Banned?" ) or banReason == nil then
                 banReason = "";
             end
-            local memberInfoToAdd = {
-                fullName,
-                GuildControlGetRankName ( GuildControlGetNumRanks() ),
-                GuildControlGetNumRanks() - 1,
-                1,
-                "",
-                "",
-                string.upper ( GRM_AddonGlobals.tempAddBanClass ),
-                1,
-                "",
-                100,
-                false,
-                1,
-                false,
-                0
-            }
 
             -- Ok, let's check if this player is already currently in the guild.
             local isFoundInLeft = false;
@@ -5163,6 +5147,23 @@ GRM_UI.MetaDataInitializeUIrosterLog2 = function()
                 GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][indexFound][18] = banReason;
                 
             else
+
+                local memberInfoToAdd = {
+                    fullName,
+                    "< " .. GRM.L ( "Unknown" ) .. " >",
+                    GuildControlGetNumRanks() - 1,
+                    1,
+                    "",
+                    "",
+                    string.upper ( GRM_AddonGlobals.tempAddBanClass ),
+                    1,
+                    "",
+                    100,
+                    false,
+                    1,
+                    false,
+                    0
+                }
                 -- Add ban of in-guild guildie with notification!!!
                 GRM.AddMemberToLeftPlayers ( memberInfoToAdd , GRM.GetTimestamp() , time() , GRM.GetTimestamp() , time() - 5000 );
 

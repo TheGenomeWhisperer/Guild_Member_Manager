@@ -4,7 +4,9 @@
 ## Author: Arkaan (TheGenomeWhisperer)
 ## Version: 7.3.5R1.130
 ## Notes: Manage Guild Roster Changes, Events, with Alt/Main tagging
-## SavedVariables: GRM_PlayersThatLeftHistory_Save , GRM_GuildMemberHistory_Save , GRM_CalendarAddQue_Save , GRM_LogReport_Save , GRM_AddonSettings_Save , GRM_PlayerListOfAlts_Save , GRM_GuildNotePad_Save
+## SavedVariablesPerCharacter: GRM_DebugLog_Save
+## SavedVariables: GRM_PlayersThatLeftHistory_Save , GRM_GuildMemberHistory_Save , GRM_CalendarAddQue_Save , GRM_LogReport_Save , GRM_AddonSettings_Save , GRM_PlayerListOfAlts_Save , GRM_GuildNotePad_Save , GRM_FullBackup_Save , GRM_GuildDataBackup_Save
+
 
 Guild_Roster_Manager.lua
 GRM_GuildSync.lua
