@@ -193,6 +193,21 @@ GRMsync.SendMessage = function ( prefix , msg , type , typeID )
         elseif msg == "" and prefix == "GRM_SYNC" then
             return
         else
+            -- To prevent too large of a debug log...
+            local tempMsg = msg;
+            if tempMsg == "" then
+                tempMsg = "Empty Msg";
+            end
+            if #GRM_AddonGlobals.DebugLog < 250 then
+                table.insert ( GRM_AddonGlobals.DebugLog , time() .. ": " .. tempMsg );
+            else
+                local tempLog = {};
+                for i = #GRM_AddonGlobals.DebugLog - 50 , #GRM_AddonGlobals.DebugLog do
+                    table.insert ( tempLog , time() .. ": " .. GRM_AddonGlobals.DebugLog[i] );
+                end
+                GRM_AddonGlobals.DebugLog = tempLog;
+                table.insert ( GRM_AddonGlobals.DebugLog , tempMsg );
+            end
             SendAddonMessage ( prefix , msg , type , typeID );
         end
     end
@@ -3338,7 +3353,11 @@ GRMsync.RegisterCommunicationProtocols = function()
         if not GRMsyncGlobals.SyncOK or not IsInGuild() then
             GRMsync.MessageTracking:UnregisterAllEvents();
         else
-           
+            -- To protect against the overall global amount
+            if event == "CHAT_MSG_ADDON" and sender == GRM_AddonGlobals.addonPlayerName and not GRMsync.IsPrefixVerified ( prefix ) then
+                GRMsyncGlobals.SyncCount = GRMsyncGlobals.SyncCount + 1;
+            end
+
             if event == "CHAT_MSG_ADDON" and channel == GRMsyncGlobals.channelName and GRMsync.IsPrefixVerified ( prefix ) then     -- Don't need to register my own sends.
 
                 -- Sender must not equal themselves...
