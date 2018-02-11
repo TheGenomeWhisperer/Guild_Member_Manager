@@ -1,3 +1,9 @@
+**VERSION 7.3.5R1.131 DATE: February 11th, 2018**
+
+* Bug1: Fixed a Lua error in regards to join/promo dates that I introduced this last patch in relation to the GRM.TimestampToEpoch() function
+
+* Bug2: Several non-English clients were not parsing the guild creation dates properly. This has resolved that issue for ALL languages
+
 **VERSION 7.3.5R1.130 DATE: February 10th, 2018**
 
 *The Bug Squashing Update!!! And many other Quality of Life improvements. Of note, I have a major FEATURE release coming soon, I just couldn't get it done in time.*

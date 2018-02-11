@@ -280,4 +280,77 @@ GRM_Patch.AddGuildCreationDate = function( index )
     end
 end
 
+-- R1.130
+-- Due to date formatting issue not alligning with US, they need to be wiped and reset, and the English date is made more correct.
+GRM_Patch.ResetCreationDates = function()
+    local tempName = "";
+    for i = 1 , #GRM_GuildMemberHistory_Save do
+        for j = 2 , #GRM_GuildMemberHistory_Save[i] do
+            -- Only need to fix if it was updated with 1.130
+            if GRM_GuildMemberHistory_Save[i][j][1][1] ~= nil then
+                tempName = GRM_GuildMemberHistory_Save[i][j][1][1];
+                GRM_GuildMemberHistory_Save[i][j][1] = nil;         -- Wipe the array from existence!!!
+                GRM_GuildMemberHistory_Save[i][j][1] = tempName;
+            end
+        end
+    end
+
+    for i = 1 , #GRM_CalendarAddQue_Save do
+        for j = 2 , #GRM_CalendarAddQue_Save[i] do
+            -- Only need to fix if it was updated with 1.130
+            if GRM_CalendarAddQue_Save[i][j][1][1] ~= nil then
+                tempName = GRM_CalendarAddQue_Save[i][j][1][1];
+                GRM_CalendarAddQue_Save[i][j][1] = nil;         -- Wipe the array from existence!!!
+                GRM_CalendarAddQue_Save[i][j][1] = tempName;
+            end
+        end
+    end
+
+    for i = 1 , #GRM_PlayersThatLeftHistory_Save do
+        for j = 2 , #GRM_PlayersThatLeftHistory_Save[i] do
+            -- Only need to fix if it was updated with 1.130
+            if GRM_PlayersThatLeftHistory_Save[i][j][1][1] ~= nil then
+                tempName = GRM_PlayersThatLeftHistory_Save[i][j][1][1];
+                GRM_PlayersThatLeftHistory_Save[i][j][1] = nil;         -- Wipe the array from existence!!!
+                GRM_PlayersThatLeftHistory_Save[i][j][1] = tempName;
+            end
+        end
+    end
+
+    for i = 1 , #GRM_LogReport_Save do
+        for j = 2 , #GRM_LogReport_Save[i] do
+            -- Only need to fix if it was updated with 1.130
+            if GRM_LogReport_Save[i][j][1][1] ~= nil then
+                tempName = GRM_LogReport_Save[i][j][1][1];
+                GRM_LogReport_Save[i][j][1] = nil;         -- Wipe the array from existence!!!
+                GRM_LogReport_Save[i][j][1] = tempName;
+            end
+        end
+    end
+
+    for i = 1 , #GRM_GuildNotePad_Save do
+        for j = 2 , #GRM_GuildNotePad_Save[i] do
+            -- Only need to fix if it was updated with 1.130
+            if GRM_GuildNotePad_Save[i][j][1][1] ~= nil then
+                tempName = GRM_GuildNotePad_Save[i][j][1][1];
+                GRM_GuildNotePad_Save[i][j][1] = nil;         -- Wipe the array from existence!!!
+                GRM_GuildNotePad_Save[i][j][1] = tempName;
+            end
+        end
+    end
+
+    for i = 1 , #GRM_PlayerListOfAlts_Save do
+        for j = 2 , #GRM_PlayerListOfAlts_Save[i] do
+            -- Only need to fix if it was updated with 1.130
+            if GRM_PlayerListOfAlts_Save[i][j][1][1] ~= nil then
+                tempName = GRM_PlayerListOfAlts_Save[i][j][1][1];
+                GRM_PlayerListOfAlts_Save[i][j][1] = nil;         -- Wipe the array from existence!!!
+                GRM_PlayerListOfAlts_Save[i][j][1] = tempName;
+            end
+        end
+    end
+end
+
 -- /run for i=2,#GRM_AddonSettings_Save[GRM_AddonGlobals.FID] do print(GRM_AddonSettings_Save[GRM_AddonGlobals.FID][i][2][25])end
+-- /run while #GRM_GuildMemberHistory_Save[GRM_AddonGlobals.FID] > 7 do table.remove(GRM_GuildMemberHistory_Save[GRM_AddonGlobals.FID],#GRM_GuildMemberHistory_Save[GRM_AddonGlobals.FID])end
+-- /run for i=2,#GRM_GuildMemberHistory_Save[GRM_AddonGlobals.FID] do print(GRM_GuildMemberHistory_Save[GRM_AddonGlobals.FID][i][1]) end

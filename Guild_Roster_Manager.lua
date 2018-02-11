@@ -26,9 +26,9 @@ GRM_L = {};
 GRM_AddonGlobals = {};
 
 -- Addon Details:
-GRM_AddonGlobals.Version = "7.3.5R1.130";
-GRM_AddonGlobals.PatchDay = 1518263007;             -- In Epoch Time
-GRM_AddonGlobals.PatchDayString = "1518263007";     -- 2 Versions saves on conversion computational costs... just keep one stored in memory. Extremely minor gains, but very useful if syncing thousands of pieces of data in large guilds.
+GRM_AddonGlobals.Version = "7.3.5R1.131";
+GRM_AddonGlobals.PatchDay = 1518345983;             -- In Epoch Time
+GRM_AddonGlobals.PatchDayString = "1518345983";     -- 2 Versions saves on conversion computational costs... just keep one stored in memory. Extremely minor gains, but very useful if syncing thousands of pieces of data in large guilds.
 GRM_AddonGlobals.Patch = "7.3.5";
 GRM_AddonGlobals.LvlCap = 110;
 
@@ -433,6 +433,12 @@ GRM.LoadSettings = function()
             GRM_Patch.TurnOffDefaultSyncSettingsOption();
             GRM_Patch.ResetSyncThrottle();
         end
+
+        -- R1.131
+        -- Some messed up date formatting needs to be re-cleaned up due to failure to take into consideration month/date formating issues on guildInfo system message on creation date.
+        if numericV < 1.131 then
+            GRM_Patch.ResetCreationDates();
+        end
         
         -------------------------------
         -- END OF PATCH FIXES ---------
@@ -726,25 +732,25 @@ GRM.RemoveFullBackup = function( epochStamp )
     end
 end
 
-GRM.AddGuildBackup = function( guildName )
+-- GRM.AddGuildBackup = function( guildName )
 
-end
+-- end
 
-GRM.RemoveGuildBackup = function( guildName )
+-- GRM.RemoveGuildBackup = function( guildName )
 
-end
+-- end
 
-GRM.ExportLogToCopyFormat = function( guildName )
+-- GRM.ExportLogToCopyFormat = function( guildName )
 
-end
+-- end
 
-GRM.LoadFullBackup = function()
+-- GRM.LoadFullBackup = function()
 
-end
+-- end
 
-GRM.LoadGuildBackup = function()
+-- GRM.LoadGuildBackup = function()
 
-end
+-- end
 
 -- Method:          GRM.GetNumberOfProfilesInGuild ( string )
 -- What it does:    Returns an array with 2 indexes, the first being the number of current players in the guild and how many profiles saved, and the second,
@@ -892,16 +898,33 @@ GRM.SetSystemMessageFilter = function ( self , event , msg )
                 -- Determine Guild Creation Date
                 local count = 0;
                 local index = 0;
+                local index2 = 0;
+                local tempDate = "";
+                -- This just saves on resources than re-parsing each pass
                 for i = 1 , #msg do
-                    if string.sub ( msg , i , i ) == "-" then
+                    if string.sub ( msg , i , i ) == "-" or string.sub ( msg , i , i ) == "." then
                         count = count + 1;
+                        if count == 1 then
+                            index = i;
+                        end
                     end
                     if count == 2 then
-                        index = i;
+                        index2 = i;
                         break;
                     end
                 end
-                local tempDate = GRM.Trim ( string.sub ( msg , string.find ( msg , "-" ) - 2 , index + 4 ) );
+                if string.find ( msg , "-" ) ~= nil then
+                    if GRM_AddonGlobals.Region == "enUS" or GRM_AddonGlobals.Region == "enGB" or GRM_AddonGlobals.Region == "itIT" or GRM_AddonGlobals.Region == "ptBR" then
+                        -- Let's fix the English formatting
+                        tempDate = string.sub ( msg , index + 1 , index2 - 1 ) .. "-" .. GRM.Trim ( string.sub ( msg , index - 2 , index - 1 ) ) .. "-" .. string.sub ( msg , index2 + 1 , index2 + 4 );
+                    else
+                        tempDate = GRM.Trim ( string.sub ( msg , index - 2 , index2 + 4 ) );
+                    end
+                elseif string.find ( msg , "%." ) ~= nil then
+                    
+                    -- Now, let's reformat it to reflect all other 10 clients...
+                    tempDate = string.gsub ( GRM.Trim ( string.sub ( msg , index - 2 , index2 + 4 ) ) , "%." , "-" );
+                end
                 if GRM_AddonGlobals.guildCreationDate ~= "" and tempDate ~= GRM_AddonGlobals.guildCreationDate then
                     -- This means the wrong date was set and this is re-changing it.
                     GRM_AddonGlobals.changeHappenedExitScan = true;
@@ -6682,7 +6705,7 @@ GRM.SetJoinDate = function ()
 
                 local joinDate = ( "Joined: " .. dayJoined .. " " .. string.sub ( GRM.OrigL ( GRM_UI.GRM_MemberDetailMetaData.GRM_MonthDropDownMenuSelected.GRM_MonthText:GetText() ) , 1 , 3 ) .. " '" ..  string.sub ( yearJoined , 3 ) );
                 local finalTStamp = ( string.sub ( joinDate , 9 ) .. " 12:01am" );
-                local finalEpochStamp = GRM.TimeStampToEpoch ( joinDate );
+                local finalEpochStamp = GRM.TimeStampToEpoch ( joinDate , true );
                 -- For metadata tracking
                 if buttonText == GRM.L ( "Edit Join Date" ) then
                     table.remove ( GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][20] , #GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][20] );  -- Removing previous instance to replace
@@ -7066,7 +7089,7 @@ GRM.SetPromoDate = function ()
                 -- Promo Save Data
                 GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][12] = string.sub ( promotionDate , 11 );
                 GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][25][#GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][25]][2] = string.sub ( promotionDate , 11 );
-                GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][13] = GRM.TimeStampToEpoch ( promotionDate );
+                GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][13] = GRM.TimeStampToEpoch ( promotionDate , true );
                 
                 -- For SYNC
                 GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][36][1] = GRM_GuildMemberHistory_Save[ GRM_AddonGlobals.FID ][ GRM_AddonGlobals.saveGID ][r][12];
@@ -10657,5 +10680,7 @@ Initialization:SetScript ( "OnEvent" , GRM.ActivateAddon );
     -- 4 letter word == !@#$ !@#$%^ or ^&*!  
   
     -- CHANGELOG:
+    -- Fixed a Lua error in regards to join/promo dates that I introduced this last patch in relation to the GRM.TimestampToEpoch() function
+    -- Several non-English clients were not parsing the guild creation dates properly. This has resolved that issue for ALL languages
     
     
