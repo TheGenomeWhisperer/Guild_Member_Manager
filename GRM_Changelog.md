@@ -1,3 +1,258 @@
+**VERSION 7.3.5R1.1472 DATE: March 29th, 2018**
+
+*The addon would not work for NEW users after last update. This is now fixed*
+
+**VERSION 7.3.5R1.1471 DATE: March 29th, 2018**
+
+*Shift click was not working properly on the audit frame...*
+
+**VERSION 7.3.5R1.147 DATE: March 29th, 2018**
+
+**BUG FIXES**
+
+* Bug1: The Allignment Lua error that is crashing the scan, preventing any new information from updating and being saved, is now resolved.
+
+* Bug1: Number of guildies not showing up in the raid window should now properly show again.
+
+* Bug3: Names should no longer be errneously added to the friends list.
+
+**QUALITY OF LIFE**
+ 
+* QoL1: In the AUDIT window, players can now shift-ctrl-click a name for it to auto-search the log for any events concerning them.
+
+
+
+**VERSION 7.3.5R1.1461 DATE: March 24th, 2018**
+
+**ADDON BREAKING BUG FIX**
+
+*Ya, your addons should load properly now... Wow, silly bug!*
+
+
+**VERSION 7.3.5R1.146 DATE: March 24th, 2018**
+
+**NEW FEATURE**
+
+* Feature1: Custom Font Selection!
+
+* Feature2: Font size slider controls! (For minimal adjustment)
+
+**QUALITY OF LIFE**
+
+* QoL1: Red lettering of the line numbers on line selection in the Log tools should now show or clear properly in all circumstances one is viewing the log
+
+* QoL2: Refactored a bit of the load order of the code, and avoided double-processing some of the code upon reloading issues when they don't need to be. It's minimal, but it could shave off a bit of extra processing power use.
+
+***BUG FIXES**
+
+* Bug1: Player friends list should no longer spam the player when people are requesting to join the guild
+
+* Bug2: Names should no longer accidentally be left on the friends list.
+
+* Bug3: More SYNC protections... A major guild introduced me to a new load error gap in protections on double-syncing. It was a flaw in the code that occasionally could trigger a player syncing to disconnect. This resolves it.
+
+* Bug4: Spam message "player not found" should no longer trigger erroneously.
+
+
+**VERSION 7.3.5R1.145 DATE: March 21st, 2018**
+
+**NEW FEATURE**
+
+*Guild requests window now displays if the person is ONLINE or OFFLINE. Seriously, it is so annoying not knowing if the person requesting to join your guild is online or not. Now you know!*
+
+* Feature1: Notifications now added for when a person requesting to join the guild comes ONLINE. No need to keep checking, just wait til you are notified!
+
+**CRITICAL BUG FIX**
+
+* Bug1: Major sync bug that could cause people to disconnect if there are 3+ people trying to sync at the same time. It would not happen every time, but I found a hole in the gate that has now been fixed.
+
+* Bug2: Some names the custom "Add Ban" window was not accepting even though they are valid. It should be good now.
+
+
+**VERSION 7.3.5R1.144 DATE: March 19th, 2018**
+
+**MAJOR BUG FIX**
+
+*It has come to my attention that the last update, while significant, also broke a few things... this patch rectifies that, particularly the one that makes the addon not useable lol*
+
+* Bug1: Upon logging in, the player will get a blank addon window, but nothing else, and nothing is tracked. This is due to the frame generating, then all addon logic crashing before being loaded. This should be resolved automatically now.
+
+* Bug2: Fonts were automatically getting changed, due to an oversight. They should not auto-be changed now unless you are swapping to an acryllic or Asian language to support those characters.
+
+* Bug3: Minimap stopped saving its position. This should properly be working again.
+
+* Bug4: Shift-Click on adding a name to the alt-add frame was closing the window IF you had the memberdetailframe (one with promot/demote/kick buttons) open. That side window does need to be hidden due to some taint issues in me not being able to override default in-game click actions, so I just hide it while you shift-click, but the add alt window should no longer disappear.
+
+*I should note, I did a lot of behind-the-scenes pruning and cleanup of the code as well. This might not be noticeable to you, but it is noticeable to your CPU!*
+
+
+**VERSION 7.3.5R1.143 DATE: March 16th, 2018**
+
+**NEW FEATURES**
+
+*The Log has been updated with quite a lot of new features, all for the goal of allowing you the flexibility to manage it far more than previously.*
+
+***INCLUDED LOG FEATURES:***
+
+* Log EXPORT is now possible! Just copy and paste into another document.
+
+* Numbered Lines is now an option you can toggle on and off
+
+* The ability to purge any range of lines in the log. For example, if you want to delete line 150 to 180, you can! It will also take into consideration your filters, so if you want to remove just those pesky leveling entries, just custom search for "Leveled" and then clear whatever range of lines you'd like.
+
+* Ctrl-Shift-Click mouseover single line removal is now a toggleable feature.
+
+*NOTE: I have determined that the smart/infinite scrolling is just not really that necessary anymore with these new log controls, even though I had plans to add it.*
+
+**QUALITY OF LIFE**
+
+* QOL1: Language Selection is now possible from the general settings menu. Of note, most languages have very minimal localization work done. A counter is given to display how much translated work needs to be done. Any help is welcome.
+
+* QOL2: Ability to add non-Blizz Client languages as well. Have a request? Let me know and I can add ANY language now with my new system.
+
+* QOL3: Sync chat spam should be cleaned up a little. It was overly spamming as of a recent update.
+
+* QOL4: Player is now capable of Shift-Clicking the player window alts list names to copy them now as well, not just the roster window
+
+* QOL5: On promotion Date editing/adding, you could sometimes click through the dropdown menu to the button behind it. This is no longer possible.
+
+**BUG FIXES**
+
+* Bug1: ColorSelection in the options is now compatible with ElvUI, ColorpickerPlus (this also fixes tabbing and selection) and doesn't overwrite their superior color-selection frames
+
+
+
+**VERSION 7.3.5R1.142 DATE: March 11th, 2018**
+
+**NEW FEATURES**
+
+* Feature 1: You can now choose the format of the <M> main tagging between 4 (as of now) different versions. Please submit other suggestions.
+
+* Feature 2: You can now choose which color, manually, based on RGB values or the color select wheel, for what you would like that main tag to look like.
+
+* Feature 3: The Color Select window now universally, for anything you wish to use it in the game, has manual RGB values. Before these did not exist and are unique to this addon.
+
+**QUALITY OF LIFE**
+
+* QoL1: The Color Picker Window is now moveable (before it was static and stuck in place in the center of the screen)
+
+**BUG FIXES**
+
+* Bug1: The search box in the Log was not resetting properly if you tabbed off it or closed and opened the window, but the log was still resetting. The whole process should now work appropriately
+
+* Bug2: The Autobackup of the database time-interval would default to once per day if a person "Reset to Defaults" all of the addon settings. It was supposed to default to once per week, or 7 days.
+
+
+**VERSION 7.3.5R1.141 DATE: March 9th, 2018**
+
+**FEATURES**
+
+* Feature 1: The LOG is now SEARCHABLE!!! (With a count now on the log of how many entries visible)
+
+* Feature 2: Player SYNC now has a new option! You are now able to choose to share your data with the whole guild, so all players can take advantage of it, yet restrict incoming data to a rank threshold, or to keep it how it has been.
+
+*Of note... coming features include an option to export the log, as well as smarter scrolling with partial log loading (like 200 lines at a time until you scroll far enough it will load more)*
+
+**Quality of Life**
+
+* QoL1: When Player is hitting ESC key and both the mouseover window and the core addon "log" window are up, it should now more cleanly and properly close each window sequentually.
+
+
+
+**VERSION 7.3.5R1.140 DATE: March 8th, 2018**
+
+**BUG FIXES**
+
+* MAJOR BUG!!! Major issue with the backup database. You can read the explanation in the chat on update. It makes me sad, but backup database needs to be wiped due to a massive critical flaw in build design. Very much apologize for this but it should be good now.
+
+* Bug2: Fixed an issue where some settings were not saving properly, like hiding the minimap.
+
+* Bug3: Backup window, the Number of Guildies display was misaligned and should now be properly spaced.
+
+
+**VERSION 7.3.5R1.139 DATE: March 7th, 2018**
+
+**Quality of Life**
+
+* QoL1: New tooltip on the backup window when mousing over the guild. Option now included to purge that guild from your database. This is necessary for people who are using up memory for guilds they are no longer in and so on.
+
+
+**VERSION 7.3.5R1.138 DATE: March 6th, 2018**
+
+* BugFix1: Fixed an issue that could cause 2 syncs to occur at the same time which could cause a disconnect for a player. Doesn't happen often, but with many using addon there is a chance the timing could be just right to erroneously trigger it.
+
+Note... lots being worked on, this is just a minor update to resolve this bug.
+
+
+**VERSION 7.3.5R1.137 DATE: February 28th, 2018**
+
+**NEW FEATURE: Auto-Backup**
+
+*The addon will now auto-backup your guild data. Of course, you can manually back it up as well. The auto-backup can be set to a custom interval and it will keep a max of 2 unique auto-backup points per guild. It defaults to backup every 7 days.*
+
+**QUALITY OF LIFE**
+
+* QoL1: Ability to "Check All" has now been included in the Log filter options
+
+* QoL2: ElvUI "AddOnSkins" plugin has been updated to include the backup frames as well
+
+**BUG FIXES**
+
+* Bug1: Backup was indexed wrong and was skipping over a guild. In other words, if you were in 5 different guilds, it would only show 4 in the backup window.
+
+* Bug2: If the player had not logged into an old guild in a log time, to update the "Creation Date", the backup frames will now say "Unknown" - Log into that guild to update that info.
+
+* Bug3: Guild namechange was not transferring all of the data properly under the new name. It now should properly detect and transfer the data.
+
+* Bug4: Misc. Lua errors here and there have been quashed. TY for reporting!!!
+
+
+**VERSION 7.3.5R1.136 DATE: February 23rd, 2018**
+
+***NEW FEATURE***
+
+*Guild Database Backups! That's right, scan through every single guild, on all of your toons account wide and add, delete, or load backups! It backs up everything, including the log.
+
+**Things Not Yet Implemented, but soon Will be**
+
+* Ability to do account wide backup...
+
+* Ability to reset all data with one button
+
+* Safety confirmation to ensure you want to restore from that save point.
+
+* Auto-save point...
+
+*Of note, the backend is already written for most of this, just need front-end implementation. Just been very busy in RL. Getting there.
+
+* Bug1: Guild Namechange detection should now work properly with the new data change check as well...
+
+
+
+**VERSION 7.3.5R1.135 DATE: February 20th, 2018**
+
+**BUG FIX**
+
+* Bug1: If you ever cleared your log since patch 1.130 you broke the database. Well, I broke your database because I messed up some code! This fixes your database so you can once again see your log lol
+
+* Bug2: Lua error was crashing sync. Fixed!
+
+
+**VERSION 7.3.5R1.134 DATE: February 13th, 2018**
+
+* Quick fix for major flaw in previous release that crashes the TimestampToEpoch function, thus making sync and data log save impossible for many players...
+
+**VERSION 7.3.5R1.133 DATE: February 13th, 2018**
+
+* Fixed major database issue in regards to the guild creation date. This will resolve some of those issues.
+
+**VERSION 7.3.5R1.132 DATE: February 12th, 2018**
+
+* Fixed an issue when mousing over player alts names that could occur in a lua error
+
+* Fixed an issue when removing an alt from the guild. Due to previous issues, if a player had been removed from the guild, but it crashed in the process, alt data might still be lingering in the bakcground. This can cause the gkick/left reporting to no longer work as it would result in a check against a null database. This cleans up the old database and resolves that issue.
+
+
 **VERSION 7.3.5R1.131 DATE: February 11th, 2018**
 
 * Bug1: Fixed a Lua error in regards to join/promo dates that I introduced this last patch in relation to the GRM.TimestampToEpoch() function
