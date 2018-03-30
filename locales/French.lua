@@ -18,20 +18,7 @@
     -- GRM_L["{name}'s Anniversary!"] = "Aniversario de {name}"
 
 -- French Defaults
-if GRM_AddonGlobals.Region == "frFR" or not GRM_AddonGlobals.Localized then
-    GRM_AddonGlobals.Localized = true
-    -- SYSTEM MESSAGES (DO NOT CHANGE THESE!!!! They are used for the back-end code to recognize for parsing info out, not for player UI
-    GRM_L["has been kicked"] = "a été renvoyé"
-    GRM_L["joined the guild."] = "rejoint la guilde."
-    GRM_L["has promoted"] = "a promu"
-    GRM_L["has demoted"] = "a rétrogradé"
-    GRM_L["Professions"] = "Métiers"
-    GRM_L["Guild: "] = "Guilde : "
-    GRM_L["Guild created "] = "Guilde créée le "
-    GRM_L["added to friends"] = "fait maintenant partie de vos contacts."
-    GRM_L["is already your friend"] = "est déjà dans votre liste de contacts."
-    GRM_L["Player not found."] = "Joueur introuvable."
-
+GRML.French = function()
     ---------------------------------
     -- BEGIN TRANSLATION WORK HERE --
     ---------------------------------
@@ -387,10 +374,10 @@ if GRM_AddonGlobals.Region == "frFR" or not GRM_AddonGlobals.Localized then
     GRM_L["Really Clear All Account-Wide Saved Data?"] = true
     GRM_L["Really Clear All Guild Saved Data?"] = true
     GRM_L["Yes!"] = true
-    GRM_L["<M>"] = true                             -- <M> appears for "Main"
+    GRM_L["<M>"] = true                                         -- <M> appears for "Main"
     GRM_L["Ban Player?"] = true
-    GRM_L["Ban the Player's {num} alts too?"] = true      -- Plural number of alts
-    GRM_L["Ban the Player's {num} alt too?"] = true     -- Singular number of alts, just 1
+    GRM_L["Ban the Player's {num} alts too?"] = true            -- Plural number of alts
+    GRM_L["Ban the Player's {num} alt too?"] = true             -- Singular number of alts, just 1
     GRM_L["Please Click \"Yes\" to Ban the Player!"] = true
 
     -- Sync Messages
@@ -405,7 +392,7 @@ if GRM_AddonGlobals.Region == "frFR" or not GRM_AddonGlobals.Localized then
     GRM_L["{name} has been BANNED from the guild!"] = true
     GRM_L["{name} has been UN-BANNED from the guild!"] = true
     GRM_L["Initiating Sync with {name} Instead!"] = true
-    GRM_L["Sync Failed with {Name}..."] = true
+    GRM_L["Sync Failed with {name}..."] = true
     GRM_L["The Player Appears to Be Offline."] = true
     GRM_L["There Might be a Problem With Their Sync"] = true
     GRM_L["While not ideal, Ask Them to /reload to Fix It and Please Report the Issue to Addon Creator"] = true
@@ -509,7 +496,6 @@ if GRM_AddonGlobals.Region == "frFR" or not GRM_AddonGlobals.Localized then
     GRM_L["Years"] = true
     GRM_L["Year"] = true
 
-
     -- MISC Punctuation
     GRM_L[","] = true                               -- I know in some Asia languages, a comma is not used, but something similar, for example.
 
@@ -547,6 +533,87 @@ if GRM_AddonGlobals.Region == "frFR" or not GRM_AddonGlobals.Localized then
     GRM_L["To avoid storage bloat, a maximum of two save points is currently possible. Please remove one before Continuing."] = true
     GRM_L["Error: Guild Not Found..."] = true
     GRM_L["Debugger Start"] = true;
+
+    -- Update 1.136
+    GRM_L["To avoid storage bloat, a maximum of 2 guild save points is currently possible. Please remove one before continuing"] = true
+    GRM_L["Backup Point Removed for Guild \"{name}\""] = true
+    GRM_L["Backup Point Restored for Guild \"{name}\""] = true
+    GRM_L["Backup Point Set for Guild \"{name}\""] = true
+    GRM_L["Backup"] = true
+    GRM_L["Horde"] = true
+    GRM_L["Alliance"] = true
+    GRM_L["Creation Date"] = true
+    GRM_L["Members"] = true
+    GRM_L["Backup {num}:"] = true           -- As in, the number of backups... so "Backup 1:"
+    GRM_L["None"] = true
+    GRM_L["Restore"] = true
+    GRM_L["Set Backup"] = true
+    GRM_L["Memory Usage: {num} MB"] = true          -- MB references the number of MegaBytes of memory used.
+
+    -- Update 1.137
+    GRM_L["GRM: Unable to Create Backup for a Guild With Unknown Creation Date! Log into that guild on any alt to update old database."] = true
+    GRM_L["Enable Auto-Backup Once Every"] = true
+    GRM_L["Auto {num}:"] = true
+    GRM_L["Please Choose a Time Interval Between 1 and 99 Days!"] = true
+    GRM_L["Really restore {name} Backup Point?"] = true
+    GRM_L["Check All"] = true
+
+    -- Update 1.139
+    GRM_L["Right-Click for options to remove this guild from the addon database completely"] = true
+    GRM_L["Player Cannot Purge the Guild Data they are Currently In!!!"] = true
+    GRM_L["To reset your current guild data type '/grm clearguild'"] = true
+    GRM_L["Click Here to Remove all traces of this guild, or hit ESC"] = true
+    GRM_L["{name} has been removed from the database."] = true              -- The Guild Name has been removed from the database
+
+    -- update 1.141
+    GRM_L["You will still share your data with the guild, but you are currently only accepting changes from rank \"{name}\" or higher"] = true    -- Reminder, the backslash before a quotation denotes the string NOT to close, but to include the quotation in display txt
+    GRM_L["Only Restrict Incoming Player Data to Rank Threshold, not Outgoing"] = true
+    GRM_L["Total Entries: {num}"] = true
+    GRM_L["Search Filter"] = true
+
+    -- update 1.142
+    GRM_L["Choose Color:"] = true
+    GRM_L["Format:"] = true
+    GRM_L["M"] = true           -- Of note, the "M" is short for "Main" and this is the reference to the main tag on alts in guild chat.
+    GRM_L["RGB Values Must be Between 1 and 255."] = true
+
+    -- Update 1.143
+    GRM_L["The Log is Currently Empty for This Guild"] = true
+    GRM_L["Building Log for Export..."] = true
+    GRM_L["Open Log Tools"] = true
+    GRM_L["Hide Log Tools"] = true
+    GRM_L["Numbered Lines"] = true
+    GRM_L["Export Log"] = true
+    GRM_L["Clear Lines:"] = true
+    GRM_L["Enable Ctrl-Shift-Click Line Removal"] = true
+    GRM_L["To"] = true                                      -- Clear Lines:  50 To 100     -- It stands between 2 edit boxes as its own fontstring, so work with that.
+    GRM_L["Confirm Clear"] = true
+    GRM_L["Please Select Range of Lines from the Log You Wish to Remove"] = true
+    GRM_L["Please put the lowest number in the first box"] = true
+    GRM_L["Line selection is not valid"] = true
+    GRM_L["Really Clear lines {custom1} to {custom2}?"] = true
+    GRM_L["Enabling Line Numbers... Please choose within the given range"] = true
+    GRM_L["Ctrl-C to Copy <> Ctrl-P to Paste <> Ctrl-A to Select All"] = true
+    GRM_L["Language Selection:"] = true
+    GRM_L["{num} phrases still need translation to {name}"] = true                  -- Ex: 300 phrases still need translation to German
+
+    -- update 1.145
+    GRM_L["You currently are at {num} non-Battletag friends. To fully take advantage of all of GRM features, please consider clearing some room."] = true
+    GRM_L["Please free up spaces on your friends list to utilize all GRM features"] = true
+    GRM_L["Offline"] = true
+    GRM_L["{name} has requested to join the guild and is currently ONLINE!"] = true
+
+    -- Update 1.146
+    GRM_L["Really Clear line {num}?"] = true
+    GRM_L["Font has been Reset to DEFAULT."] = true
+    GRM_L["Font Selection:"] = true
+    GRM_L["Font Scale:"] = true
+    GRM_L["Example"] = true
+    GRM_L["Right-Click to Reset to 100%"] = true
+    
+    -- Update 1.147
+    GRM_L["|CFFE6CC7FClick|r to open Player Window"] = true
+    GRM_L["|CFFE6CC7FCtrl-Shift-Click|r to Search the Log for Player"] = true
     
 end
 
