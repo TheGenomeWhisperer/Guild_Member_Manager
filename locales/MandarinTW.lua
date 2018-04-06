@@ -23,6 +23,8 @@
 
 GRML.MandarinTW = function()
 
+    GRM_L["Guild"] = true
+
     -- PLAYER MAIN ROSTER DETAILS WINDOW
     GRM_L["Level: "] = "等級"
     GRM_L["Note:"] = "註記："
@@ -81,7 +83,6 @@ GRML.MandarinTW = function()
     GRM_L["Joined"] = true
     GRM_L["Left:"] = true                               -- as in, "Left" the guild
     GRM_L["Rejoined:"] = true                           -- as in, "Rejoined" the guild
-    GRM_L["Right-Click to Set Notification of Status Change"] = true
     GRM_L["Reset Data!"] = true
     GRM_L["Notify When Player is Active"] = true
     GRM_L["Notify When Player Goes Offline"] = true
@@ -224,13 +225,11 @@ GRML.MandarinTW = function()
     GRM_L["Add Join Date to:  |cffff0000Officer Note|r"] = true         -- Context: Please keep |cffff0000 for color coding of the text, and the |r to signify the end of color change
     GRM_L["Add Join Date to:  Officer Note"] = true
     GRM_L["Public Note"] = true
-    GRM_L["__________________  OPTIONS  __________________"] = true     -- This is the header of the OPTIONS tab... Please try to keep the "____" even on both sides, but shorten it if necessary to fit properly.
     GRM_L["Scanning Roster:"] = true
     GRM_L["Guild Rank Restricted:"] = true
     GRM_L["Sync:"] = true
     -- Options window -- of note, these are very concise statements. They may need to be adjusted properly in the Options window for proper spacing, so verify they look ok after translating.
     GRM_L["Slash Commands"] = true
-    GRM_L["Open Log"] = true
     GRM_L["Trigger scan for changes manually"] = true
     GRM_L["Trigger sync one time manually"] = true
     GRM_L["Centers all Windows"] = true
@@ -250,7 +249,7 @@ GRML.MandarinTW = function()
     GRM_L["Kick Inactive Player Reminder at"] = true        -- Context: "Kick Inactive Player Reminder at X Months" - Again, allignment will need to be adjusted for options UI, so please post
     GRM_L["Please choose a month between 1 and 99"] = true
     GRM_L["Report Inactive Return if Player Offline"] = true
-    GRM_L["SYNC BAN List With Guildies at Rank"] = true     -- Context: "Sync Ban List with Guildies at Rank [DROPDOWNMENU OF RANKS] or Higher" - Please show where dropdown menu should be pinned
+    GRM_L["Sync BAN List With Guildies at Rank"] = true     -- Context: "Sync Ban List with Guildies at Rank [DROPDOWNMENU OF RANKS] or Higher" - Please show where dropdown menu should be pinned
     GRM_L["or Higher"] = true                               -- Context: Look at the above statement. Show where this needs to go in regards to dropdown menu of rank selection in Options
     GRM_L["Restore Defaults"] = true
     GRM_L["Please choose between 1 and 180 days!"] = true
@@ -261,7 +260,7 @@ GRML.MandarinTW = function()
     GRM_L["SYNC Changes With Guildies at Rank"] = true      -- Context: at Rank [DROPDOWNRANKSELECTION] or Higher. - Please note where to place dropdown box in the position of the sentence.
     GRM_L["Reactivating Data SYNC with Guildies..."] = true
     GRM_L["Deactivating Data SYNC with Guildies..."] = true
-    GRM_L["Display SYNC Update Messages"] = true
+    GRM_L["Display Sync Update Messages"] = true
     GRM_L["Only Sync With Up-to-Date Addon Users"] = true
     GRM_L["Only Announce Anniversaries if Listed as 'Main'"] = true
     GRM_L["Leveled"] = true
@@ -331,7 +330,7 @@ GRML.MandarinTW = function()
     GRM_L["Breaking current Sync with the Guild..."] = true
     GRM_L["Initializing Sync Action. One Moment..."] = true
     GRM_L["No Players Currently Online to Sync With..."] = true
-    GRM_L["No Addon Users Currently Compatible for Sync."] = true
+    GRM_L["No Addon Users Currently Compatible for FULL Sync."] = true
     GRM_L["SYNC is currently not possible! Unable to Sync with guildies when guild chat is restricted."] = true
     GRM_L["There are No Current Applicants Requesting to Join the Guild."] = true
     GRM_L["The Applicant List is Unavailable Without Having Invite Privileges."] = true
@@ -496,9 +495,8 @@ GRML.MandarinTW = function()
     GRM_L["Years"] = true
     GRM_L["Year"] = true
 
-
     -- MISC Punctuation
-    GRM_L[","] = "，"                               -- I know in some Asia languages, a comma is not used, but something similar, for example.
+    GRM_L[","] = true                               -- I know in some Asia languages, a comma is not used, but something similar, for example.
 
     -- Updates 1.126
     GRM_L["General"] = true
@@ -527,14 +525,14 @@ GRML.MandarinTW = function()
     GRM_L["Sync All Alts to the Earliest Join Date: {name}"] = true
     GRM_L["Sync All Alts to {name}'s |cffff0000(main)|r Join Date"] = true  -- The coloring ensures that "(main)" maintains the RED color. Please keep it consistent if relevant to your language.
     GRM_L["Join Date of All Alts is Currently Synced"] = true
-    
+
     -- Update 1.130
     GRM_L["|CFFE6CC7FCtrl-Shift-Click|r to Hide this Button."] = true
     GRM_L["Invited By:"] = true
-    GRM_L["To avoid storage bloat, a maximum of two save points is currently possible. Please remove one before Continuing."] = true
+    GRM_L["To avoid storage bloat, a maximum of 2 save points is currently possible. Please remove one before Continuing."] = true
     GRM_L["Error: Guild Not Found..."] = true
     GRM_L["Debugger Start"] = true;
-    
+
     -- Update 1.136
     GRM_L["To avoid storage bloat, a maximum of 2 guild save points is currently possible. Please remove one before continuing"] = true
     GRM_L["Backup Point Removed for Guild \"{name}\""] = true
@@ -550,7 +548,7 @@ GRML.MandarinTW = function()
     GRM_L["Restore"] = true
     GRM_L["Set Backup"] = true
     GRM_L["Memory Usage: {num} MB"] = true          -- MB references the number of MegaBytes of memory used.
-    
+
     -- Update 1.137
     GRM_L["GRM: Unable to Create Backup for a Guild With Unknown Creation Date! Log into that guild on any alt to update old database."] = true
     GRM_L["Enable Auto-Backup Once Every"] = true
@@ -567,11 +565,11 @@ GRML.MandarinTW = function()
     GRM_L["{name} has been removed from the database."] = true              -- The Guild Name has been removed from the database
 
     -- update 1.141
-    GRM_L["You will still share your data with the guild, but you are currently only accepting changes from rank \"{name}\" or higher"] = true    -- Reminder, the backslash before a quotation denotes the string NOT to close, but to include the quotation in display txt
+    GRM_L["You will still share your data with the guild, but you are currently only accepting incoming changes from rank \"{name}\" or higher"] = true    -- Reminder, the backslash before a quotation denotes the string NOT to close, but to include the quotation in display txt
     GRM_L["Only Restrict Incoming Player Data to Rank Threshold, not Outgoing"] = true
     GRM_L["Total Entries: {num}"] = true
     GRM_L["Search Filter"] = true
-    
+
     -- update 1.142
     GRM_L["Choose Color:"] = true
     GRM_L["Format:"] = true
@@ -600,7 +598,7 @@ GRML.MandarinTW = function()
 
     -- update 1.145
     GRM_L["You currently are at {num} non-Battletag friends. To fully take advantage of all of GRM features, please consider clearing some room."] = true
-    GRM_L["Please free up spaces on your friends list to utilize all GRM features"] = true
+    GRM_L["Clear Space on Friends List to Find Online Status"] = true
     GRM_L["Offline"] = true
     GRM_L["{name} has requested to join the guild and is currently ONLINE!"] = true
 
@@ -615,6 +613,54 @@ GRML.MandarinTW = function()
     -- Update 1.147
     GRM_L["|CFFE6CC7FClick|r to open Player Window"] = true
     GRM_L["|CFFE6CC7FCtrl-Shift-Click|r to Search the Log for Player"] = true
+
+    -- Update 1.148
+    GRM_L["Custom Notes:"] = true
+    GRM_L["GRM Debugging Enabled."] = true
+    GRM_L["GRM Debugging Disabled."] = true
+    GRM_L["Please type \"/grm debug 10\" to report 10 events (or any number)"] = true        -- Please keep the \"/grm debug 10)\" in-tact for slash command to work
+    GRM_L["Format: \"/grm debug 10\""] = true                                                                  -- "" Likewise
+    GRM_L["Error: Debug Command not recognized."] = true
+    GRM_L["You may want to temporarily disable SYNC in the options if you are debugging another feature."] = true
+    GRM_L["Sync Custom Notes"] = true
+    GRM_L["Default Custom Note Rank Minimum"] = true
+    GRM_L["Reset Default Custom Note Restrictions for ALL Guildies"] = true
+    GRM_L["Reset to Default"] = true
+    GRM_L["Reset"] = true
+    GRM_L["|CFF00CCFFDefault Selection For All Players"] = true
+    GRM_L["Each Guildie Can Still be Manually Configured"] = true
+    GRM_L["Does NOT apply to Ban List or Custom Note"] = true
+    GRM_L["Custom note Rank reset to default \"{name}\" (or higher)"] = true
+    GRM_L["If sync was manually disabled for specific guildies, this does NOT enabled it."] = true
+    GRM_L["Custom note default settings for Rank and Sync have been reset."] = true
+    GRM_L["Custom note Sync has been reset to default"] = true
+    GRM_L["Click here to set Custom Notes"] = true
+    GRM_L["|CFF00CCFFCustom Note Defaults:"] = true
+    GRM_L["|CFFE6CC7FLeft-Click|r to ONLY reset all to default rank"] = true
+    GRM_L["|CFFE6CC7FCtrl-Shift-Click|r to reset BOTH sync and rank defaults"] = true
+    GRM_L["|CFFE6CC7FCtrl-Left-Click|r to re-enable custom note sync for all"] = true
+    GRM_L["Custom Note Sync Disabled in Settings"] = true
+    GRM_L["{name} modified {name2}'s CUSTOM Note: \"{custom1}\" was Added"] = true
+    GRM_L["{name} modified {name2}'s CUSTOM Note: \"{custom1}\" was Removed"] = true
+    GRM_L["{name} modified {name2}'s CUSTOM Note: \"{custom1}\" to \"{custom2}\""] = true
+    GRM_L["Custom Note"] = true
+    GRM_L["Syncing Outgoing Data."] = true
+    GRM_L["|CFFE6CC7FClick|r to Change Rank Restriction"] = true
+    GRM_L["|CFFE6CC7FClick|r to Change Day"] = true
+    GRM_L["|CFFE6CC7FClick|r to Change Month"] = true;
+    GRM_L["|CFFE6CC7FClick|r to Change Year"] = true;
+    GRM_L["Edited by {name}"] = true
+    GRM_L["Note Removed by {name}"] = true
+    GRM_L["|CFFFF0000Player No Longer in Guild"] = true
+    GRM_L["|CFF00CCFFMinimum Rank to Sync: Player Data, Custom Notes, Ban List"] = true
+    GRM_L["Warning! Ban List rank threshold is below the overall sync rank. Changing from \"{name}\" to \"{name2}\""] = true
+    GRM_L["Warning! Custom Note rank threshold is below the overall sync rank. Changing default from \"{name}\" to \"{name2}\""] = true
+    GRM_L["Custom Note Default Rank is Also Being Set to \"{name}\""] = true
+    GRM_L["|CFF00CCFFSync filter can be set tighter for the Ban List"] = true
+    GRM_L["Warning! Unable to select a Ban List rank below \"{name}\""] = true
+    GRM_L["Warning! Custom Note rank filter must be below \"{name}\""] = true
+    GRM_L["Setting to match core filter rank"] = true
+    GRM_L["Warning! \"{name}\" is the lowest rank that can receive this custom note.\nCheck the options menu to adjust overall settings."] = true
     
 end
 
