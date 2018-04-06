@@ -105,6 +105,17 @@ GRM_Patch.IntroduceUnknown = function()
             end
         end
     end
+
+    for i = 1 , #GRM_PlayersThatLeftHistory_Save do                         -- Horde and Alliance
+        for j = 2 , #GRM_PlayersThatLeftHistory_Save[i] do                  -- The guilds in each faction
+            for r = 2 , #GRM_PlayersThatLeftHistory_Save[i][j] do           -- The players in each guild (starts at 2 as position 1 is the name of the guild).
+                if #GRM_PlayersThatLeftHistory_Save[i][j][r] == 39 then
+                    table.insert ( GRM_PlayersThatLeftHistory_Save[i][j][r] , false );      -- isUnknown join
+                    table.insert ( GRM_PlayersThatLeftHistory_Save[i][j][r] , false );      -- isUnknown promo
+                end
+            end
+        end
+    end
 end
 
 
@@ -494,6 +505,9 @@ GRM_Patch.CleanupPromoDates = function()
 end
 
 -- Introduced patch R1.142
+-- Method:          GRM_Patch.ExpandOptionsType(int,int,int)
+-- What it Does:    Expands the number of options settings, and initializes the type
+-- Purpose:         Reusuable for future flexibility on updates.
 -- 1 = number, 2=boolean, 3 = array , 4 = string
 GRM_Patch.ExpandOptionsType = function( typeToAdd , numberSlots , referenceCheck )
     local expansionType;
@@ -569,7 +583,7 @@ GRM_Patch.FixBrokenLanguageIndex = function()
 end
 
 
--- Method:          GRM_Patch.DoubleGuildFix ( int , string , string )
+-- Method:          GRM_Patch.DoubleGuildFix ( string , string , string )
 -- What it Does:    If there are 2 copies of the guild, but one of them is broken because the creation date was incorrect, this fixes it
 -- Purpose:         To save people's data!
 GRM_Patch.DoubleGuildFix = function ( guildName , creationDate , faction )
@@ -674,7 +688,7 @@ GRM_Patch.SetProperFontIndex = function()
     end
 end
 
-
+-- R1.147
 -- Method:          GRM_Patch.SetMiscConfiguration()
 -- What it Does:    Configures the new save file by making a uniqe index for each toon already saved
 -- Purpose:         To be able to save a player the headache of incomplete tasks that need a marker on where to carryon from where it was left off.
@@ -686,6 +700,73 @@ GRM_Patch.SetMiscConfiguration = function()
         for j = 2 , #GRM_PlayerListOfAlts_Save[i] do
             for r = 2 , #GRM_PlayerListOfAlts_Save[i][j] do
                 GRM.ConfigureMiscForPlayer ( GRM_PlayerListOfAlts_Save[i][j][r][1] );
+            end
+        end
+    end
+end
+
+-- Added patch 1.148
+-- Method:          GRM_Patch.ModifyPlayerMetadata ( int , object , boolean , int )
+-- What it Does:    Allows the player to modify the metadata for ALL profiles in every guild in the database with one method
+-- Purpose:         One function to rule them all! Keep code bloat down.
+GRM_Patch.ModifyPlayerMetadata = function ( index , newValue , toArraySetting , arrayIndex )
+    for i = 1 , #GRM_GuildMemberHistory_Save do                         -- Horde and Alliance
+        for j = 2 , #GRM_GuildMemberHistory_Save[i] do                  -- The guilds in each faction
+            for r = 2 , #GRM_GuildMemberHistory_Save[i][j] do           -- The players in each guild (starts at 2 as position 1 is the name of the guild).
+                if not toArraySetting then
+                    GRM_GuildMemberHistory_Save[i][j][r][index] = newValue;
+                else
+                    GRM_GuildMemberHistory_Save[i][j][r][index][arrayIndex] = newValue;
+                end
+            end
+        end
+    end
+
+    -- need to update the left player's database too...
+    for i = 1 , #GRM_PlayersThatLeftHistory_Save do                         -- Horde and Alliance
+        for j = 2 , #GRM_PlayersThatLeftHistory_Save[i] do                  -- The guilds in each faction
+            for r = 2 , #GRM_PlayersThatLeftHistory_Save[i][j] do           -- The players in each guild (starts at 2 as position 1 is the name of the guild).
+                if not toArraySetting then
+                    GRM_PlayersThatLeftHistory_Save[i][j][r][index] = newValue;
+                else
+                    GRM_PlayersThatLeftHistory_Save[i][j][r][index][arrayIndex] = newValue;
+                end
+            end
+        end
+    end
+end
+
+-- Introduced patch R1.148
+-- Method:          GRM_Patch.AddNewDefaultSetting ( int , object , boolean )
+-- What it Does:    Modifies the given setting based on the index point in the settings with the new given setting
+-- Purpose:         To create a universally reusable patcher.
+GRM_Patch.AddNewDefaultSetting = function ( index , newSetting , isArray )
+    for i = 1 , #GRM_AddonSettings_Save do
+        for j = 2 , #GRM_AddonSettings_Save[i] do
+            if not isArray then
+                GRM_AddonSettings_Save[i][j][2][index] = newSetting;
+            else
+                table.insert ( GRM_AddonSettings_Save[i][j][2][index] , newSetting );
+            end
+        end
+    end
+end
+
+-- patch R1.148
+-- Method:          GRM_Patch.SetProperRankRestrictions()
+-- What it Does:    Sets the ban list rank and custom note rank to match overall sync filter rank, if necessary
+-- Purpose:         Clarity for the addon user on rank filtering.
+GRM_Patch.SetProperRankRestrictions = function()
+    for i = 1 , #GRM_AddonSettings_Save do
+        for j = 2 , #GRM_AddonSettings_Save[i] do
+            -- If ban List rank restriction is not right then set it to proper default
+            if GRM_AddonSettings_Save[i][j][2][22] > GRM_AddonSettings_Save[i][j][2][15] then
+                GRM_AddonSettings_Save[i][j][2][22] = GRM_AddonSettings_Save[i][j][2][15];
+            end
+        
+            -- Same with custom note
+            if GRM_AddonSettings_Save[i][j][2][49] > GRM_AddonSettings_Save[i][j][2][15] then
+                GRM_AddonSettings_Save[i][j][2][49] = GRM_AddonSettings_Save[i][j][2][15];
             end
         end
     end
