@@ -1,3 +1,255 @@
+**VERSION 7.3.5R1.1530 DATE: June 4th, 2018**
+
+*Prepping for some big updates in BFA... so please, be patient and I will make sure we are rolling good for some big improvements. Looks like guilds being integrated into communities too so that will require a significant rework of things as well!*
+
+**QUALITY OF LIFE**
+
+* QoL1: For new players that join the guild, adding join date to officer/public note is turned off for people that install this addon going forward. It is an optional feature that needs to be manually engaged.
+
+* QoL2: Previously, when a player left the guild it wiped some data I deemed unnecessary and only stored things like dates and so on. It did not store the alt lists. I have no idea how I logically deduced that was a good idea lol. So, while the alt list is reset if they rejoin, as necessity, you now have access to their previous alts when they left the guild, thus if you choose to ban the player after they left, you will now be given the option to ban all their alts as well. This unfortunately cannot be retroactive.
+
+* QoL3: Ban List management even more streamlined. When a player types in a name it autoformats the name, then if on tabbing or moving to another box, if it finds the player in the guild or in the LeftPlayers list, it auto populates their class and auto-formats the name for adding.
+
+* QoL4: Count now included on the number of items added sync'd.
+
+* QoL5: Status on being able or not to add events to guild calendar has been added to the window.
+
+**BUG FIXES**
+
+* BUG1: Tooltip was once again, erroneously scaling ALL game tooltips when it should have just been scaling this addon's only. This would make smaller fonts like in ElvUI really difficult for some people. This is now once again FIXED. Oops!
+
+* BUG2: Major bug fix for broken databases that never fully converted right for people that maybe haven't updated in a very long time. Thanks @chay on Discord for letting me use your database to debug this one.
+
+* BUG3: Due to some formatting issues and non-precise user input error protections, the addon will now re-analyze the entire database and properly format any player's names that were manually added to the ban list, so they can properly be detected if they rejoin the guild.
+
+* BUG4: Addon Settings were not properly syncing between alts, if you had that setting selected, at least not always. It is now wrapped properly and should work now. The first toon you logon to, verify their settings, and then from there the settings should sync properly.
+
+* BUG5: Rejoin data "time passed" since they left the guild should now be accurate.
+
+
+**VERSION 7.3.5R1.1520 DATE: May 27th, 2018**
+
+*Got a little busy with RL and a promotion at work, so understand if the updates haven't been quite as speedily. I still am doing a little here and there, of course!*
+
+**QUALITY OF LIFE**
+
+* QoL1: Italian translation is now included! Thank you so much @Nihal6
+
+* QoL2: When exporting the log, it should now obey the filters too, it won't export the entire log, just what you see based on your filters.
+
+* QoL3: On manually adding players to the ban list, it scans if the player has "alts" and automatically asks you if you would like to ban all of their alts as well. This was previously possible when banning players in the guild, but now, on manually adding a guild ban it will check
+
+* QoL4: Players now have the ability to EDIT bans.
+
+* QoL5: Ban player interface a bit more user friendly and higher quality. Better tab or shift-tab for navigation, even up/down arrow use on the dropdown menu if you prefer.
+
+* QoL6: Added some tooltips for some buttons, if they are localized in a language with a very long phrase, the scaling might get too small, thus tooltips on button mouseover should help clarify some more.
+
+
+**BUG FIXES
+
+* Bug1: Fixed a bug that could occure when a player is not in the guild then joins the guild, triggering scan for update.
+
+* Bug2: Fixed a bug that could cause the player to lose keyboard focus when trying to edit calendar event.
+
+* Bug3: On some occasions the guild ranks were not properly setting their indexes due to ranks being added or removed. This could cause serious sync issues downstream, as well as log spam. Fixed!
+
+* Bug4: Fixed an issue with the German translation where ti would spam you saying you didn't have a string translated.
+
+
+**VERSION 7.3.5R1.1510 DATE: May 2nd, 2018**
+
+**MINOR FEATURE UPDATE**
+
+* *GERMAN IS NOW FULLY LOCALIZED*
+
+* Custom Note is a bit more accessible with the ability to have line breaks
+
+* Hit enter, go to next line. Added Confirm and cancel buttons. Better control of Custom note display as a result.
+
+**QUALITY OF LIFE**
+
+* QoL1: Added ability to change timestamp format to your preference.
+
+* QoL2: Furthermore, player can choose between the 24hr clock or the 12hr clock for log reporting times
+
+* QoL3: "Time as Member" is now included in the log entries when a player leaves the guild, but only if it was known how long they were a member. If their join date was never configured this will be ignored.
+
+* QoL4: "Time as Member" now included in the mouseover tooltip on the Member join date. 
+
+* QoL5: "Join Date" button is now properly alligned, I just never noticed since I use the English version...
+
+* QoL6: Auto font Scaling is now included for many buttons so they don't overlap out of bounds of their frames. This is necessary for some languages, like German, with very long words.
+
+* QoL7: Add Alt button slightly increased in size, mainly to accomodate other languages, but it is also just cleaner, easier to click.
+
+* QoL8: Added tooltips for mouseover of the options sub-tabs as some non-English words were too big to fit reasonably.
+
+* QoL9: All promotion dates are now cleaned up, as some, due to an old bug now eliminated, had the 12:01am timestamp visible.
+
+* QoL10: Events Frame cleaned up a little bit in preparation of pending new features
+
+* QoL11: Ability to click the player's name in the events tab and bring up their player window (with tooltip over the names now)
+
+* QoL12: Pressing escape in the events window now de-selects a player rather than closes the whole window, or closes the window if no player selected
+
+* QoL13: Option to enable/disable the "fade" when moving between tabs
+
+**BUG FIXES**
+
+* Bug1: Bug on load for some people who haven't updated > 6 months
+
+* Bug2: Localization issue fixed for not properly updating anything with a number
+
+* Bug3: Fixed a very old bug where it was not giving the exact day properly on the recommend to kick a player who has been offline X number of months. The logic has been completely updated to even support with exactness on leapyear checks too. Before it was just a close estimate. Not it is 100% precise.
+
+* Bug4: Fixed an issue where the custom note was not updating the log immediately upon the change.
+
+* Bug5: The friends list spam on occasion would still happen. This was kind of wonky because even with delay checks and so on, sometimes the server would not detect a change and get a callback for a few moments, but there was no specific event to listen to to wait for the callback, so I had to ballpark it. Well, you get a lag-spike and you might get spammed. I figured a protection workaround to prevent the "added to friends" spam if you have a lot of people on the guild request to join page
+
+* Bug6: Potential bug fix for the mass-custom note spam syncing - needs testing.
+
+* Bug7: Not yet translated count now visible again when selecting which language you want.
+
+* Bug8: The GRM tabs were not localizing on the language change, they are now.
+
+* Bug9: "Time passed since..." player left the guild, was not online, etc... should now be exact to the day and was reporting wrong before.
+
+
+**VERSION 7.3.5R1.1501 DATE: April 22nd, 2018**
+
+*Fixed a bug that seems to affect SOME people, not all, causing the addon to fail to properly load*
+
+
+**VERSION 7.3.5R1.1500 DATE: April 22nd, 2018**
+
+**QUALITY OF LIFE**
+
+* QoL1: Tooltip added to audit window over the "Unique accounts" to make it more clear that the server is not always accurate on these details, and hopefully Blizz fixes that.
+
+* QoL2: For NEW users only, not retroactive, the base rank in the guild is now the default on the player details, like alt/main, etc... The reason is that now that ban lists, and custom notes and so on all have their own threshold filters and as such, with much tigher sync controls existing, it makes since for players to share data with each other by default. I say this as it seems 9/10 players that install the addon NEVER bother with trying to change any default configurations, thus they end up not sharing anything. This was originally only heavily restricted by default due to an imperfect process with less filters.
+
+**BUGS**
+
+* BUG1: Players were unable to click player alt names to bring up their details, in the list. It should work again.
+
+* BUG2: Custom Note spam was only partially previous resolved. If you cleaned up your notes using '/run GRM.ClearCustomNoteMatches("Matching Text")' then if the OTHER person in the guild did not, you would proceed to immediately resync and receive all of those notes again. So, unless ALL players in the guild used the tool, you would just keep getting the data. This now ensures that a proper timestamp gate is in place to prevent accepting outdated data.
+
+* BUG3: Fixed an issue with compatibility with backups for guilds players haven't logged into in a LONG time with OLD databases...
+
+* BUG4: Fixed an issue where the backup tab wouldn't load any info for some players.
+
+* BUG5: Removed chat spam when removing lines from the log... accidentally left debug chat msg from last patch
+
+* BUG6: If the player had rank restrictions saved at say, the lowest rank, then the GM removed the number of ranks in the guild from 9 to 8, the player would need to manually reconfigure the sync in the settings. Now, it is done automatically if the ranks have been modified or deleted, it will push to the next equivalent "lowest" rank when it would previously bug out.
+
+* BUG7: If the player had returned from inactivity within the last 60 minutes, the addon was waiting until they were at least offline again for 1 hr.
+
+* BUG8: Fixed a HUGE issue where people that had used the "sync alt join dates" feature was not properly reporting all anniversary dates as they arrived, especially if you had it unchecked to limit to only the main, and in some cases it would only report one player, not even necessarily the main.
+
+* BUG9: If the player checks the box to ONLY display "main" anniversary dates now, the event log should properly update to only show the main anniversaries.
+
+* BUG10: It was checking the scan every 10 seconds regardless of the time interval on scan settings. Oops!
+
+* BUG11: Fixed an issue where if a player joins the guild it could trigger a parallel scan, wasting resources, potentially causing double report conflicts
+
+* BUG12: Fixed a significant issue where a double report of a promotion/demotion change could go to the log.
+
+* BUG13: I found one more instance where names added to friends list to check online status, then removed, were still announcing to chat. This is removed now. I have extensively tested it now.
+
+* BUG14: Fixed a bug when updating a VERY old version of the database it would fail as it was not considering the old guildName format.
+
+***FINAL NOTE***
+*I am working on a larger feature right now but it's taking me a lot of time, more than I had available. Also, my allergies have been impossible this week, greatly limiting how much time I could look at a computer screen comfortably. Seriously, my left eye in paticular was so bad for 2 days that it was nearly swollen shut from allergies and only Zyrtec is "sort of" helping (typical for this time of the year for me). So, I spent a lot of time off the PC. But, it's coming! Oh and, I got a little distracted with a new side project that is absurdly useless, but I want it. You'll see when it's ready.*
+
+
+**VERSION 7.3.5R1.1492 DATE: April 13th, 2018**
+
+*Fixed an issue for people that had a bug that seemed to effect people with guilds with rather old databases in the background that were trying to be converted...
+
+
+**VERSION 7.3.5R1.1491 DATE: April 13th, 2018**
+
+**MAJOR DATABASE LOOKUP CHANGE**
+
+*Recently it has come to my attention that there is a flaw in the API call to Blizz's server to obtain the "Guild Creation Date" - For some reason, a few weeks back when the daylight savings change hit, all of a sudden a few guilds started reporting that they lost their data, except in the backups they now had 2 guilds, both of which being 1 day off. Thus, it seems likely that Blizz did not consider, accurately, timezone translations perfectly, and as a programmer myself, I find this kind of understandable. So, it is likely that guilds that were created within maybe 1hr of the day change likely might experience this issue where all of a sudden the API call from the server is reporting your guild as being created 1 day different. You can see the info yourself with a /ginfo*
+
+*Well, I could just easily look into it and find guilds with the same name and parse out the dates and see ones 1 day apart, and then fix that, but ultimately I wanted a better solution to this issue, one with no exceptions or edge cases. Thus, I managed to discover some buried API, undocumented on any of the unofficial programming sites, on how I could get the server the guild was created on. You see, if I can just tag the server to the guild, that would be the best way to identify guilds uniquely, when before I tied their name to their creation date. This presented a problem since on merged realm guilds there did not seem to be a way to determine which server the guild was made on. Fortunately, I figured out a solution and even better, it is going to process and re-convert all of your databases to be compatible with this new info all behind the scenes. It also changes the way database queries occur.*
+
+*This was a rather complicated process because I now have to consider the old databases that have not been upgraded yet, and have to deal with managing backup information from guilds you have not logged into to parse the server they originated on. So, it took a bit of conditional coding to get it just right, but I did a bit of testing with it and I am satisfied with the result. Thankfully, in 5 months when the next daylight savings happens again, guilds won't be SOL on their data again as their guild creation date shifts 1 day again.*
+
+**QUALITY OF LIFE**
+
+* QoL1: There is now a hyperlink to click when a player comes online, and is requesting to join the guild. Before the hyperlink only existed when it reported initially how many requested to join, even if all were offline. Now, it re-gives you the link when someone logs on.
+
+* QoL2: Tooltip in the options Backup tab now properly scales, and now includes the guildaname in the mouseover tooltip, in case the name-server is so large it is cut off
+
+* QoL3: Guild namechange report in the log is a bit cleaner now.
+
+**BUG FIXES**
+
+* Bug1: Fixed an issue where when adding an alt, instead of epoch timestamping the event, it leaves a boolean. This went unnoticed and is likely responsible for some lua erors during sync
+
+* Bug2: Fixed a MAJOR issue where the "Auto" backup did not save the data properly, particularly for the logs. Manual backup data is finem but the auto-backups had to be reset, sadly. This was NOT an easy choice, but the previous database break was so bad it probably wasnt' worth the effort to retrofit them.
+
+* Bug3: Public/officer notes, for a player with a massive font, should now stay within their boxes.
+
+* Bug4: Noticed an instance where sync could send a message it was starting, then failed for whatever reason, and never re-triggered to check again, thus you end up hanging for a while wondering what happened.
+
+* Bug5: In the options, the edit box to change the number of days to be notified in advance of an event to add to the calendar is now working again.
+
+
+**VERSION 7.3.5R1.1483 DATE: April 11th, 2018**
+
+**BUG FIX**
+
+*I accidentally had sync disabled on the backend and forgot to restore it for release after testing... So all of your addons would not be able to sync at all. Major OOPS!*
+
+
+**VERSION 7.3.5R1.1482 DATE: April 11th, 2018**
+
+*NOTE: Due to an error that affected some players in the previous update, where the custom note was added to every player in the guild, I have included a tool here to modify that*
+
+Type this out in chat:
+
+> /run GRM.ClearCustomNoteMatches("YourText")
+
+> "YourText" can be any identifying string to match your custom note. BE SPECIFIC! It is case sensitive. Make sure it is unique to the spammed one.
+ 
+
+**BUG FIXES**
+
+* Bug1: Sync bug that could occur when trying to sync the alt data, which would ultimately crash the sync. This has been in there a long time. I am surprised it hasn't been noticed til now, but it's critical
+
+* Bug2: Custom note should no longer be copied to ever player (only affected some people)
+
+* Bug3: Tooltips should now ONLY scale within this addon, not affect others.
+
+* Bug4: When doing a '/grm clearguild' in some cases lua errors could occur when refreshing the audit frame
+
+* Bug5: Edge case bug involving sync and when someone has removed and added alts to the same name a LOT of times.
+
+* Bug6: Namechange bug should now be fixed and not englessly spam (though needs better real-time testing)
+
+* Bug7: On deactivating the Roster scan in the options, it should now properly interrupt and deactivate the current scan.
+
+
+**Quality of Life**
+
+* QoL1: The log now reports the player IF they were promoted when they join the guild. In other words, if someone joins the guild, they may be quickly promoted before you have logged in to log it and now the addon will correctly state they were promoted rather than just log their new rank as their base rank.
+
+* QoL2: Add Alt window should now say "Shift-click" not "shift-mouseover"
+
+* QoL3: Custom note should now properly resert visually in ALL cases when canceling the edit with the ESC key, or any reason
+
+* QoL4: Custom Note window is now correctly alligned
+
+* QoL5: Tooltips for THIS ADDON ONLY can now have their size manually adjusted in the options
+
+* QoL6: All options dropdown boxes are cleaner now.
+
+
+
 **VERSION 7.3.5R1.1481 DATE: April 6th, 2018**
 
 **BUG FIX**

@@ -6,7 +6,7 @@
 -- Table used for lookup, to determine the extent of the translation work compelted or not. This will be used as a quick lookup reference rather than parsing and counting the entire dictionaries
 GRML.TranslationStatusEnum = {
     English = true,                 -- English is completed
-    German = false,
+    German = true,
     French = false,
     Italian = false,
     Russian = false,
@@ -116,7 +116,7 @@ GRML.listOfFonts = {
 -- Purpose:         To be able to have an in-game UI option to change the player language.
 GRML.SetNewLanguage = function ( index , firstLoad )
     GRML.LoadLanguage[index]();
-    GRM_AddonGlobals.FontChoice = GRML.listOfFonts[GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][44]];
+    GRM_G.FontChoice = GRML.listOfFonts[GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][44]];
     GRML.SetFontModifier();
     if firstLoad then
         GRM_UI.ReloadAllFrames( false );
@@ -130,34 +130,34 @@ end
 -- Purpose:         Consistency, as some fonts would be super tiny otherwise.
 GRML.SetFontModifier = function()
     -- Reset it...
-    GRM_AddonGlobals.FontModifier = 0;
-    if GRM_AddonGlobals.FontChoice == "Fonts\\ARKai_T.TTF" then                             -- China
-        GRM_AddonGlobals.FontModifier = 0.5;
-    elseif GRM_AddonGlobals.FontChoice == "FONTS\\blei00d.TTF" then                         -- Taiwan
-        GRM_AddonGlobals.FontModifier = 2;
-    elseif GRM_AddonGlobals.FontChoice == "Interface\\AddOns\\Guild_Roster_Manager\\media\\fonts\\Action_Man.TTF" then
-        GRM_AddonGlobals.FontModifier = 1;
-    elseif GRM_AddonGlobals.FontChoice == "Interface\\AddOns\\Guild_Roster_Manager\\media\\fonts\\Ancient.TTF" then
-        GRM_AddonGlobals.FontModifier = 2;
-    elseif GRM_AddonGlobals.FontChoice == "Interface\\AddOns\\Guild_Roster_Manager\\media\\fonts\\Cardinal.TTF" then
-        GRM_AddonGlobals.FontModifier = 2;
-    elseif GRM_AddonGlobals.FontChoice == "Interface\\AddOns\\Guild_Roster_Manager\\media\\fonts\\Continuum_Medium.TTF" then
-        GRM_AddonGlobals.FontModifier = 1;
-    elseif GRM_AddonGlobals.FontChoice == "Interface\\AddOns\\Guild_Roster_Manager\\media\\fonts\\Expressway.TTF" then
-        GRM_AddonGlobals.FontModifier = 1;
-    elseif GRM_AddonGlobals.FontChoice == "Interface\\AddOns\\Guild_Roster_Manager\\media\\fonts\\PT_Sans_Narrow.TTF" then
-        GRM_AddonGlobals.FontModifier = 2;
-    elseif GRM_AddonGlobals.FontChoice == "Interface\\AddOns\\Guild_Roster_Manager\\media\\fonts\\Roboto-Regular.TTF" then
-        GRM_AddonGlobals.FontModifier = 1;
+    GRM_G.FontModifier = 0;
+    if GRM_G.FontChoice == "Fonts\\ARKai_T.TTF" then                             -- China
+        GRM_G.FontModifier = 0.5;
+    elseif GRM_G.FontChoice == "FONTS\\blei00d.TTF" then                         -- Taiwan
+        GRM_G.FontModifier = 2;
+    elseif GRM_G.FontChoice == "Interface\\AddOns\\Guild_Roster_Manager\\media\\fonts\\Action_Man.TTF" then
+        GRM_G.FontModifier = 1;
+    elseif GRM_G.FontChoice == "Interface\\AddOns\\Guild_Roster_Manager\\media\\fonts\\Ancient.TTF" then
+        GRM_G.FontModifier = 2;
+    elseif GRM_G.FontChoice == "Interface\\AddOns\\Guild_Roster_Manager\\media\\fonts\\Cardinal.TTF" then
+        GRM_G.FontModifier = 2;
+    elseif GRM_G.FontChoice == "Interface\\AddOns\\Guild_Roster_Manager\\media\\fonts\\Continuum_Medium.TTF" then
+        GRM_G.FontModifier = 1;
+    elseif GRM_G.FontChoice == "Interface\\AddOns\\Guild_Roster_Manager\\media\\fonts\\Expressway.TTF" then
+        GRM_G.FontModifier = 1;
+    elseif GRM_G.FontChoice == "Interface\\AddOns\\Guild_Roster_Manager\\media\\fonts\\PT_Sans_Narrow.TTF" then
+        GRM_G.FontModifier = 2;
+    elseif GRM_G.FontChoice == "Interface\\AddOns\\Guild_Roster_Manager\\media\\fonts\\Roboto-Regular.TTF" then
+        GRM_G.FontModifier = 1;
     end
-    GRM_AddonGlobals.FontModifier = GRM_AddonGlobals.FontModifier + GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][45];
+    GRM_G.FontModifier = GRM_G.FontModifier + GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][45];
 end
 
 -- Method:          GRML.SetNewFont( int )
 -- What it Does:    Establishes a new font
 -- Purpose:         More player customization controls!!!
 GRML.SetNewFont = function( index )
-    GRM_AddonGlobals.FontChoice = GRML.listOfFonts[index];
+    GRM_G.FontChoice = GRML.listOfFonts[index];
     GRML.SetFontModifier();
     GRM_UI.ReloadAllFrames( true );
 end
@@ -167,23 +167,23 @@ end
 -- Purpose:         To ensure no ???? are in place and all characters are accounted for.
 GRML.GetFontChoiceIndex = function( localizationIndex )
     local result = 1;
-    if GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][44] ~= 1 then
+    if GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][44] ~= 1 then
         if ( localizationIndex < 5 or ( localizationIndex > 5 and localizationIndex < 9 ) ) then
             result = 2
         else
-            result = GRM_AddonSettings_Save[GRM_AddonGlobals.FID][GRM_AddonGlobals.setPID][2][44];
+            result = GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][44];
         end
         -- For Russian, need Cyrilic compatible font.
-        if localizationIndex == 5 and GRM_AddonGlobals.Region ~= "ruRU" then
+        if localizationIndex == 5 and GRM_G.Region ~= "ruRU" then
             -- Russian Cyrilic
             result = 3;
-        elseif localizationIndex == 9 and GRM_AddonGlobals.Region ~= "koKR" then
+        elseif localizationIndex == 9 and GRM_G.Region ~= "koKR" then
             -- Korean
             result = 4;
-        elseif localizationIndex == 10 and GRM_AddonGlobals.Region ~= "zhCN" then
+        elseif localizationIndex == 10 and GRM_G.Region ~= "zhCN" then
             -- Mandarin Chines
             result = 5;
-        elseif localizationIndex == 11 and GRM_AddonGlobals.Region ~= "zhTW" then
+        elseif localizationIndex == 11 and GRM_G.Region ~= "zhTW" then
             -- Taiwanese
             result = 6;
         end
@@ -200,7 +200,7 @@ GRML.GetNumberUntranslatedLines = function ( languageIndex )
     local result = 0;
     -- index 1 will always result as 0 since it is written native in English
     if languageIndex > 1 then
-        for _ , y in pairs ( GRM_L ) do
+        for x , y in pairs ( GRM_L ) do
             if y == true then
                 result = result + 1;
             end
@@ -220,9 +220,9 @@ end
 -- be static and are used for identifying and parsing system message events.
 
 -- German Defaults
-if GRM_AddonGlobals.Region == "deDE" then
-    GRM_AddonGlobals.Localized = true
-    GRM_AddonGlobals.LocalizedIndex = 2;
+if GRM_G.Region == "deDE" then
+    GRM_G.Localized = true
+    GRM_G.LocalizedIndex = 2;
     -- SYSTEM MESSAGES (DO NOT CHANGE THESE!!!! They are used for the back-end code to recognize for parsing info out, not for player UI
     GRM_L["has been kicked"] = "aus der Gilde geworfen."
     GRM_L["joined the guild."] = "Gilde angeschlossen."
@@ -235,12 +235,26 @@ if GRM_AddonGlobals.Region == "deDE" then
     GRM_L["is already your friend"] = "ist bereits einer Eurer Kontakte."
     GRM_L["Player not found."] = "Spieler nicht gefunden."
 
+    -- CLASSES - R Specific
+    GRM_L["R_Deathknight"] = "Todesritter"
+    GRM_L["R_Demonhunter"] = "Dämonenjäger"
+    GRM_L["R_Druid"] = "Druide"
+    GRM_L["R_Hunter"] = "Jäger"
+    GRM_L["R_Mage"] = "Magier"
+    GRM_L["R_Monk"] = "Mönch"
+    GRM_L["R_Paladin"] = "Paladin"
+    GRM_L["R_Priest"] = "Priester"
+    GRM_L["R_Rogue"] = "Schurke"
+    GRM_L["R_Shaman"] = "Schamane"
+    GRM_L["R_Warlock"] = "Hexenmeister"
+    GRM_L["R_Warrior"] = "Krieger"
+
     GRML.LoadLanguage[2]();
 
 -- French Defaults
-elseif GRM_AddonGlobals.Region == "frFR" then
-    GRM_AddonGlobals.Localized = true
-    GRM_AddonGlobals.LocalizedIndex = 3;
+elseif GRM_G.Region == "frFR" then
+    GRM_G.Localized = true
+    GRM_G.LocalizedIndex = 3;
     -- SYSTEM MESSAGES (DO NOT CHANGE THESE!!!! They are used for the back-end code to recognize for parsing info out, not for player UI
     GRM_L["has been kicked"] = "a été renvoyé"
     GRM_L["joined the guild."] = "rejoint la guilde."
@@ -253,12 +267,26 @@ elseif GRM_AddonGlobals.Region == "frFR" then
     GRM_L["is already your friend"] = "est déjà dans votre liste de contacts."
     GRM_L["Player not found."] = "Joueur introuvable."
 
+    -- CLASSES - R Specific
+    GRM_L["R_Deathknight"] = "Chevalier de la mort"
+    GRM_L["R_Demonhunter"] = "Chasseur de démons"
+    GRM_L["R_Druid"] = "Druide"
+    GRM_L["R_Hunter"] = "Chasseur"
+    GRM_L["R_Mage"] = "Mage"
+    GRM_L["R_Monk"] = "Moine"
+    GRM_L["R_Paladin"] = "Paladin"
+    GRM_L["R_Priest"] = "Prêtre"
+    GRM_L["R_Rogue"] = "Voleur"
+    GRM_L["R_Shaman"] = "Chaman"
+    GRM_L["R_Warlock"] = "Démoniste"
+    GRM_L["R_Warrior"] = "Guerrier"
+
     GRML.LoadLanguage[3]();
 
 -- Italian Defaults
-elseif GRM_AddonGlobals.Region == "itIT" then
-    GRM_AddonGlobals.Localized = true
-    GRM_AddonGlobals.LocalizedIndex = 4;
+elseif GRM_G.Region == "itIT" then
+    GRM_G.Localized = true
+    GRM_G.LocalizedIndex = 4;
     -- SYSTEM MESSAGES (DO NOT CHANGE THESE!!!! They are used for the back-end code to recognize for parsing info out, not for player UI
     GRM_L["has been kicked"] = "stato cacciato dalla"
     GRM_L["joined the guild."] = "si unisce alla gilda."
@@ -267,16 +295,30 @@ elseif GRM_AddonGlobals.Region == "itIT" then
     GRM_L["Professions"] = "Professioni"
     GRM_L["Guild: "] = "Gilda: "
     GRM_L["Guild created "] = "Gilda creata il "
-    GRM_L["added to friends"] = "è già nell'elenco amici."
-    GRM_L["is already your friend"] = "adicionado à lista de amigos."
+    GRM_L["added to friends"] = "all'elenco amici."   
+    GRM_L["is already your friend"] = "è già nell'elenco amici."
     GRM_L["Player not found."] = "Personaggio non trovato."
+
+    -- CLASSES - R Specific
+    GRM_L["R_Deathknight"] = "Cavaliere della Morte"
+    GRM_L["R_Demonhunter"] = "Cacciatore di Demoni"
+    GRM_L["R_Druid"] = "Druido"
+    GRM_L["R_Hunter"] = "Cacciatore"
+    GRM_L["R_Mage"] = "Mago"
+    GRM_L["R_Monk"] = "Monaco"
+    GRM_L["R_Paladin"] = "Paladino"
+    GRM_L["R_Priest"] = "Sacerdote"
+    GRM_L["R_Rogue"] = "Ladro"
+    GRM_L["R_Shaman"] = "Sciamano"
+    GRM_L["R_Warlock"] = "Stregone"
+    GRM_L["R_Warrior"] = "Guerriero"
 
     GRML.LoadLanguage[4]();
 
 -- Russian Defaults
-elseif GRM_AddonGlobals.Region == "ruRU" then
-    GRM_AddonGlobals.Localized = true
-    GRM_AddonGlobals.LocalizedIndex = 5;
+elseif GRM_G.Region == "ruRU" then
+    GRM_G.Localized = true
+    GRM_G.LocalizedIndex = 5;
     -- SYSTEM MESSAGES (DO NOT CHANGE THESE!!!! They are used for the back-end code to recognize for parsing info out, not for player UI
     GRM_L["has been kicked"] = "исключает из гильдии "
     GRM_L["joined the guild."] = "к гильдии."
@@ -289,12 +331,26 @@ elseif GRM_AddonGlobals.Region == "ruRU" then
     GRM_L["is already your friend"] = "уже есть в вашем списке друзей."
     GRM_L["Player not found."] = "Игрок не найден."
 
+    -- CLASSES - R Specific
+    GRM_L["R_Deathknight"] = "Рыцарь смерти"
+    GRM_L["R_Demonhunter"] = "Охотник на демонов"
+    GRM_L["R_Druid"] = "Друид"
+    GRM_L["R_Hunter"] = "Охотник"
+    GRM_L["R_Mage"] = "Маг"
+    GRM_L["R_Monk"] = "Монах"
+    GRM_L["R_Paladin"] = "Паладин"
+    GRM_L["R_Priest"] = "Жрец"
+    GRM_L["R_Rogue"] = "Разбойник"
+    GRM_L["R_Shaman"] = "Шаман"
+    GRM_L["R_Warlock"] = "Чернокнижник"
+    GRM_L["R_Warrior"] = "Воин"
+
     GRML.LoadLanguage[5]();
 
     -- Spanish (MX) Defaults
-elseif GRM_AddonGlobals.Region == "esMX" then
-    GRM_AddonGlobals.Localized = true
-    GRM_AddonGlobals.LocalizedIndex = 6;
+elseif GRM_G.Region == "esMX" then
+    GRM_G.Localized = true
+    GRM_G.LocalizedIndex = 6;
     -- SYSTEM MESSAGES (DO NOT CHANGE THESE!!!! They are used for the back-end code to recognize for parsing info out, not for player UI
     GRM_L["has been kicked"] = "ha sido expulsado"
     GRM_L["joined the guild."] = "a la hermandad."
@@ -307,12 +363,26 @@ elseif GRM_AddonGlobals.Region == "esMX" then
     GRM_L["is already your friend"] = "ya está en tu lista de amigos."
     GRM_L["Player not found."] = "No se ha encontrado al jugador."
 
+    -- CLASSES - R Specific
+    GRM_L["R_Deathknight"] = "Caballero de la Muerte"
+    GRM_L["R_Demonhunter"] = "Cazador de demonios"
+    GRM_L["R_Druid"] = "Druida"
+    GRM_L["R_Hunter"] = "Cazador"
+    GRM_L["R_Mage"] = "Mago"
+    GRM_L["R_Monk"] = "Monje"
+    GRM_L["R_Paladin"] = "Paladín"
+    GRM_L["R_Priest"] = "Sacerdote"
+    GRM_L["R_Rogue"] = "Pícaro"
+    GRM_L["R_Shaman"] = "Chamán"
+    GRM_L["R_Warlock"] = "Brujo"
+    GRM_L["R_Warrior"] = "Guerrero"
+
     GRML.LoadLanguage[6]();
 
     -- Spanish (EU) Defaults
-elseif GRM_AddonGlobals.Region == "esES" then
-    GRM_AddonGlobals.Localized = true
-    GRM_AddonGlobals.LocalizedIndex = 7;
+elseif GRM_G.Region == "esES" then
+    GRM_G.Localized = true
+    GRM_G.LocalizedIndex = 7;
     GRM_L["has been kicked"] = "ha sido expulsado"
     GRM_L["joined the guild."] = "a la hermandad."
     GRM_L["has promoted"] = "ha ascendido"
@@ -324,12 +394,27 @@ elseif GRM_AddonGlobals.Region == "esES" then
     GRM_L["is already your friend"] = "en tu lista de amigos."
     GRM_L["Player not found."] = "No se ha encontrado al jugador."
 
+    -- CLASSES - R Specific
+    GRM_L["R_Deathknight"] = "Caballero de la Muerte"
+    GRM_L["R_Demonhunter"] = "Cazador de demonios"
+    GRM_L["R_Druid"] = "Druida"
+    GRM_L["R_Hunter"] = "Cazador"
+    GRM_L["R_Mage"] = "Mago"
+    GRM_L["R_Monk"] = "Monje"
+    GRM_L["R_Paladin"] = "Paladín"
+    GRM_L["R_Priest"] = "Sacerdote"
+    GRM_L["R_Rogue"] = "Pícaro"
+    GRM_L["R_Shaman"] = "Chamán"
+    GRM_L["R_Warlock"] = "Brujo"
+    GRM_L["R_Warrior"] = "Guerrero"
+
+
     GRML.LoadLanguage[7]();
 
 -- Portuguese Defaults
-elseif GRM_AddonGlobals.Region == "ptBR" then
-    GRM_AddonGlobals.Localized = true
-    GRM_AddonGlobals.LocalizedIndex = 8;
+elseif GRM_G.Region == "ptBR" then
+    GRM_G.Localized = true
+    GRM_G.LocalizedIndex = 8;
     -- SYSTEM MESSAGES (DO NOT CHANGE THESE!!!! They are used for the back-end code to recognize for parsing info out, not for player UI
     GRM_L["has been kicked"] = "foi expulso da"
     GRM_L["joined the guild."] = "entrou na guilda."
@@ -342,12 +427,26 @@ elseif GRM_AddonGlobals.Region == "ptBR" then
     GRM_L["is already your friend"] = "è già nell'elenco amici."
     GRM_L["Player not found."] = "Jogador não encontrado."
 
+    -- CLASSES - R Specific
+    GRM_L["R_Deathknight"] = "Cavaleiro da Morte"
+    GRM_L["R_Demonhunter"] = "Caçador de Demônios"
+    GRM_L["R_Druid"] = "Druida"
+    GRM_L["R_Hunter"] = "Caçador"
+    GRM_L["R_Mage"] = "Mago"
+    GRM_L["R_Monk"] = "Monge"
+    GRM_L["R_Paladin"] = "Paladino"
+    GRM_L["R_Priest"] = "Sacerdote"
+    GRM_L["R_Rogue"] = "Ladino"
+    GRM_L["R_Shaman"] = "Xamã"
+    GRM_L["R_Warlock"] = "Bruxo"
+    GRM_L["R_Warrior"] = "Guerreiro"
+
     GRML.LoadLanguage[8]();
 
     -- Korean Defaults
-elseif GRM_AddonGlobals.Region == "koKR" then
-    GRM_AddonGlobals.Localized = true
-    GRM_AddonGlobals.LocalizedIndex = 9;
+elseif GRM_G.Region == "koKR" then
+    GRM_G.Localized = true
+    GRM_G.LocalizedIndex = 9;
     -- SYSTEM MESSAGES (DO NOT CHANGE THESE!!!! They are used for the back-end code to recognize for parsing info out, not for player UI
     GRM_L["has been kicked"] = "길드에서 추방했습니다."
     GRM_L["joined the guild."] = "님이 길드에 가입했습니다"
@@ -360,12 +459,26 @@ elseif GRM_AddonGlobals.Region == "koKR" then
     GRM_L["is already your friend"] = "님은 이미 친구 목록에 있습니다."
     GRM_L["Player not found."] = "플레이어를 찾을 수 없습니다."
 
+    -- CLASSES - R Specific
+    GRM_L["R_Deathknight"] = "죽음의 기사"
+    GRM_L["R_Demonhunter"] = "악마사냥꾼"
+    GRM_L["R_Druid"] = "드루이드"
+    GRM_L["R_Hunter"] = "사냥꾼"
+    GRM_L["R_Mage"] = "마법사"
+    GRM_L["R_Monk"] = "수도사"
+    GRM_L["R_Paladin"] = "성기사"
+    GRM_L["R_Priest"] = "사제"
+    GRM_L["R_Rogue"] = "도적"
+    GRM_L["R_Shaman"] = "주술사"
+    GRM_L["R_Warlock"] = "흑마법사"
+    GRM_L["R_Warrior"] = "전사"
+
     GRML.LoadLanguage[9]();
 
     -- Mandarin Chinese (CN) Defaults
-elseif GRM_AddonGlobals.Region == "zhCN" then
-    GRM_AddonGlobals.Localized = true
-    GRM_AddonGlobals.LocalizedIndex = 10;
+elseif GRM_G.Region == "zhCN" then
+    GRM_G.Localized = true
+    GRM_G.LocalizedIndex = 10;
     -- SYSTEM MESSAGES (DO NOT CHANGE THESE!!!! They are used for the back-end code to recognize for parsing info out, not for player UI
     GRM_L["has been kicked"] = "开除出公会。"
     GRM_L["joined the guild."] = "加入了公会。"
@@ -378,12 +491,26 @@ elseif GRM_AddonGlobals.Region == "zhCN" then
     GRM_L["is already your friend"] = "已经在你的好友名单中了"
     GRM_L["Player not found."] = "没有找到玩家。"
 
+    -- CLASSES - R Specific
+    GRM_L["R_Deathknight"] = "死亡骑士"
+    GRM_L["R_Demonhunter"] = "恶魔猎手"
+    GRM_L["R_Druid"] = "德鲁伊"
+    GRM_L["R_Hunter"] = "猎人"
+    GRM_L["R_Mage"] = "法师"
+    GRM_L["R_Monk"] = "武僧"
+    GRM_L["R_Paladin"] = "圣骑士"
+    GRM_L["R_Priest"] = "牧师"
+    GRM_L["R_Rogue"] = "潜行者"
+    GRM_L["R_Shaman"] = "萨满祭司"
+    GRM_L["R_Warlock"] = "术士"
+    GRM_L["R_Warrior"] = "战士"
+
     GRML.LoadLanguage[10]();
 
 -- Mandarin Chinese (TW) Defaults
-elseif GRM_AddonGlobals.Region == "zhTW" then
-    GRM_AddonGlobals.Localized = true
-    GRM_AddonGlobals.LocalizedIndex = 11;
+elseif GRM_G.Region == "zhTW" then
+    GRM_G.Localized = true
+    GRM_G.LocalizedIndex = 11;
     -- SYSTEM MESSAGES (DO NOT CHANGE THESE!!!! They are used for the back-end code to recognize for parsing info out, not for player UI
     GRM_L["has been kicked"] = "踢出公會。"
     GRM_L["joined the guild."] = "加入了公會。"
@@ -396,12 +523,26 @@ elseif GRM_AddonGlobals.Region == "zhTW" then
     GRM_L["is already your friend"] = "已經在你的好友名單中了"
     GRM_L["Player not found."] = "找不到該玩家。"
 
+    -- CLASSES - R Specific
+    GRM_L["R_Deathknight"] = "死亡騎士"
+    GRM_L["R_Demonhunter"] = "惡魔獵人"
+    GRM_L["R_Druid"] = "德魯伊"
+    GRM_L["R_Mage"] = "法師"
+    GRM_L["R_Monk"] = "武僧"
+    GRM_L["R_Paladin"] = "聖騎士"
+    GRM_L["R_Hunter"] = "獵人"
+    GRM_L["R_Priest"] = "牧師"
+    GRM_L["R_Rogue"] = "盜賊"
+    GRM_L["R_Shaman"] = "薩滿"
+    GRM_L["R_Warlock"] = "術士"
+    GRM_L["R_Warrior"] = "戰士"
+
     GRML.LoadLanguage[11]();
 
 -- English Defaults
-elseif GRM_AddonGlobals.Region == "enUS" or GRM_AddonGlobals.Region == "enGB" or not GRM_AddonGlobals.Localized then         -- In case the Region is not found at this point, just default it to English.
-    GRM_AddonGlobals.Localized = true
-    GRM_AddonGlobals.LocalizedIndex = 1;
+elseif GRM_G.Region == "enUS" or GRM_G.Region == "enGB" or not GRM_G.Localized then         -- In case the Region is not found at this point, just default it to English.
+    GRM_G.Localized = true
+    GRM_G.LocalizedIndex = 1;
     -- SYSTEM MESSAGES (DO NOT CHANGE THESE!!!! They are used for the back-end code to recognize for parsing info out, not for player UI
     GRM_L["has been kicked"] = true
     GRM_L["joined the guild."] = true
@@ -414,5 +555,66 @@ elseif GRM_AddonGlobals.Region == "enUS" or GRM_AddonGlobals.Region == "enGB" or
     GRM_L["is already your friend"] = true
     GRM_L["Player not found."] = true
 
+    -- CLASSES - R Specific
+    GRM_L["R_Deathknight"] = "Death Knight"
+    GRM_L["R_Demonhunter"] = "Demon Hunter"
+    GRM_L["R_Druid"] = "Druid"
+    GRM_L["R_Hunter"] = "Hunter"
+    GRM_L["R_Mage"] = "Mage"
+    GRM_L["R_Monk"] = "Monk"
+    GRM_L["R_Paladin"] = "Paladin"
+    GRM_L["R_Priest"] = "Priest"
+    GRM_L["R_Rogue"] = "Rogue"
+    GRM_L["R_Shaman"] = "Shaman"
+    GRM_L["R_Warlock"] = "Warlock"
+    GRM_L["R_Warrior"] = "Warrior"
+
     GRML.LoadLanguage[1]();
 end
+
+
+
+
+
+
+
+-- UI Helper to make my localization process much easier!!!
+-- Disable when not using by commenting out.,..
+-- GRM_LocalizationHelper = CreateFrame ( "Frame" , "GRM_LocalizationHelper" , UIParent , "TranslucentFrameTemplate" );
+-- GRM_LocalizationHelper:SetPoint ( "CENTER" , UIParent );
+-- GRM_LocalizationHelper:SetSize ( 400 , 200 );
+-- GRM_LocalizationHelper:EnableMouse ( true );
+-- GRM_LocalizationHelper:SetMovable ( true );
+-- GRM_LocalizationHelper:RegisterForDrag ( "LeftButton" );
+-- GRM_LocalizationHelper:SetScript ( "OnDragStart" , GRM_LocalizationHelper.StartMoving );
+-- GRM_LocalizationHelper:SetScript ( "OnDragStop" , GRM_LocalizationHelper.StopMovingOrSizing );
+
+-- GRM_LocalizationHelper.GRM_LocalizationHelperText = GRM_LocalizationHelper:CreateFontString ( "GRM_LocalizationHelper.GRM_LocalizationHelperText" , "OVERLAY" , "GameFontWhiteTiny" );
+-- GRM_LocalizationHelper.GRM_LocalizationHelperText:SetPoint ( "CENTER" , GRM_LocalizationHelper , 0 , 25 );
+-- GRM_LocalizationHelper.GRM_LocalizationHelperText:SetFont ( GRM_G.FontChoice , 12 );
+-- GRM_LocalizationHelper.GRM_LocalizationHelperText:SetWordWrap ( true );
+-- GRM_LocalizationHelper.GRM_LocalizationHelperText:SetWidth ( 375)
+-- GRM_LocalizationHelper.GRM_LocalizationHelperText:SetText ( "Waiting for Chat Response" );
+
+-- GRM_LocalizationHelper.GRM_LocalizationButton = CreateFrame ( "Button" , "GRM_LocalizationButton" , GRM_LocalizationHelper , "UIPanelButtonTemplate" );
+-- GRM_LocalizationHelper.GRM_LocalizationButton:SetPoint ( "BOTTOM" , GRM_LocalizationHelper , 0 , 5 );
+-- GRM_LocalizationHelper.GRM_LocalizationButton:SetSize ( 60 , 50 );
+-- GRM_LocalizationHelper.GRM_LocalizationButton:SetText ( "Link" );
+-- GRM_LocalizationHelper.GRM_LocalizationButton:SetScript ( "OnClick" , function( self , button )
+--     if button == "LeftButton" then
+--         ChatFrame1EditBox:SetFocus();
+--         ChatFrame1EditBox:SetText ( GRM_LocalizationHelper.GRM_LocalizationHelperText:GetText() );
+--     end
+-- end);
+
+-- local count = 0;
+-- GRM_LocalizationHelper:RegisterEvent ( "CHAT_MSG_SYSTEM")
+-- GRM_LocalizationHelper:SetScript ( "OnEvent" , function( self , event , msg )
+--     if event == "CHAT_MSG_SYSTEM" then
+--         count = count + 1;
+--         -- if count == 2 then
+--             GRM_LocalizationHelper.GRM_LocalizationHelperText:SetText ( msg );
+--         -- end
+--     end
+-- end);
+
