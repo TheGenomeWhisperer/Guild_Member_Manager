@@ -20,12 +20,14 @@
     ---------------------------------
     -- BEGIN TRANSLATION WORK HERE --
     ---------------------------------
+
 GRML.Korean = function()
     
     GRM_L["Guild"] = true
 
     -- PLAYER MAIN ROSTER DETAILS WINDOW
     GRM_L["Level: "] = " 레벨"
+    GRM_L["Level"] = "레벨"
     GRM_L["Note:"] = "쪽지:"
     GRM_L["Note"] = "쪽지"
     GRM_L["Officer's Note:"] = "길드관리자 쪽지:"
@@ -99,6 +101,7 @@ GRML.Korean = function()
     GRM_L["{name} DEMOTED {name2}"] = true
     GRM_L["{name} PROMOTED {name2}"] = true
     GRM_L["{name} KICKED {name2} from the Guild!"] = true
+    GRM_L["kicked"] = true
     GRM_L["{name} has Left the guild"] = true
     GRM_L["{name} INVITED {name2} to the guild."] = true
     GRM_L["{name} has BANNED {name2} and all linked alts from the guild!"] = true
@@ -161,7 +164,7 @@ GRML.Korean = function()
     GRM_L["Event Calendar Manager"] = true
     GRM_L["Event:"] = true
     GRM_L["Description:"] = true
-    GRM_L["Add to Calendar"] = true
+    GRM_L["Add to\nCalendar"] = true
     GRM_L["Ignore Event"] = true
     GRM_L["No Player Event Has Been Selected"] = true
     GRM_L["Event Added to Calendar: {custom1}"] = true              -- Custom1 = the title of the event, like "Arkaan's Anniversary"
@@ -238,7 +241,13 @@ GRML.Korean = function()
     GRM_L["Resets Guild data"] = true
     GRM_L["Show at Logon"] = true
     GRM_L["Only Show if Log Changes"] = true
-    GRM_L["Scan for Changes Every"] = true                  -- Context: "Scan for Changes Every 10 Seconds" -- There will be a number added here and may require custom positioning, so please provide full statement and Arkaan will allign
+    
+    -- This do need to be translated still
+    GRM_L["Before Scan Timer"] = "Scan for Changes Every"                  -- Context: "Scan for Changes Every 10 Seconds" -- There will be a number added here and may require custom positioning, so please provide full statement and Arkaan will allign
+    GRM_L["After Scan Timer"] = "Seconds"
+    GRM_L["Before Inactive Timer"] = "Report Inactive Return if Player Offline"
+    GRM_L["After Inactive Timer"] = "Days"
+
     GRM_L["Reactivating SCAN for Guild Member Changes..."] = true
     GRM_L["Deactivating SCAN of Guild Member Changes..."] = true
     GRM_L["Due to server data restrictions, a scan interval must be at least 10 seconds or more!"] = true
@@ -247,7 +256,6 @@ GRML.Korean = function()
     GRM_L["The Current Lvl Cap is {num}."] = true
     GRM_L["Kick Inactive Player Reminder at"] = true        -- Context: "Kick Inactive Player Reminder at X Months" - Again, allignment will need to be adjusted for options UI, so please post
     GRM_L["Please choose a month between 1 and 99"] = true
-    GRM_L["Report Inactive Return if Player Offline"] = true
     GRM_L["Sync BAN List With Guildies at Rank"] = true     -- Context: "Sync Ban List with Guildies at Rank [DROPDOWNMENU OF RANKS] or Higher" - Please show where dropdown menu should be pinned
     GRM_L["or Higher"] = true                               -- Context: Look at the above statement. Show where this needs to go in regards to dropdown menu of rank selection in Options
     GRM_L["Restore Defaults"] = true
@@ -288,9 +296,9 @@ GRML.Korean = function()
     GRM_L["Main"] = true
     GRM_L["Main or Alt?"] = true
     GRM_L["Alt"] = true
-    GRM_L["Total Incomplete:"] = true
-    GRM_L["Mains:"] = true                                              -- Context: Number of "main" toons
-    GRM_L["Unique Accounts:"] = true
+    GRM_L["Total Incomplete: {num} / {custom1}"] = true                 -- Context: Total Incomeplete: 50 / 100    (50 out of 100)
+    GRM_L["Mains: {num}"] = true                                        -- Context: Number of "main" toons
+    GRM_L["Unique Accounts: {num}"] = true
     GRM_L["All Complete"] = true                                        -- Context: All dates have been added and are known, thus it states it is "All Complete"
     GRM_L["Set Incomplete to Unknown"] = true                           -- Context: Implied to set ALL incomplete to unknown
     GRM_L["Clear All Unknown"] = true
@@ -407,7 +415,6 @@ GRML.Korean = function()
     -- ERROR MESSAGES
     GRM_L["Notification Has Already Been Arranged..."] = true
     GRM_L["Failed to add alt for unknown reason. Try closing Roster window and retrying!"] = true
-    GRM_L["{name} cannot remove themselves from alts."] = true
     GRM_L["{name} is Already Listed as an Alt."] = true
     GRM_L["{name} cannot become their own alt!"] = true
     GRM_L["Player Cannot Add Themselves as an Alt"] = true
@@ -493,6 +500,28 @@ GRML.Korean = function()
     GRM_L["Month"] = true
     GRM_L["Years"] = true
     GRM_L["Year"] = true
+    GRM_L["HourBreak"] = ":"            -- Context, in English, and many languages, 11am = 11:00 -- or in French, 11h00   - the hour break is the ":" or the "h" 
+
+    GRM_L["am"] = true
+    GRM_L["pm"] = true
+    GRM_L["24HR_Notation"] = "";        -- if someone is using 24hr time notation in your country, instead of 12hr, how do you notate it? In English, there is no am/pm (though "hours" is technically right, but unnecessary)
+
+    GRM_L["{num} year"] = true
+    GRM_L["{num} years"] = true
+    GRM_L["{num} month"] = true
+    GRM_L["{num} months"] = true
+    GRM_L["{num} day"] = true
+    GRM_L["{num} days"] = true
+    GRM_L["< 1 day"] = true
+
+    GRM_L["{num} yr"] = true
+    GRM_L["{num} yrs"] = true
+    GRM_L["{num} mo"] = true
+    GRM_L["{num} mos"] = true
+    GRM_L["{num} hr"] = true
+    GRM_L["{num} hrs"] = true
+    GRM_L["< 1 hour"] = true
+    GRM_L["{num} {custom1}"] = true     -- Context: This is a placeholder for ANY generic time data -- Ex:  "1 year" or "15 months" - The translation is set this is just to set the orientation of the number properly.
 
     -- MISC Punctuation
     GRM_L[","] = true                               -- I know in some Asia languages, a comma is not used, but something similar, for example.
@@ -613,7 +642,7 @@ GRML.Korean = function()
     GRM_L["|CFFE6CC7FClick|r to open Player Window"] = true
     GRM_L["|CFFE6CC7FCtrl-Shift-Click|r to Search the Log for Player"] = true
 
-    -- Update 1.148
+    -- Update 1.1480
     GRM_L["Custom Notes:"] = true
     GRM_L["GRM Debugging Enabled."] = true
     GRM_L["GRM Debugging Disabled."] = true
@@ -660,6 +689,72 @@ GRML.Korean = function()
     GRM_L["Warning! Custom Note rank filter must be below \"{name}\""] = true
     GRM_L["Setting to match core filter rank"] = true
     GRM_L["Warning! \"{name}\" is the lowest rank that can receive this custom note.\nCheck the options menu to adjust overall settings."] = true
+
+    -- R1.1482
+    GRM_L["Shift-Click Name On Roster Also Works"] = true
+    GRM_L["Tooltip Scale:"] = true
+    GRM_L["|CFFE6CC7FLeft-Click|r to Change the Language"] = true
+    GRM_L["|CFFE6CC7FLeft-Click|r to Change Display Format"] = true
+    GRM_L["|CFFE6CC7FLeft-Click|r to Change the Font"] = true
+    GRM_L["Unfortunately each player's data will need to be manually reconfigured."] = true
+    GRM_L["{num} custom {custom1} removed that matched text:"] = true                           -- custom1 = "note" or the plural "notes"
+    GRM_L["notes"] = true
+    GRM_L["Please add specific text, in quotations, to match"] = true
+
+    -- R1.1490
+    GRM_L["You will still share some outgoing data with the guild"] = true
+    GRM_L["Unable to properly locate guild for backup"] = true
+
+    -- R1.1500
+    GRM_L["It's almost time to celebrate {name}'s Birthday! ( {custom1} )"] = true          -- Custom1 is the actual date.  Like "1 Mar '18"
+    GRM_L["Unique accounts pull from the server is known to faulty"] = true
+    GRM_L["Use only as an estimate. Hopefully Blizz fixes this soon"] = true
+    GRM_L["{name}'s Anniversary!"] = true
+    GRM_L["{name}'s Birthday!"] = true
+    GRM_L["Guild member for over {num} year"] = true
+    GRM_L["Guild member for over {num} years"] = true   -- the plural version!
+    GRM_L["Add Upcoming Events to the Calendar"] = true
+    GRM_L["Player rank unable to add events to calendar"] = true
+    GRM_L["Anniversaries, Birthdays, and Other Events can be added with permission"] = true
+
+    -- R1.1510
+    GRM_L["Check the \"Sync Users\" tab to find out why!"] = true
+    GRM_L["Time as Member:"] = true
+    GRM_L["|CFFE6CC7FClick|r to select player event"] = true
+    GRM_L["|CFFE6CC7FClick Again|r to open Player Window"] = true
+    GRM_L["Timestamp Format:"] = true
+    GRM_L["Hour Format:"] = true
+    GRM_L["24 Hour"] = true
+    GRM_L["12 Hour (am/pm)"] = true
+    GRM_L["Enable Fade on Tab Change"] = true
+    GRM_L["Confirm Custom Note"] = true
+
+    -- R1.1520
+    GRM_L["A new rank has been added to the guild!"] = true
+    GRM_L["{num} new ranks have been added to the guild!"] = true
+    GRM_L["The guild has removed a rank!"] = true
+    GRM_L["{num} guild ranks have been removed!" ] = true
+    GRM_L["Edit Ban"] = true
+    GRM_L["Please Select a Player to Edit their Ban!"] = true
+    GRM_L["Update Ban"] = true
+    GRM_L["{name}'s Ban Info has Been Updated!"] = true
+
+    -- R1.1530
+    GRM_L["{name} plays the {custom1} class, not {custom2}."] = true             -- Example: Arkaan plays the Hunter class, not Paladin.
+    GRM_L["Don't Remembert their class?"] = true
+    GRM_L["{num} Items Updated"] = true
+    GRM_L["You Currently Have Disabled Adding Events to Calendar"] = true
+
+    -- R1.20
+    GRM_L["|CFFE6CC7FHold Shift|r to view more alt details."] = true                -- "Hold Shift to view more alt details" is the phrase, but the |CFF|r is the text coloring hex code. Please keep it in there on the keyboard command coloring
+    GRM_L["|CFFE6CC7FShift-Click|r to keep alt details open."] = true               -- The same can be said here. ^^
+    GRM_L["|CFFE6CC7FClick|r to flip player name ordering"] = true                  -- and the reset...
+    GRM_L["|CFFE6CC7FClick|r to sort Join Dates by Newest"] = true
+    GRM_L["|CFFE6CC7FClick|r to sort Join Dates by Oldest"] = true
+    GRM_L["|CFFE6CC7FClick|r to sort Promotion Dates by Newest"] = true
+    GRM_L["|CFFE6CC7FClick|r to sort Promotion Dates by Oldest"] = true
+    GRM_L["|CFFE6CC7FClick|r to sort all Mains first"] = true
+    GRM_L["|CFFE6CC7FClick|r to sort all Alts first."] = true
 
 
 end
