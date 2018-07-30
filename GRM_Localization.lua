@@ -5,8 +5,8 @@
 
 -- Table used for lookup, to determine the extent of the translation work compelted or not. This will be used as a quick lookup reference rather than parsing and counting the entire dictionaries
 GRML.TranslationStatusEnum = {
-    English = true,                 -- English is completed
-    German = true,
+    English = true,
+    German = false,
     French = false,
     Italian = false,
     Russian = false,
@@ -200,7 +200,7 @@ GRML.GetNumberUntranslatedLines = function ( languageIndex )
     local result = 0;
     -- index 1 will always result as 0 since it is written native in English
     if languageIndex > 1 then
-        for x , y in pairs ( GRM_L ) do
+        for _ , y in pairs ( GRM_L ) do
             if y == true then
                 result = result + 1;
             end

@@ -380,7 +380,6 @@ GRML.MandarinCN = function()
     GRM_L["Really Clear All Account-Wide Saved Data?"] = true
     GRM_L["Really Clear All Guild Saved Data?"] = true
     GRM_L["Yes!"] = true
-    GRM_L["<M>"] = true                             -- <M> appears for "Main"
     GRM_L["Ban Player?"] = true
     GRM_L["Ban the Player's {num} alts too?"] = true      -- Plural number of alts
     GRM_L["Ban the Player's {num} alt too?"] = true     -- Singular number of alts, just 1
@@ -545,7 +544,6 @@ GRML.MandarinCN = function()
     GRM_L["|CFFE6CC7FRight-Click|r to Set Notification of Status Change"] = true
     -- tooltip end
     GRM_L["GRM"] = true
-    GRM_L["<A>"] = true                                                     -- This is the "Alt" tag on the Add Alt side window.
     GRM_L["Include Unknown as Incomplete"] = true                           -- Context: Unknown in the Audit Tab will be hidden if filtering out complete players
     GRM_L["You Do Not Have Permission to Add Events to Calendar"] = true
     GRM_L["Please Select Which Join Date to Sync"] = true
@@ -601,7 +599,6 @@ GRML.MandarinCN = function()
     -- update 1.142
     GRM_L["Choose Color:"] = true
     GRM_L["Format:"] = true
-    GRM_L["M"] = true           -- Of note, the "M" is short for "Main" and this is the reference to the main tag on alts in guild chat.
     GRM_L["RGB Values Must be Between 1 and 255."] = true
 
     -- Update 1.143
@@ -747,6 +744,7 @@ GRML.MandarinCN = function()
 
     -- R1.20
     GRM_L["|CFFE6CC7FHold Shift|r to view more alt details."] = true                -- "Hold Shift to view more alt details" is the phrase, but the |CFF|r is the text coloring hex code. Please keep it in there on the keyboard command coloring
+    GRM_L["|CFFE6CC7FClick|r to view more alt details."] = true
     GRM_L["|CFFE6CC7FShift-Click|r to keep alt details open."] = true               -- The same can be said here. ^^
     GRM_L["|CFFE6CC7FClick|r to flip player name ordering"] = true                  -- and the reset...
     GRM_L["|CFFE6CC7FClick|r to sort Join Dates by Newest"] = true
@@ -755,6 +753,58 @@ GRML.MandarinCN = function()
     GRM_L["|CFFE6CC7FClick|r to sort Promotion Dates by Oldest"] = true
     GRM_L["|CFFE6CC7FClick|r to sort all Mains first"] = true
     GRM_L["|CFFE6CC7FClick|r to sort all Alts first."] = true
+    GRM_L["{name}'s Profile is Being Built. One Moment..."] = true
+    GRM_L["There are {num} players requesting to join your guild. You only have room for {custom1} more friends. Please consider cleaning up your friend and recruitment lists."] = true;
+    GRM_L["{name}'s Alts"] = true                                   -- Like "Arkaan's Alts"
+    GRM_L["Online:  {num}/{custom1}"] = true                         -- As in "Online: 3/59"
+    GRM_L["Next"] = true                                            -- This means to Advance forward to the "next" one. It is used on recruitment window to move to NEXT online player.
+    GRM_L["Previous"] = true                                        -- Same context as the "next" except this one goes back to the one before.
+    GRM_L["There are currently no ONLINE recruits."] = true
+    GRM_L["There are currently no more players in that direction."] = true
+    GRM_L["You have reached the end of the list"] = true
+    GRM_L["You have reached the top of the list"] = true
+    GRM_L["Auto Open Window"] = true
+    GRM_L["Only if a player is online and you are not in combat"] = true
+    GRM_L["Recruit window will open when combat ends."] = true
+    GRM_L["GRM window will open when combat ends."] = true
+
+    -- R1.22
+    GRM_L["!note"] = true
+    GRM_L["Setting Public Note for {name}"] = true;
+    GRM_L["{name}'s Public Note Set"] = true
+    GRM_L["New Feature!"] = true
+    GRM_L["Type !note in guild chat, and anything you add after it will become your Public Note (if an officer with GRM installed is online)"] = true
+    GRM_L["No officer online to set {name}'s note"] = true
+    GRM_L["No officer is currently online to update your note"] = true
+    GRM_L["Note updated by @{name}"] = true              -- As in "Note updated by @Arkaan"
+    GRM_L["Please manually select your guild to view player details"] = true
+
+    -- R1.23
+    GRM_L["Please manually select the guild roster tab and then the Recruitment button the first time."] = true
+    GRM_L["Allow Guild Members to Type \"!note\" to Set Their Own Public Note"] = true
+    GRM_L["Your Guild Leader Has Disabled this Feature"] = true
+    GRM_L["If you wish to disable this feature, all officers must disable it as well."] = true
+    GRM_L["Adding {name} to Guild Leader officer note will disable feature for all ({name2} to force enable)"] = true  -- GL = Guild Leader
+    GRM_L["Your Guild Leader Has Required All Officers to Use this Feature"] = true
+    GRM_L["Your Officer note tag {name} has disabled this feature guild wide."] = true  -- The name is the note tag -- like "-grm1" or "+grm1"
+    GRM_L["Your Officer note tag {name} forces ALL officers to enable feature."] = true
+    GRM_L["Remove disable tag {name} from your officer note first"] = true
+    GRM_L["Please remove the enable tag {name} from your officer note first"] = true
+
+    -- R1.24
+    GRM_L["This also will change the <Alt> format to match"] = true
+    GRM_L["M"] = true                                           -- Of note, the "M" is short for "Main" and this is the reference to the main tag on alts in guild chat. For use in the Main tagging <M> (M) etc...
+    GRM_L["A"] = true           
+    GRM_L["<M>"] = true                                         -- <M> appears for "Main"
+    GRM_L["<A>"] = true                                         -- This is the "Alt" tag on the Add Alt side window. For use in the Alt tagging <A> (A) etc...
+
+    -- R1.25
+    GRM_L["NG"] = true                                          -- Stands for "Non-guildie" and can be in the context of calendar invites... it explains why some might have tags and others not... They might not be in your guild
+    GRM_L["When an Officer logs on, they will scan the guild chat history and add it."] = true      -- in reference to using the !note feature to add public notes by officer.
+    GRM_L["Guild chat history has been scanned and public notes have been updated"] = true
+    GRM_L["Include \"Joined:\" tag with the date."] = true                                          -- the \" is so you include the qutoations in the actual text. You need them or it closes the phrase.
+    GRM_L["Joined: {name}"] = true                                                                  -- {name} is actually in reference to the Data Format... So "Joined: 22 May '18"   {name} = "22 May '18"
+    GRM_L["GRM Auto-Detect! {name} has joined the guild and will be set as Main"] = true            -- Main auto-detect message
     
 end
 

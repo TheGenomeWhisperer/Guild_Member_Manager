@@ -1,3 +1,257 @@
+
+**VERSION 8.0.1R1.25 DATE: July 29th, 2018**
+
+**--------------**
+**NEW FEATURE**
+**--------------**
+
+*The **!note** tagging can now be done by any player in the guild, whether an officer with GRM installed is online or not. What now happens is when an officer logs on with GRM installed, they will scan the previous history of unread messages (up to 250 missed messages), and if it sees any !note messages, it will verify that they were added or not. Then, it will update those public notes that have been missed, retroactively.*
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+
+* QoL1: Community frame scrolling for mouseover popup window - Keep the mouse cursor stationary, but use the mousewheel to scrool and you may have noticed that the player window did not update (not mine or Blizz's tooltip), only when you manually moved the mouse over each button.
+
+* QoL1: Now, the names will updated on a static scroll. 
+
+* QoL2: In relation to this, I noticed that Blizz's player tooltip seemed to work fine on mouseover with the Community window "CHAT" tab, but not the "ROSTER" tab, so on the guild community, I have fixed it, and the tooltip should now be working properly (I will remove my code if Blizz ever fixes it)
+
+* QoL2: I have also made it so Blizz's tooltip behaves like mine behaves, where it will auto-update if the mouse is stationary and you just use scrollwheel. I have also Class colorized the name in the tooltip
+
+* QoL3: I have figured out a reasonable way to make it so when a player joins the guild, I can build their metadata profile nearly immediately (2 seconds or less), so their mouseover works well right away. You have no idea how decidedly complicated this was considering the server call only provided me updated player data on the backend once per 10 seconds minimum, so often massive delay. No More! This is actually partially due thanks to new CommunityFrame data stream.
+
+* QoL4: Calendar main/alt tagging should no longer reset and disappear and so on on the Calendar invite windows - it was a little buggy before, and now it should be without issue
+
+* QoL5: Added a <NG> tag in the calendar invites... it will show over players who are invited to your event but are "Not Guildies" -- if you can think of a better tag, please let me know.
+
+* QoL6: Added the [M] brackets format to choose from now in the main tag formatting options. Also, I made it so the tag is standardized for both main/alt formatting, and the proper format will now also show in the calendars, not just the guildied chat
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* Bug1: Major behind the scenes bug fix for some players who were unable to load up addon (where they logon and window pops up but all tabs are blank)
+
+* Bug2: Main Tags are working again on all realms, including MERGED realms. "CHAT_MSG_GUILD" is still broken on Blizz's end so I had to add a new guid check to pull full details)
+
+* Bug3: Fixed an issuere where the "Time since Promotion" mouseover info would report the player as having joined 17 years ago (there might be some edge cases here I haven't thought of, so please report if you see the "17 years ago" bug.
+
+* Bug4: Fixed an issue that could cause Lua erros in conflict with other addons through addon to addon chat.
+
+
+**VERSION 8.0.1R1.24 DATE: July 23rd, 2018**
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+
+* QoL1: Fixed some Audit Log column and fontstring allignment issues I didn't even notice until using non-English.
+
+* QoL2: ElvUI AddOnSkins has been fully updated, and their author accepted and merged my file for their official next release (not sure when that will be)
+
+* QoL2: I will post the file in Discord, so PM if you want it, or you can wait til their next release.
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* Bug1: The Audit log should now properly be working again when you select the "Only show incomplete guildies" option!
+
+* Bug2: Calendar Invite lists should work properly now, show proper alt/main tags, allow the right click context menu, and you should be able to click players with alts to see their side alt grouping window.
+
+* Bug3: Calendar tooltips have been brought back and are working again... This was far more annoying and tedious a problem that would seem obvious :D
+
+* Bug4: Fixed a Lua bug that could occur if you have version 1.23 and interacting with older versions of the addon (it didn't break anything, but Lua bug is annoying)
+
+* Bug5: Fixed a translation spam error for those using non-English option when setting promo/join dates manually.
+
+* Bug6: Possible fix for some people whose database is crashing completely on load...
+
+
+**VERSION 8.0.1R1.23 DATE: July 21st, 2018**
+
+**--------------**
+**NEW FEATURE**
+**--------------**
+
+* Guild Leader can now add "-GRM1" or "+GRM1" to enable or disable, guild-wide, the !note adding ability. 
+
+* If an officer in the game logs in, they scan the officer note, and they will adhere to the restrictions of the GL's officer note, allowing the GL to control Officer settings. This will be expanded in the future
+
+* RUSSIAN now included, about 50%+ translated so far. TY @OldCold on discord for this massive undertaking and help
+
+* ITALIAN AND GERMAN 99% translated as well, special shout out to @Nehry for the German and @Nihal6 for the Italian
+
+* Note: French Translation is underway... if you have any time to volunteer help, or wish to have a language added, please let me know!
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+
+* QoL1: Guild Recruitment Frame can now be shown without having to open the entire communities and roster frame with /grm recruit (also improved UX over default)
+
+* QoL1: Or just click on the hyperlink when someone is ONLINE and requesting to join the guild
+
+* Qol2: !note tagging is now compatible with Identity2 and Name2Chat addons.
+
+* QoL4: Option to enable or disable the !note adding can be set, and even controlled guild-wide.
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* Fixed a HUGE bug that would make x-realm guilds mouseover not work right for all players... This was due to Blizz finally fixing the whispering and name-server tagging properly
+
+* Calendar bug that would cause a LOT of problems... like endlessly looping sync requests, Lua errors... unable to add anniversaries to calendar, etc. FIXED
+
+* Player should now properly see the buttons and config of the guild recruitment window
+
+* Lua errors resolved in many instances where configuration load order was out of sync.
+
+* Fixed an issue that could cause player to disconnect when in the middle of a Data sync and opening the Communities window for the first time, at the same time.
+
+
+**VERSION 8.0.1R1.22 DATE: July 20th, 2018**
+
+**--------------**
+**NEW FEATURE**
+**--------------**
+
+**PUBLIC NOTE TAGGING FOR NON OFFICERS**
+
+*In patch 8.0 Blizz changed the permission and officer system of guilds. They also made it so only officers can edit public notes. You are not even able to edit just your own. This resolves that*
+
+* Type "!note" in guild chat, and anything you type after it will be auto-set to your public note by any officer that is online with the addon installed.
+
+* Example:  **!note ilvl 300 MM Hunter - Eng/Alch**
+
+* If I type this into guild chat, if an officer is online with GRM installed, they will then set my public note appropriately.
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+
+* Character count on MOTD and Guild info are now viewable again
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* Alt grouping window on the Calendar events invite list should now close properly when closing calendar event
+
+* Recruit window should now properly open its window.
+
+* Request to join recruit window the top right buttons are now properly alligned.
+
+* Guild window should now pop up appropriately when selecting player's names through things like the audit/events windows.
+
+* Mouseover frame window flash should no longer occur when a non-guild community window is currently the focus.
+
+
+**VERSION 8.0.1R1.21 DATE: July 17th, 2018**
+
+*Massive changes had to occur to get this addon compatible with 8.0 changes. I am not sure many will appreciate the amount of effort that went in to make this happen. But, considering the extent of the updates, changes, and the addition of new features, I am certain there may be bumps along the way. Please report them ASAP so I can get them fixed quickly! Thank you!*
+
+**--------------**
+**NEW FEATURES**
+**--------------**
+
+* **SYNC ALGORITHM UPDATED FOR NEW EXPANSION!**
+
+* - That's right, the sync algorithm has been updated to take advantage of the ability to do a bulk dump of data at 1.28MB/s within the 5-20 sec window after logging on. After that, it is rethrottled down to just over 4KB/s, which is an internal limit by Blizz.
+
+* - This allows on first login to do a bulk sync and even complete an entire 1000 member sync within within 2-3 seconds of starting.
+
+* - Of note, /reload does not reset the bulk data, on a full relog reopens it to the player. Throttle controls are smarter now as well, and even take into consideration Blizz's limitation of data comms on low FPS systems.
+
+* **ALT GROUPING WINDOW**
+
+* - On the player mouseover popup window, if you mouseover the player alts, hold SHIFT to popup a side panel with a grouping of alts with more exact data one them. Release shift for it to disappear
+
+* - Shift-Click to keep the window open.
+
+* **CALENDAR EVENT MAIN/ALT TAGGING**
+
+* When looking at the invite list in a calendar, it will now show who the main/alt is for a player. The alt grouping window is also integrated for more info if you click on their name.
+
+* **INFINITE SCROLLING**
+
+* - While I have been a little hesitant to implement a hybrid scrollframe, I decided to keep the log from clogging the window too much, I implemented "infinite scrolling" algorithm on the main guild log, and the audit window. This should provide a smoother experience now for mega guilds.
+
+* **AUTO MAIN TAGGING WHEN PLAYER JOINS**
+
+* - If a player joins, while you are online, it checks the unique accounts counter, then tags the player automatically as "main" if the counter goes up, knowing it is an alt.
+
+* - Of note, this is not always reliable, as the unique accounts is not always accurate and won't show it was a new person, even if it was, but in many instances it will work. This ONLY works live, not for players that joined when you were not online.
+
+* - Also, there is a delay where it can take up to 10 seconds for the server to provide updated "unique account" info, so wait a few seconds on their join.
+
+* **REQUEST TO JOIN RECRUIT WINDOW MANAGEMENT**
+
+* - If a player request to join the guild and is currently ONLINE, the reporting is now cleanear.
+
+* - The recruitment window now has the ability to navigate easier from one Online player to the next for invite. It will auto scroll to the first invite, and then you have next or previous buttons to continue
+
+* - New option to Auto-popup the Recruitment window if a player comes online (or to popup once out of combat), and autoscroll to player name position
+
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+
+QoL1: Audit Log now shows the dates of the players join/promotions, rather than just "Ok"
+
+QoL2: Audit Log each column can now be sorted, ascending/descending, by dates, etc...
+
+QoL3: NameChange detection is now 100% flawless in BFA - due to the inclusion of GUID tags of players, namechange detection is easy to check
+
+QoL4: In extension to this, rejoins are now flawless. This addon will absolutely now detect if a player quits the guild, namechanges outside of the guild, and rejoins the guild, it will now properly report they are rejoining the guild AND they namechanged. Great for people that get banned and think they can get back in with a name change (of note, GUID is reset on server transfer, so if they transfer back it won't detect)
+
+QoL5: DateTime format has been added in the format "2018-07-17"
+
+QoL6: Tooltips should now properly updated when hitting the ESC key, like on the events window panel.
+
+QoL7: Ban List, Users, and Events windows should now have their columns properly alligned.
+
+QoL8: Default scan time has been changed, for new players, from 10 to 30 seconds, to prevent spamminess. 
+
+QoL9: Default BFA position of the memberdetailframe was poorly placed over the side tabs. This fixes that.
+
+QoL10: Lots and lots of code optimization on the backend thanks to some major code changes by Blizz. This addon fully takes advantage of them.
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+*In no specific order of important, as they ALL are improtant to me!*
+
+* Bug1: Fixed Lua error that could occur on some people's event calendar when trying to ignore the anniversary event.
+
+* Bug2: Count should now properly display when syncing... before it was counting "mains" as a sync count, even if there were no updates.
+
+* Bug3: Fixed an issue where player names were not saving properly if added manually through the Ban list, and the first character was a special character.
+
+* Bug4: Fixed issue where Ban list was saying there was a localization bug when trying to edit a ban.
+
+* Bug5: Player settings should now properly sync between alts as in some cases this was not working for some people.
+
+* Bug6: Guild Log button frame strata on the roster window should now be appropriately matched.
+
+* Bug7: Fixed a major bug that made it not possible to add certain players to the ban list if you were in a guild that had a large number of people who had left the guild. This would ONLY be an issue for mega guilds.
+
+* Bug8: Fixed an error related to a conflict with the chat-chat plugin for ElvUI
+
+* Bug9: Fixed a bug that was causing the calendar "Mass Invite" window to close
+
+* Bug 10: Fixed a bug for players using 24hr time notation instead of 12hr clock that could cause their join/promo dates to be Jan 1st, 2001
+
+* Bug 11: Friends lists should now be properly cleaned up if you disconnect or logoff in the middle of an Online check of the Request to join players... where you log within that 1 second window before removing them.
+
+* Bug 12: When banning a person and all their alts... the ban "reason" was not carrying over to the alts properly. It now is.
+
+
+
 **VERSION 7.3.5R1.1530 DATE: June 4th, 2018**
 
 *Prepping for some big updates in BFA... so please, be patient and I will make sure we are rolling good for some big improvements. Looks like guilds being integrated into communities too so that will require a significant rework of things as well!*
