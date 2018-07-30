@@ -2,7 +2,7 @@
 
 
 GRM_Patch = {};
-
+local chat = DEFAULT_CHAT_FRAME;
 
 -- Method:          GRM_Patch.SettingsCheck ( float )
 -- What it Does:    Holds the patch logic for when people upgrade the addon
@@ -187,8 +187,22 @@ GRM_Patch.SettingsCheck = function ( numericV )
         GRM_Patch.AddPlayerMetaDataSlot ( 41 , "" );            -- Adding the GUID position...
         GRM_Patch.FixPlayerListOfAltsDatabase();
     end
-end
 
+    if numericV < 1.21 then
+        GRM_Patch.ExpandOptionsType ( 2 , 1 , 53 );
+        GRM_Patch.ModifyNewDefaultSetting ( 54 , false );
+    end
+    
+    if numericV < 1.22 then
+        GRM_Patch.ExpandOptionsType ( 2 , 1 , 54 );
+        GRM.Report ( GRM.L ( "GRM:" ) .. " " .. GRM.L ( "New Feature!" ) .. "\n" .. GRM.L ( "Type !note in guild chat, and anything you add after it will become your Public Note (if an officer with GRM installed is online)" ) );
+    end
+    
+    if numericV < 1.25 then
+        GRM_Patch.ExpandOptionsType ( 2 , 2 , 55 );         -- adding 56 and 57
+        GRM_Patch.ModifyNewDefaultSetting ( 56 , false );  -- 57 can be true
+    end
+end
 
         -------------------------------
         --- START PATCH LOGIC ---------
@@ -251,7 +265,7 @@ GRM_Patch.CustomNotepad = function()
     table.insert ( GRM_GuildNotePad_Save , { "Horde" } );
     table.insert ( GRM_GuildNotePad_Save , { "Alliance" } );
 
-    if IsInGuild() and not guildNotFound then
+    if IsInGuild() then
         -- guild is found, let's add the guild!
         table.insert ( GRM_GuildNotePad_Save[ GRM_G.FID ] , { GRM_G.guildName } );  -- alts list, let's create an index for the guild!
     end
@@ -725,13 +739,13 @@ end
 -- 1 = number, 2=boolean, 3 = array , 4 = string
 GRM_Patch.ExpandOptionsType = function( typeToAdd , numberSlots , referenceCheck )
     local expansionType;
-    if typeToAdd == 1 then
+    if typeToAdd == 1 then          -- Int
         expansionType = 1;
-    elseif typeToAdd == 2 then
+    elseif typeToAdd == 2 then      -- Boolean
         expansionType = true;
-    elseif typeToAdd == 3 then
+    elseif typeToAdd == 3 then      -- Array/Table
         expansionType = {};
-    elseif typeToAdd == 4 then
+    elseif typeToAdd == 4 then      -- String
         expansionType = "";
     end
     -- Updating settings for all
@@ -950,6 +964,7 @@ GRM_Patch.ModifyPlayerMetadata = function ( index , newValue , toArraySetting , 
     end
 end
 
+-- NEED METHOD TO MODIFY THE BACKUP DATA TOO!!!!!!
 -- Added patch 1.20
 -- Method:          GRM_Patch.AddPlayerMetaDataSlot ( int , object )
 -- What it Does:    Allows the player to insert into the metadata for ALL profiles in every guild in the database with one method
@@ -1256,19 +1271,40 @@ GRM_Patch.RemoveAltCopies = function()
     end
 end
 
+-- Method:          GRM_Patch.DoAltListIntegrityCheckAndCleanup()
+-- What it Does:    Checks for nil entries, removes them
+-- Purpose:         Cleanup the database in case of errors.
+GRM_Patch.DoAltListIntegrityCheckAndCleanup = function()
+    for i = 1 , #GRM_PlayerListOfAlts_Save do
+        for j = #GRM_PlayerListOfAlts_Save[i] , 2 , -1 do -- Cycle backwards in case of index remove.
+            if GRM_PlayerListOfAlts_Save[i][j] == nil then
+                table.remove ( GRM_PlayerListOfAlts_Save[i] , j );
+            else
+                for r = #GRM_PlayerListOfAlts_Save[i][j] , 2 , -1 do    -- Cycle backwards in case of index remove.
+                    if GRM_PlayerListOfAlts_Save[i][j][r] == nil then
+                        table.remove ( GRM_PlayerListOfAlts_Save[i][j] , r );
+                    end
+                end
+            end
+        end
+    end         
+end
+
 -- Method:          GRM_Patch.FixPlayerListOfAltsDatabase()
 -- What it Does:    Fixes the double guild references left over from a database conversion in the alts list
 -- Purpose:         when trying to sync settings between alts, the list tree of alts was split between multiple references of the guild. This clears that up.
 GRM_Patch.FixPlayerListOfAltsDatabase = function()
     local isMatch = false;
     local guildName = "";
-    local isPropper = false;
+    local isProper = false;
+    GRM_Patch.DoAltListIntegrityCheckAndCleanup(); -- Important to do this first...
+
     for i = 1 , #GRM_PlayerListOfAlts_Save do
-        for j = #GRM_PlayerListOfAlts_Save[i] , 2 , -1 do
+        for j = #GRM_PlayerListOfAlts_Save[i] , 2 , -1 do   -- Cycle backwards...
             -- Look for matches within the guilds.
             -- Get name of the guild considering new and old database...
             guildName = "";
-            isPropper = false;
+            isProper = false;
             isMatch = false;
             if type(GRM_PlayerListOfAlts_Save[i][j][1]) == "table" then
                 guildName = GRM_PlayerListOfAlts_Save[i][j][1][1];
@@ -1277,11 +1313,11 @@ GRM_Patch.FixPlayerListOfAltsDatabase = function()
             end
 
             if string.find ( guildName , "-" ) ~= nil then              -- If it has a yphen, it's a new database guild, it is the one we want.
-                isPropper = true;
+                isProper = true;
             end
             
             -- Need to purge the double if 2x outdated...
-            if not isPropper then
+            if not isProper then
                 -- The guild name does not have the server name attached.
                 for r = #GRM_PlayerListOfAlts_Save[i] , 2 , -1 do
                     if r ~= j then
@@ -1317,7 +1353,7 @@ GRM_Patch.FixPlayerListOfAltsDatabase = function()
             else
                 -- Now, determine if there is a match
                 for r = #GRM_PlayerListOfAlts_Save[i] , 2 , -1 do         -- cycle through the guilds...
-                    if r ~= j then                                              -- make sure it is not the same reference
+                    if r ~= j then                                              -- make sure it is not the same 
                         if type ( GRM_PlayerListOfAlts_Save[i][r][1] ) == "table" and GRM.SlimName ( GRM_PlayerListOfAlts_Save[i][r][1][1] ) == GRM.SlimName ( guildName ) then
                             -- guild match with a propper guild
                             if string.find ( GRM_PlayerListOfAlts_Save[i][r][1][1] , "-" ) ~= nil then
@@ -1347,6 +1383,11 @@ GRM_Patch.FixPlayerListOfAltsDatabase = function()
     -- Now, need to purge the copies...
     GRM_Patch.RemoveAltCopies();
 end
+
+-- GRM.Cleanup24HrErroneousTags = function()
+--     local t = GRM_GuildMemberHistory_Save[GRM_G.FID][GRM_G.saveGID];
+--     for i = 2 , #t do if string.find(t[i][35][1],"24HR")~=nil then t[i][35][1]=string.sub(t[i][35][1],1,string.find(t[i][35][1],"24HR")-1);print(t[i][35][1]);end;end
+-- end
 
 -- /run table.insert ( GRM_PlayersThatLeftHistory_Save[GRM_G.FID][GRM_G.saveGID] , GRM_PlayersThatLeftHistory_Save[GRM_G.FID][GRM_G.saveGID][10])
 -- /run local t=GRM_GuildMemberHistory_Save[GRM_G.FID][GRM_G.saveGID];local s=GRM.
