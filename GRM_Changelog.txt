@@ -1,8 +1,4 @@
 
-**VERSION 8.1.5R1.46 DATE: March 16th, 2019**
-
-* BUG1: One more fix for the night! Sync Users should now display properly with people with older versions of the addon.
-
 @everyone**VERSION 8.1.5R1.45 DATE: March 16th, 2019**
 
 *A felt a bit off my groove for a couple of weeks. Things feel a bit better now. This focused almost solely on the reported issues when I was gone, as well as some other misc. things that came as a result of those distractions.*
