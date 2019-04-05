@@ -182,6 +182,7 @@ GRML.SpanishMX = function()
     GRM_L["Select a Player"] = true
     GRM_L["Player Selected"] = true
     GRM_L["{name}(Still in Guild)"] = true
+    GRM_L["(Still in Guild)"] = true                                -- same as previous, just formatting simplicity...
     GRM_L["No Ban Reason Given"] = true
     GRM_L["Reason:"] = true                                         -- Context: As in, "Reason Banned"
     GRM_L["Total Banned:"] = true
@@ -193,7 +194,7 @@ GRML.SpanishMX = function()
     GRM_L["Server:"] = true
     GRM_L["Class:"] = true
     GRM_L["Reason:"] = true
-    GRM_L["It is CRITICAL the player's name and server are spelled correctly for accurate tracking and notifications."] = true
+    GRM_L["It is |CFFFF0000CRITICAL|r the player's name and server are spelled correctly for accurate tracking and notifications."] = true
     GRM_L["Submit Ban"] = true
     GRM_L["Confirm"] = true
     GRM_L["Cancel"] = true
@@ -703,7 +704,7 @@ GRML.SpanishMX = function()
     GRM_L["Unable to properly locate guild for backup"] = true
 
     -- R1.1500
-    GRM_L["It's almost time to celebrate {name}'s Birthday! ( {custom1} )"] = true          -- Custom1 is the actual date.  Like "1 Mar '18"
+    GRM_L["It's almost time to celebrate {name}'s Birthday!"] = true          -- Custom1 is the actual date.  Like "1 Mar '18"
     GRM_L["Unique accounts pull from the server is known to faulty"] = true
     GRM_L["Use only as an estimate. Hopefully Blizz fixes this soon"] = true
     GRM_L["{name}'s Anniversary!"] = true
@@ -738,7 +739,6 @@ GRML.SpanishMX = function()
 
     -- R1.1530
     GRM_L["{name} plays the {custom1} class, not {custom2}."] = true             -- Example: Arkaan plays the Hunter class, not Paladin.
-    GRM_L["Don't Remembert their class?"] = true
     GRM_L["{num} Items Updated"] = true
     GRM_L["You Currently Have Disabled Adding Events to Calendar"] = true
 
@@ -769,27 +769,8 @@ GRML.SpanishMX = function()
     GRM_L["GRM window will open when combat ends."] = true
 
     -- R1.22
-    GRM_L["!note"] = true
-    GRM_L["Setting Public Note for {name}"] = true;
-    GRM_L["{name}'s Public Note Set"] = true
-    GRM_L["New Feature!"] = true
-    GRM_L["Type !note in guild chat, and anything you add after it will become your Public Note (if an officer with GRM installed is online)"] = true
-    GRM_L["No officer online to set {name}'s note"] = true
-    GRM_L["No officer is currently online to update your note"] = true
-    GRM_L["Note updated by @{name}"] = true              -- As in "Note updated by @Arkaan"
+    -- R1.22
     GRM_L["Please manually select your guild to view player details"] = true
-
-    -- R1.23
-    GRM_L["Please manually select the guild roster tab and then the Recruitment button the first time."] = true
-    GRM_L["Allow Guild Members to Type \"!note\" to Set Their Own Public Note"] = true
-    GRM_L["Your Guild Leader Has Disabled this Feature"] = true
-    GRM_L["If you wish to disable this feature, all officers must disable it as well."] = true
-    GRM_L["Adding {name} to Guild Leader officer note will disable feature for all ({name2} to force enable)"] = true  -- GL = Guild Leader
-    GRM_L["Your Guild Leader Has Required All Officers to Use this Feature"] = true
-    GRM_L["Your Officer note tag {name} has disabled this feature guild wide."] = true  -- The name is the note tag -- like "-grm1" or "+grm1"
-    GRM_L["Your Officer note tag {name} forces ALL officers to enable feature."] = true
-    GRM_L["Remove disable tag {name} from your officer note first"] = true
-    GRM_L["Please remove the enable tag {name} from your officer note first"] = true
 
     -- R1.24
     GRM_L["This also will change the <Alt> format to match"] = true
@@ -797,14 +778,172 @@ GRML.SpanishMX = function()
     GRM_L["A"] = true           
     GRM_L["<M>"] = true                                         -- <M> appears for "Main"
     GRM_L["<A>"] = true                                         -- This is the "Alt" tag on the Add Alt side window. For use in the Alt tagging <A> (A) etc...
-    
+
     -- R1.25
     GRM_L["NG"] = true                                          -- Stands for "Non-guildie" and can be in the context of calendar invites... it explains why some might have tags and others not... They might not be in your guild
-    GRM_L["When an Officer logs on, they will scan the guild chat history and add it."] = true      -- in reference to using the !note feature to add public notes by officer.
-    GRM_L["Guild chat history has been scanned and public notes have been updated"] = true
     GRM_L["Include \"Joined:\" tag with the date."] = true                                          -- the \" is so you include the qutoations in the actual text. You need them or it closes the phrase.
     GRM_L["Joined: {name}"] = true                                                                  -- {name} is actually in reference to the Data Format... So "Joined: 22 May '18"   {name} = "22 May '18"
     GRM_L["GRM Auto-Detect! {name} has joined the guild and will be set as Main"] = true            -- Main auto-detect message
+
+    -- R1.26
+    GRM_L["Click to Disable Sync of Custom Note"] = true
+    GRM_L["Click to Enable Sync of Custom Note"] = true
+    GRM_L["Sync is Currently Disabled"] = true
+    GRM_L["Custom Note Sync is Currently Disabled"] = true
+    GRM_L["|CFFE6CC7FRight-Click|r for Additional Options"] = true
+
+    -- R1.27
+    GRM_L["Show Border on Public, Officer, and Custom Notes"] = true
+
+    -- R1.28
+    GRM_L["Public Note:"] = true
+    GRM_L["Officer Note:"] = true
+    GRM_L["Public Note"] = true
+    GRM_L["Officer Note"] = true
+    GRM_L["Show Public and Officer Note of Left Player in the Log"] = true
+    GRM_L["Hard Reset"] = true
+    GRM_L["Hard reset of ALL GRM data, account-wide. Game will reload!"] = true
+    GRM_L["Reject\nAll"] = true                     -- This is the same as "Reject All" it just forces the 2 words to be on 2 separate lines without me adjusting the text width
+    GRM_L["{num} Applicants to the Guild have been denied"] = true
+    GRM_L["Do you really want to reject all applicants?"] = true
+    GRM_L["Only recommend to kick if all player linked alts exceed max time"] = true
+    GRM_L["Your Guild Leader Has Set Sync Restrictions to {name} or Higher"] = true
+    GRM_L["Unable to Change Rank. Guild Leader has set restriction to {name} or higher"] = true     -- Like Initiate or higher
+    GRM_L["Unable to Change Rank. Guild Leader has set restriction level."] = true
+    GRM_L["Unify Control Settings for all guildies with 'g#^X' commands"] = true
+    GRM_L["CONTROL TAGS:"] = true
+    GRM_L["Force Settings with Guild Info Tags"] = true
+    GRM_L["X = index of minimum rank. Example: 0 = {name} and {num} = {name2}"] = true
+    GRM_L["'g2^X' - Establish minimum sync rank restriction for player details"] = true
+    GRM_L["'g3^X' - Establish minimum sync rank restriction for BAN info"] = true
+    GRM_L["'g4^X' - Establish minimum sync rank restriction for Custom Note info"] = true
+    GRM_L["Warning! System messages are disabled! GRM cannot function fully without them. You must re-enable them in the chat settings."] = true
+    GRM_L["Database Still Loading. GRM will open automatically when finished."] = true
+
+    -- R1.29
+    GRM_L["Do you really want to invite all applicants?"] = true
+    GRM_L["There are currently 0 players online to invite."] = true
+    GRM_L["It appears all players are now offline."] = true
+    GRM_L["Invite\nAll"] = true                             -- Just makes it 2 lines - they \n is the line break. You can remove if not necessary, or include.
+    GRM_L["Include Message When Sending Invite"] = true
+    GRM_L["Click here to set custom invite message. Press Enter to save before sending invite!"] = true
+    GRM_L["The highlighted character is not valid for messages. Please remove."] = true
+    GRM_L["Not all characters are valid. Please remove any non-text characters."] = true
+    GRM_L["Kick macro created. Press \"CTRL-SHIFT-K\" to kick all of {name}'s alts"] = true
+    GRM_L["Kick the Player's {num} alts too?"] = true       -- Plural
+    GRM_L["Kick the Player's {num} alt too?"] = true        -- Not Plural  - "Kick the Player's 1 alt too?"
+    GRM_L["Ban and Kick the Player's {num} alts too?"] = true
+    GRM_L["Ban and Kick the Player's {num} alt too?"] = true
+
+    -- R1.30
+    GRM_L["Sync With {name} is Complete..."] = true
+    GRM_L["Database Still Loading. Please Wait..."] = true
+    GRM_L["|CFFE6CC7FLeft-Click|r and drag to move this button."] = true
+    GRM_L["|CFFE6CC7FCtrl-Left-Click|r and drag to move this button anywhere."] = true
+    GRM_L["MOTD:"] = true       -- Message Of The Day = M.O.T.D = MOTD - 
+    GRM_L["minimap"] = true
+
+    -- R1.31
+    GRM_L["Show 'Main' Tag on both Mains and Alts in Chat"] = true
+
+    -- R1.32
+    GRM_L["Invites Currently Being Sent..."] = true
+    GRM_L["GRM has moved the Guild Leader setting restriction codes to the Guild Info tab."] = true
+    GRM_L["Please make room for them and re-add."] = true
+    GRM_L["Your Guild Leader has pushed a reset of your data."] = true;
+    GRM_L["Your Guild Leader Has Set BAN Sync Restrictions to {name} or Higher"] = true
+    GRM_L["Your Guild Leader Has Set CUSTOM NOTE Sync Restrictions to {name} or Higher"] = true
+
+    -- R1.33
+    GRM_L["Invite all macro created. Press \"CTRL-SHIFT-K\" to invite all online recruits."] = true
+    GRM_L["Macro will auto-remove after {num} seconds."] = true
+    GRM_L["UI"] = true
+    GRM_L["UI Controls"] = true
+    GRM_L["UI Configuration:"] = true
+    GRM_L["|CFFE6CC7FClick|r to Change Rank Restriction for Custom Note"] = true
+    GRM_L["Sync restriction is unique to just {name}'s custom note"] = true
+    GRM_L["Show Character Guild Reputation"] = true
+    GRM_L["Show Guild Member Birthdays"] = true
+    GRM_L["Set Birthday"] = true
+    GRM_L["Edit Birthday"] = true
+    GRM_L["Remove Date"] = true             -- Clear Birthday shorthand
+    GRM_L["Birthday"] = true
+    GRM_L["Only Announce Birthdays and Anniversaries if Listed as 'Main'"] = true
+    GRM_L["{name} will be celebrating {num} year in the Guild!"] = true            -- {custom1} will reference the DATE. Ex: "Arkaan will be celebrating 1 year in the Guild! ( 1 May )" - SINGULAR
+    GRM_L["{name} will be celebrating {num} years in the Guild!"] = true           -- Same thing but PLURAL - "years" in stead of "year"
+    GRM_L["No player's currently available to sync {name}'s Guild Data..."] = true
+    GRM_L["{name} has set {name2}'s Birthday: {custom1}"] = true                   -- custom note is the date like "12 Dec"
+    GRM_L["{name}'s Birthday has been set: {custom1}"] = true
+    GRM_L["Sync Birthdays"] = true
+
+    -- R1.34
+    GRM_L["Debugging Enabled"] = true
+    GRM_L["Debugging Disabled"] = true
+    GRM_L["{num} is not a valid day of the month! It must be a number between 1 and 31"] = true
+    GRM_L["{num} is not a valid index of the month of the year! It must be a number between 1 and 12"] = true
+    GRM_L["The day cannot be {num}. It must be a number between 1 and 31"] = true
+    GRM_L["The month cannont be {num}. must be a number between 1 and 12"] = true
+    GRM_L["{num} birthdays have been reset."] = true
+    GRM_L["No player was found to have that birthday."] = true
+
+    -- R1.35
+    GRM_L["\"{custom1}\" setting is not valid. Value must be between 1 and 3. Defaulting to set join date to officer note with \"g5^1\""] = true    -- The custom1 will be something like "g5^8" or something. It's to account for typos or error warnings.
+    GRM_L["Your Guild Leader Has Set Join Dates to only be added to the {name}"] = true         -- The {name} will be the "Officer note" or "Public Note" or "Custom Note"  set, based on their settings...
+    GRM_L["Warning - Global Controls:"] = true
+    GRM_L["Sync Restrictions Globally Changed to {name} or Higher"] = true
+    GRM_L["BAN Sync Restrictions Globally Changed to {name} or Higher"] = true
+    GRM_L["CUSTOM NOTE Sync Restrictions Globally Changed to {name} or Higher"] = true
+    GRM_L["Join Dates Globally Changed to only be added to the {name}"] = true
+    GRM_L["Unable to Modify. Global setting is set to the {name}"] = true                           -- The {name} will be the "Officer note" or "Public Note" or "Custom Note"  set, based on their settings...
+    GRM_L["'g5^X' - Designate Join Date note destination. g5^1 = Officer, 2 = public, 3 = custom"] = true
+    
+    -- R1.37
+    GRM_L["No Action Configured"] = true
+    GRM_L["OLD LOG"] = true
+    GRM_L["CHANGES"] = true
+    GRM_L["Sync has failed to start. Please try again!"] = true
+    GRM_L["Please wait {num} more seconds before manually initiating the sync process again."] = true
+
+    -- R1.39
+    GRM_L["Only Report if there are no Active Alts in the Group"] = true
+    GRM_L["Level Filter Minimum:"] = true                                -- As in player level
+    GRM_L["Report Milestones:"] = true
+    GRM_L["Report Level Up Changes"] = true
+    GRM_L["Reporting:"] = true
+    GRM_L["Unable to disable level cap tracking. Please disable ALL tracking to turn off."] = true
+    GRM_L["No Levels to Report to Log"] = true
+    GRM_L["{name} has Surpassed their Level {num} Milestone and is Now {custom1}"] = true
+    GRM_L["{name} has Reached their Level {num} Milestone"] = true
+    GRM_L["{name}'s Ban has been Updated by {name2}!"] = true
+    GRM_L["{name} has Updated {name2}'s BAN and also BANNED all linked alts from the guild!"] = true
+    GRM_L["One moment, GRM is still being configured."] = true
+    GRM_L["Press ENTER to complete"] = true
+    GRM_L["Player Was Banned By: {name}"] = true
+    GRM_L["|cffff0000WARNING!!!|r {num} BANNED players are currently in the guild."] = true     -- plural
+    GRM_L["|cffff0000WARNING!!!|r {num} BANNED player is currently in the guild."] = true        -- Singular  -- please keep the color coding... this keeps the Warning in red
+    
+    -- R1.41
+    GRM_L["{num} metadata profiles are being built for people previously in the guild. The data is being requested, but this may take some time."] = true                   -- PLURAL
+    GRM_L["One metadata profile is being built for a player previously in the guild. The data is being requested, but this may take some time."] = true           -- SINGULAR, same line.
+    GRM_L["Sync will re-trigger one time, in a moment, to collect final data on these profiles."] = true
+    GRM_L["Auto-Focus the search box"] = true
+    GRM_L["This will skip the first time if set to load on logon"] = true  -- Referring to the auto-focusing on the search box, this is a tooltip helper
+    GRM_L["Please enter a valid level between 1 and {num}"] = true
+    GRM_L["Player's Main: {name}"] = true
+    GRM_L["Player's main no longer in the guild: {name}"] = true
+   
+    -- R1.43
+    GRM_L["One moment, requesting additional details on {name} from the server. Ban List will soon update."] = true
+    GRM_L["Unable to identify {name}. Ensure your spelling is accurate! Otherwise, they may have left the server."] = true
+    GRM_L["(Unable to Identify)"] = true                                                                    -- As in, unable to identify on the server, they possibly server transferred off but are still on ban list
+    GRM_L["|CFFE6CC7FClick|r to select player class"] = true
+    GRM_L["|CFFE6CC7FClick|r to select player's realm."] = true
+    GRM_L["All Connected Realms are available to choose."] = true
+    GRM_L["{num} players were found to have the same name. Please manually select which connected realm the player you wish to ban is on."] = true
+    GRM_L["Click or Press TAB to cycle through each step."] = true
+    GRM_L["Former and Current Members"] = true
+    GRM_L["No Matches Found. Add a Custom New Player or Match"] = true       -- as in, autocomplete typing matching
+    
 end
 
 -- BuildLog() - might have some extra work, conditionally based on localization as it will now have a mix of languages saved to the log, since log is not retroactively changed.

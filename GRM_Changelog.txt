@@ -1,4 +1,681 @@
 
+**VERSION 8.1.5R1.46 DATE: March 16th, 2019**
+
+* BUG1: One more fix for the night! Sync Users should now display properly with people with older versions of the addon.
+
+@everyone**VERSION 8.1.5R1.45 DATE: March 16th, 2019**
+
+*A felt a bit off my groove for a couple of weeks. Things feel a bit better now. This focused almost solely on the reported issues when I was gone, as well as some other misc. things that came as a result of those distractions.*
+
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+
+* QoL1: Italian localization is back to 100%!!! Thank you @Nihal6#8125
+
+* QoL2: Guild namechange log entry now properly is timestamped in the log
+
+* QoL3: Tooltips for alts should no longer show whilst moused over the date selection dropdown menus.
+
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* BUG1: Fixed a bug that could occur if still processing people that are no longer in the guild whilst sync triggers
+
+* BUG2: Fixed an issue that could cause bans to not sync properly due to a nil value that should have been an empty string. Source eliminated, cleanup fixed. This bug likely affected a lot of people that utilized the ban list frequently
+
+* BUG3: Fixed a slight UI bug when syncing some live join date changes.
+
+* BUG4: Fixed some issues with regards to alt lists having doubles do to some super weird edge case circumstance that was kind of fun to diagnose and solve
+
+* BUG5: Fixed an issue that resolves a copy bug when a player server transfers and the server shows a temporary double copy of them on occasion. Seems rare, but reported 2 times now happening.
+
+* BUG6: Added potential fix during the sync process where when it starts syncing ban list (maybe half way through the process), a player may disconnect due to breaking throttling limits. If this doesn't resolve it then it is some other part of sync process causing it and I will need to hands on it with people.
+
+
+**VERSION 8.1.0R1.44 DATE: February 22nd, 2019**
+
+*BUG1: The log is NOW properly fixed... I had everything working but commented out the fix for just this one issue. Oops!
+
+
+**VERSION 8.1.0R1.43 DATE: February 22nd, 2019**
+
+***NOTE*** *Pending Features not quite yet ready* - I wanted to mention them as there has been a lot of discussion in discord on them, but the note searching and the mass-kick macro tool are being worked on they just weren't quite ready for release and I think I need to get this out asap.
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+
+*Even MORE Ban feature improvements!*
+
+* QOL1: Adding a ban, name autocomplete. As you type, a selection of name matches will now be given as suggested selections. They will pool both the current and former guildies names together for selection. Just start typing to match!
+
+* QoL2: Added a word count as you type in the "Reason for the ban" portion, so you know how many characters you have to use.
+
+* QOL3: The addon will now tell you when adding someone to the ban list if it is still possible to pull their data from the server, otherwise they will be flagged with "Unable to identify."
+
+* QOL4: "Unable to Identify" flags added to ban roster for players who may no longer be on the server. This will allow you to cleanup your ban lists a little.
+
+* QOL5: The addon will now collect any missing GUID data tags from players that left the guild pre-8.0, before data was readily available. I have a somewhat tricky way I collect GUIDs from players who are offline. This also helps me determine if the player still exists.
+
+* QOL6: If adding a ban of a player who left the guild before GRM was installed, or maybe was never even in the guild, it will collect their metadata as much as possible from the server and build a profile behind the scenes. The ban system will also auto-correct any mistakes you make, such as class selection, when creating the ban.
+
+* QOL7: The addon will now tell you when adding someone to the ban list if it is still possible to pull their data from the server
+
+* QOL8: Lots of behind the scenes details. Hard to explain, but the process is better.
+
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* BUG1: Fixed a major issue that could cause search to not work due to finding nil values in the log. This was a HUGE potential bug that is now quashed and cleaned up. Hard to understate this.
+
+* BUG2: Search should now work properly in all instances when using apostrophes in the search box.
+
+* BUG3: Fixed an error that could occur when a player rejoined, it was trying to report a nil line. You may have noticed the lack of reporting of rejoins the last 2 weeks.
+
+* BUG4: Sync throttle was modified slightly to alleviate growing concerns about disconnects that seem to have recently popped up after long being quashed. I confirmed the bulk sync feature was nerf'd by Blizz as well in that short time window. This caused me to have to make some slight changes and possibly had some ripple effects. We'll see how it goes but I suspect things will be better now.
+
+* BUG5: The alt details window should now properly reset to the top of the list when showing when clicking on each player's alt lists from the Calendar invite lists.
+
+* BUG6: Minor visual bug on the word count cap to send messages to players that join guild as well as the backspace not registering count changes on guild recruitment custom message character count.
+
+* BUG7: Fixed an issue where the ban list drop-down selection of classes would not re-localize when changing languages.
+
+* BUG8: Noticed a small edge case that could cause a player to be left on friends list evne on cleanup when it was supposed to be a quick add > scan > remove only.
+
+
+**VERSION 8.1.0R1.42 DATE: February 6th, 2019**
+
+***NOTE*** *Nothing too new here, just some minor bug fixes for some minor inconveniences as I work on a few other major things in the background. Wanted to at least get this out there!*
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+
+* QOL1: French translation fully updated - TY @Enkh and Italian is like 99% complete. TY @Nihal6
+
+* QOL2: The extra alt details window that can popout on the side with a shift-click will no longer go off screen if your game resolution is not wide enough, or scale is high. It will no overlap on the left. This is a rough stop-gap as I am actually building a new "snapping" and draggable window interface that will make it easier to place the frames around the window. We'll see what happens, but now this is a useful feature for those whose frame went off screen
+
+* QOL3: The tooltip of the community/guild frame should no longer trigger through other frames and will now only show if there are no other windows on top of it.
+
+* QOL4: When closing the side window to select how you want to sync all join dates, it no longer closes ALL windows, forcing you to reopen mouseover frame.
+
+* QOL5: Noticed the Rejoins and rejoin bans were reporting in the log on separate log entry lines. This is now all on one line properly, which makes more sense. This only affects new log entries, not retroactive ones, for now.
+
+* QOL6: Fixed some of the coloring as well to be more consistent with what they are doing. 
+
+* QOL7: Custom notes as "additional notes" now show properly without being a jumped mess of words when a player rejoins the guild.
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* BUG1: Promotion/demotion changes were not always reporting to the log properly if the player hadn't logged on since you last checked.This was a simple modification I did last update I forgot to remove.
+
+* BUG2: Promotion date was still saying "Unknown" in cases where it should not have been on player mouseover. This has been automatically corrected. 
+
+* BUG3: Inactive Returns were previously not being removed from the guild when filtered to just them, and using line number X through Y selection removal tool. This is now fixed.
+
+* BUG4: Disabling or Enabling the reporting of when a player levels, to the log, is now working properly.
+
+* BUG5: The timestamp formatting for Promotion/demotion log entries should now properly match the selected format of your choosing.
+
+* BUG6: Fixed a bug where it would report a player's guild anniversary as "0 years" away on the same day they joined the guild. oops :D
+
+* BUG7: Fixed a Lua error that could occur when a player first joins a guild whilst they had GRM installed and had just left a previous guild.
+
+* BUG8: Fixed Lua error that could occur when setting a player's birthdate and syncing the info live to another currently online player. The data sync'd but the name didn't carry over properly for log msg in some cases.
+
+* BUG9: Fixed an error where if you changed the birthdate of the player by adding them to an alt grouping, which auto-changed the bday to the "main," and it was not removing the old event date from the add to calendar window automatically like it should have
+
+
+**VERSION 8.1.0R1.41 DATE: January 28th, 2019**
+
+**NOTE!*** *Going down the list. It's funny... it always seems like I am taking 2 steps forward and 1 back in thbe progress. I am continually moving forward, but there's always something to distract me. The good thing is the side distractions, requests, bug fixes are all taking us step by step to a better addon.*
+
+***NEW FEATURES***
+
+* The player can now auto-focus the search box everytime the Log is opened, if they so choose. This is turned OFF by default. It skips the first time if set to load on logon.
+
+* French Translation is complete (aside from my 1.41 updates which he did not have access to yet)! Thank @Enkh!!! Seriously, so much work
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+
+* QOL1: Due to some challenges in building metadata profiles of people who have left the guild, in the back and forth callbacks, delays in receiving info, a ban list could take 2 syncs. One, to sync most data, but if bans existed of players not in the guild, the other person who maybe was not in the guild when those profiles existed needs to create metadata profiles for them. this requires additional talk, and considering the delay, this could interrupt sync protocols. As such, after building the metadata profiles a subsequent sync would need to be done to complete the build for all ban list data to update. Now, the addon will determine the number of metadata profiles created of previous guildies, build them, then re-trigger a call, if necessary, for info, all automatically.
+
+* QOL2: Italian translation has been updated and is current again (aside from 1.41 updates no one had yet). Ty @Nihal6
+
+* QOL3: Noticed some inconsistencies in the Ban log reporting messages from sync vs live which should now use the same messages on both sides of the addon to addon comms.
+
+* QOL4: The ban list log entries moving forward will now properly report on a single line. Previously they had the Ban info and the Reason as separate entries into the log. This is fixed now.
+
+* QOL5:	If a player is no longer in the guild, they are removed from any upcoming events que.
+
+* QOL6: Alt details now sorts by default the time since Last Online, rather than alphabetically (with main still at the top) -- interestingly, I wrote some code here to sort levels and ranks, but I didn't have time to build front end interface. I need ot think of how I want to implement it in a nice QoL way. Until then, default sorting by last online now!
+
+* QOL7: Extra alt Details frame now closes alone with the ESC key rather than both windows.
+
+* QOL8: The addon now states who the player's Main was when they are removed or leave the guild - this is only half-implemented. It seems I am not fully tracking alt/main data as good as I should once they leave the guild when I should store a snapshot of it at the time they are kicked or leave. Instead it is an unreliable tool. I will need to build the tools for this to expand on the feature. Until then, you have this small thing.
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* BUG1: Fixed a major bug with the sync system not functioning properly and causing a lua error on some received data. The root cause was squashed and was actually quite a bit more complicated than I anticipated. This is the bug most were getting. The rabbit hole was deep lol
+
+* BUG2: All words should properly localize now when swapping languages on the new Level Options changes.
+
+* BUG3: Fixed a minor bug with the ban list sync system that might occur in certain circumstances. The root cause of this was also found and squashed.
+
+* BUG4: Fixed Lua error that could occur if hitting enter on the Level filter entry when no level is selected.
+
+
+**VERSION 8.1.0R1.40 DATE: January 21st, 2019** 
+
+*Small typo fix on something was meant to be deleted*
+
+
+**VERSION 8.1.0R1.39 DATE: January 21st, 2019** 
+
+(Happy MLK Day to the USA users!)
+
+***NOTE!*** - *I am currently in the process of just going down my to-do list, knocking out many things that were on the back burner. I am also trying to implement simple requests as they come as well as some bug fixing as priority as they come as well. As the addon grows, the complexity grows as well in adding features because there's just more and more tentacles to consider. For example, this update I managed to include the implementation of "who" banned a player, but this required a significant amount of work as the sync algorithm for the ban system, to maximize efficiency in packing in those 255 character size comm messages, as well as obeying throttle rules, is rather complex, and then to throw in a new piece of info into the mix, to carry over through several different channels not only required me to modify it slightly, I had to then add new parsing mechanisms on the other end because previously it assumed it was the end of the string, now I had to rewrite it to see this as the end of it. I had to expand array sizes, I had to build an entire front end feature to consider this. My point is that it seems "simple" for some features, like adding something as simple as the name of the player that originally set the ban on another, which in retrospect I probably should have originally included, but it took me a solid dozen hours+ of coding work just for this one simple feature, and testing to make sure it was solid. The good thing is this patch, since I dove into the ban system, sad that Blizzard didn't implement their own banning system in 8.1, I basically went all out in it too with some long overdue work on it. As a hobby project this is fun, but I do only have so many free hours in the day. I just figured I would let you guys know why maybe some things seem so simple but they actually take me a bit of time*
+
+***NEW FEATURES***
+
+* FEATURE1: The person who first added the ban will now be noted on mouseover of each of the bans. This cannot be retroactive, so it will say "unknown" for all existing bans. If you EDIT the ban and save it, your name will overwrite the person that set the ban as the most recent person to modify it is the one that is important.
+
+* FEATURE2: More refined level filter options! Ability to set it to set milestones, and you can refine to which expansion cap milestones only if you want. Of note, if you have it set to announce when they hit say, 60, and you login and they went from 55 to 65, it will say in the log that they hit their 60 milestone, and are now currently at 65. It will only announce their highest milestone.
+
+**-----**
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+
+* QOL1: Player can now choose to set the log to only report an inactive return if ALL alts in that grouping are inactive. If at least one is active it won't report.
+
+* QOL2: Rewrote the scannign algorithm to be about 95% more efficient. Yes, that is correct. Some major improvements as I hadn't revisited it in quite some time and it got me rethinking some efficiency angles and doing unnecessary work if they hadn't logged on since last check.
+
+* QOL3: If there are currently people banned that are still in the guild, the guild tab will show a count as well as a tooltip warning to give you a heads up, in case you missed the log entry.
+
+* QOL4: On the General Options - tooltip scale will actually adjust in size with the slider now so you can easily see.
+
+* QOL5: Removing a ban from a player the text should now properly be class color coded of the player's names.
+
+* QOL6: More obvious steps in adding or editing a ban
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* BUG1: BAN LIST should now properly sync in all cases! 
+
+* BUG1: One caveat, in some edge cases it might take 2 syncs to build it all because if it is a new guildie using GRM, they have to create metadata profiles from scratch for players they may have never encountered and are no longer in the guild, so what happens is they first create a blank profile, then they tell the person sending the ban information that they do not have a profile of the player yet so the player then forwards the known metadata on to build the profile properly and THEN and only then can a proper ban be established. The problem is these back and forth comms are not instant, and for me to avoid things like latency bugs, almost like a TCP protocol where you wait for a callback, rather than UDP, then it takes some seconds. Due to my lack of desire to create separate trees for qued up ban data to que up these lists, if the callback isn't fast enough it just builds the profiles without acknowledging the given ban data yet, though the subsequent sync should then work. This only applies to people wwho just installed GRM in your guild, for the most part.
+
+* BUG2: Ban List should now properly sync ban list edits (this also was previously inconsistent)
+
+* BUG3: Ban List should now properly sync the "ban all alts" option as well when this is chose LIVE with 2 people online at the same time. Before it seems it would sync the one name, so the player setting the ban would ban all the alts properly, but the sync'd guildie would only receive a message to ban just the one intial toon, not the alts
+
+* BUG4: Ban List should now properly merge if a person had some bans but were too low rank and then brought up to a higher ban sync ok rank.
+
+* BUG5: Fixed an issue that can cause some translation spam when editing a ban the first time after logging in telling you player's class was wrong as well.
+
+* BUG6: Fixed a Lua error issue that could occur when clicking minimap too soon after login. This apparently was only partially resolved before. It wasn't major, as it didn't break anything, just error'd before finished configuring.
+
+
+**VERSION 8.1.0R1.38 DATE: January 9th, 2019**
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+
+* QOL1: All nearly 800 lines of translation work for ITALIAN is completed. TY @Nihal6
+* QOL2: GRM sync message will be more obvious if /grm sync slash command failed to kickstart sync process properly
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* BUG1: Fixed a bug that will only affect people who have never used the addon before from dumb mistake I made in 1.37 update!
+
+@everyone 
+**VERSION 8.1.0R1.37 DATE: January 6th, 2019**
+
+***NEW FEATURES***
+
+*"CHANGES" and "Old Log" headers will now be visible the first time you view the log on logging in to make it more obvious the extent of changes since last login.*
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+
+* QOL1: g8^ purge functionality removed from the addon. After careful consideration, it just seems like too much power for guild leader to control other's data and I hate it exists now. So, removing.
+
+* QOL2: GRM sync message will be more obvious if /grm sync slash command failed to kickstart sync process properly
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* BUG1: Fixed an issue causing a Lua error in syncing the custom note, as well as an issue with sync disconnects in relation to this bug.
+
+* BUG2: Fixed an issue that could cause the ctrl-shift-click of the log to remove the incorrect entry, though it was the same message (like X promoted to Y rank)- This is very edge case and likely no one even noticed lol
+
+**VERSION 8.1.0R1.36 DATE: January 3rd, 2019**
+
+*Forgot to add English Localizations to all languages, so if you used any language but English you likely got spammed with missing key errors*
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+
+* QOL1: Added the online / totalMember count to the roster tab. For some reason Blizz makes this only visible on the chat window. I find it useful on roster tab too.
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* BUG1: Fixed a bug that seemed to be related to the new year and would have only popped up on Jan 1st and on. It likely would have stopped yuour addon from picking up new changes as it would break the scan until then.
+
+* BUG2: Fixed an issue with large custom notes, as they were not splitting and sending backend comms properly if too large. The very large comms should now properly sync
+
+* BUG3: Events were being announced on the calendar as dungeon events due to a change in the calendar in 8.0 that I didn't notice til now. They should now properly announce as a "OTHER" event for birthdays and anniversaries.
+
+* BUG4: Resolved an issue that could make the main tagging not work properly if a person opens the calendar before the addon is fully loaded behind the scenes. Opening the calendar is fine, it just had an out of order check that should have been done sooner.
+
+
+
+**VERSION 8.1.0R1.35 DATE: December 31st 2018**
+
+*Minor update. Mostly some bug fixes. 1 new global configuration using guildInfo
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+
+* QOL1: New Global Setting! - g5^X can be added to the guild info to designate the location of the Join dates. g5^1 = officer note, 2 = public, 3 = custom
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* BUG1: Fixed a bug that could allow the guild leader to purge their own data on accident using the g8+ tag! Oops!
+
+* BUG2: Fixed a localization bug that would spam you about not knowing the key for a birthday translation.
+
+* BUG3: Fixed a bug that could allow in some cases multiple copies of smae name to be added to alt list if spammed from a sync error (older version bug spaming backend comms to new version)
+
+* BUG4: In relation to the previous bug, Cleans up broken alt lists that were broken from an older patch (some may have never noticed some groupings were broken)
+
+* BUG5: Fixed a bug that could cause Lua error shortly after logging in if system message triggers, like "Player has gone offline" before it is configured properly.
+
+* BUG6: Ban list "guild info" configuration of the global settings allowed the player to contradict allowed settings, with ban list restriction more loose than global.
+
+* BUG7: Fixed an issue where the event announcing could be set to > 28 days (up to 98 days in advance). I wrote it to only scan 1 month in advance, not more, and thus to keep it clean I default it to 28 days in advnce as max announcement. This setting defaults to 14, but if you had it < 28, it will be reset down to max 28 and will no longer be editable a greater length of time than 4 weeks in advance.
+
+
+**VERSION 8.1.0R1.34 DATE: December 16th 2018**
+
+*Moderate update. Some bug fixes. Some bugs would be game-breaking for some players, and would not affect others. Thus, this needed to be pushed out asap!. A few other tweaks as well*
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+
+* QOL1: Alt names listed as the main should not be shrunk tiny anymore.
+
+* QOL2: Added tooltip message that you can "Right click to edit" the dates...
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* BUG1: Fixed an issue that can prevent alt list from showing.
+
+* BUG2: If more than 10 names were on the event calendar a Lua error could occur selecting wrong player info.
+
+* BUG3: Accidentally included a spam message in the guild sync spam on birthday updates being shared.
+
+* BUG4: Not all upcoming events were being announced if they were the next month (particularly from December to January). This is fixed. You may get a bunch of new announcements to report to the calendar.
+
+* BUG5: Blizzard made some backend changes to the calendar, so I had to adjust the way it checked if events were already added. If it is already posted on the calendar it will not appear on your events list with a suggestion to add it to the calendar needlessly. Thus, if one player or officer in the guild adds it to the calendar, then all other players will have the option removed as it will no longer be necessary to add it. You will still have a log announcement of it and it should appear in the guild chat community stream the first time you look at it after it has been added.
+
+
+**VERSION 8.0.1R1.33 DATE: December 15th 2018**
+
+*NOTE! The !note feature has been removed. One, it was mostly redundant, since Blizzard introduced the ability for people to edit their own notes only. But two, in 8.1 Blizz broke it anyway and it can no longer be used. Blizz "protected" all chat streams now, from guilds and communities, since they are now stored. Apparently this was in an effort to prevent addon developers from attempting to use custom channels as exotic database storage (which I was funny enough, considering lol). The downside is it KILLS the feature.*
+
+***NEW FEATURES***
+
+**BIRTHDAYS**
+
+* *That's right! You can now input players birthdays. They are linked to the alt grouping. I have made this as simple as possible and automatic to use. Here are some details:*
+
+* 1) Completely optional. You can disable this in the settings. Both the ability to store birthdays as well as even see it in the options are configurable.
+
+* 2) The date is linked to the alt grouping as it is assumed that the birthday will be the same for all players in the grouping as it is based on RL birthdays
+
+* 3) This linking will be automatic. If an alt does not have a birthday set, but is added to a grouping of alts that does, then I will auto-set the birthday. All the nuances of this are extremely tedious to iron out to automate this all. Example, what if two toons not grouped have different dates set, but you try to add one to the other, which date takes priorty? Well, I look at if one is listed as main. Well, what if neither are. What if both are? What if one player is part of a group of alts, with no one listed as main, and no birthday, but then you add one player who is a main and already has a date? Does it override all the others? What if not a main, but it has a date? What if the large grouping has a date set, but the main does not? You can begin to see how there can be a large divere group of things to consider. I ironed out every last one to automate this for the smartest efficiency.
+
+* 4) It only stores the day and the month. I avoid allowing the addon users to ask for the year. I do this on purpose. Some people don't feel comfortable giving their age. Not that it is likely a big deal for 95% of the community, but this spares you leaders the awkwardness of bothering with asking. It is not necessary anyway, just the day and the month is important.
+
+* 5) These birthday events will auto-trigger to be added to the calendar as they approach as well. I HIGHLY recommend having the box checked to only announce the "mains"
+
+* 6) Data is completely syncable and sharable. This also takes advantage of a new algorithm I am implementeing a little here and there for sync efficiency. It takes a while so one thing at a time. It is speedy, but is still extra, new data.
+
+**GUILD REP**
+
+* *Yup! For some reason it is hard to determine player's guild rep now without opening the /groster old window. It will now be visible and properly colored based on rank in the top right for each player. It is fully localized*
+
+* 1) This also is completely optional, and you can disable it in the new UI panel of the options.
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+
+* QoL1: While not necessarily obvious to the user, I place this as number 1 because of the extensive backend cleanup on the process of scanning the database for events to announce to be added to calendar. I also converted the database from the use of strings in many areas to ints, thus removing the need of any string parsing when checking events. This is enormously more efficient now.
+
+* QoL2: Cleaned up a bit of the Alt alignment, some auto controlling the font size to fit, even if a player bumps font size to 125% (in some fonts this may make the "main" alt seem a bit small.
+
+* QoL3: A bit cleaner backend method on detecting player rank permissions in chat. The older method was a bit tedious, but it was necessary after the odd changes in patch 7.3. Well, 8.1 reverted a few of those and they are actually easier to use now and better than ever before! Sometimes they get things right!
+
+* QoL4: Custom note sync rank filter tooltip is more obvious now what it is and how it is unique for that toon only.
+
+* QoL5: ESC key used a bit more logically and cleanly when jumping through frames you had open.
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* BUG1: Fixed an issue that could cause disconnects in some circumstances during a sync. I am not certain this fixes ALL issues for all players, but this definitely will resolve it for many that possibly had issues.
+
+* BUG2: Tightened the sync process a bit further as well to prevent a bulk sync that overlaps or I should say, comes to close to the server throttle cutoff. This will likely help some people who had disconnects.
+
+* BUG3: Sync disconnect fix 3! Additional protections added to people with low FPS when first logging in to prevent a bulk sync, or throttle down to match FPS a bit (interestingly FPS does affect throttle rate).
+
+* BUG4: Fixed an issue that can cause a protection error when trying to mass invite people from the guild recruitment window with GuildInvite lua script. Blizzard seems to have protected it so it cannot be looped, it can only run once per click without tainting. As such I have implemented the macro strategy, where I create a premade macro with all the /ginvite (name) on each line, and with a simple hot-key press it mass invites, if you wish.
+
+* BUG5: Fixed a rejoin bug issue where if a player quits the guild, deletes a toon, makes a new toon with the same name, it counts it as a rejoin. It should now properly only rely on GUID data, not name comparisons. Oops!
+
+* BUG6: Found some issues that could cause problems for people whose database had been upgraded/converted after a long time of not updating the addon, and then they used the backup recoverty tool.
+
+* Bug7: Fixed some bugs around updating from VERY old versions of the addon.
+
+* Bug8: Fixed an issue where the "Anniversary!" was not translating properly in some circumstances on non-English versions of the addon.
+
+* Bug9: Fixed an issue that good mingle alt groups incorrectly when adding one from two groups listed with a main, from a toon that was not a main in the grouping.
+
+* Bug10: Addon should no longer randomly announce "XXX player is already listed as an alt" erroneously.
+
+* Bug11: Fixed an issue with ban list syncing. - It only addresses one issue, however, this is still bugged and doesn't always sync the ban lists properly.
+
+
+
+**VERSION 8.0.1R1.32 DATE: November 22nd 2018**
+
+*Note! There are some big changes in the works in a couple of areas, this is taking me a bit of time, but it is in regards to the core log. I've decided to implement a hybridscrollframe and also make the log more dynamic, less static. This has a lot of tentacles in the code to deal with so it is taking me a while. In the meantime I pushed out a rather critical update for a major disconnect bug and some minor features*
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+
+* QoL1: Functionality has been expanded in the ability to FORCE and unify settings. The player can now force set the sync rank for ban lists and custom notes as well. 
+
+* QoL2: Freeing up character space in the officer note, the Guild Info will now house the leader control tags to force settings. Example, g2^9 is not going to be placed into the guild info tab to work.
+
+* QoL2: The addon will auto copy over your existing tags when you first login and configure this automatically for you.
+
+* QoL3: The +GRM1 has been normalized to g1^+. If you used GRM1, then the addon will auto-convert the format, as well as copy it to the proper Guild Info tab.
+
+* QoL4: Some formatting fixed that could occur in some cases with the alt list making them appear unalligned.
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* Bug1: Major disconnect bug has been fixed that could occur if a player reloads and tries to auto-sync, with certain addons installed. This compatibility was hard to detect. It is now resolved in a new way so as to preserve compatibility with all addons. It might not kick them on logging in, but on a reload it would. Not anymore!
+
+* Bug2: Manually moving the minimap icon could cause an error for new users. This is now resolved.
+
+* Bug3: "Show main tag on all" in the settings was not showing it checked, even if enabled. This is now resolved.
+
+* Bug4: Players that tried to manually trigger a sync with a /grm sync would often find it doesn't trigger without a 2nd attempt. Fixed!
+
+
+**VERSION 8.0.1R1.31 DATE: November 2nd 2018**
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+
+* QoL1: Added the additional Main Tagging option to show the main tag on ALL toons, including the main, not just the alts
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* Bug1: Accidentally included debug version of the addon's syunc, so you might have gotten a bit of spam in chat...
+
+* Bug2: Players that were new to the addon that decided to manually move the minimap icon would get a lua error. I only updated this to build old databses, not add to new. Ooops!
+
+* Bug3: Minimap position is something NOT sync'd between alts. This is intentional as on some alts people use different addons, so the one setting unique between toons is alts. The new Custom "drag anywhere" minimap button option should now properly reflect this.
+
+* Bug4: Fixed an issue that could cause a Lua error in regards to minimap position when swapping between alts as well.
+
+
+**VERSION 8.0.1R1.30 DATE: November 1st 2018**
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+
+*No major new features. Lots of bug fixing and quality of life adjustments for players, with some request implementations. Thank you for your patience!*
+
+* QoL1: Syncing is less stuttery when syncing massive alt lists. There was some spaghetti code I had written a long time ago I had not revisited. OMG, it was rebuilding the entire database in a deep array copy every second lol. This could d/c at least some people, or make the game unbearable during the sync. Stutter removed!
+
+* QoL2: The side box to input the name, when adding an alt, is now a scrollable list with up to 30 matches, to make those hard to match names easier to see. I can up the max limit, just let me know if 30 is good enough.
+
+* QoL3: Sync is now disabled from triggering when a player /reloads -- there is no real need to trigger a sync on reload, on when logging in the first time.
+
+* QoL4: Main/Alt tagging is now more obvious in chat, and it is also now in the System messages for when a player comes online or goes offline.
+
+* QoL5: MOTD is now visible just by mousing over the GRM minimap button.
+
+* QoL6: MINIMAP button can now be moved ANYWHERE (for you people that use those addons that make the map a non-sphere lol)
+
+* QoL7: The optional message when sending a guild invite that can be included at the guild recruit window now makes it obvious you need to hit ENTER to save the message first.
+
+* QoL8: I had built an optional DEBUG sync file for those with disconnect issues. Please ask me on discord and I will link you so we can diagnose the problem.
+
+* QoL9: Slight optimization on just the Join Date sync information. This is just me doing a broad mass test right now on some minimal changes to my algorithm that will improve efficiency and make it a bit more lean and faster. If all seems good I will expand it to the rest of the sync data.
+
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* Bug1: Syncing settings of NEW players that first get configured was not working at all. In fact, it was screwing things up! If you logged on a new alt for the first time this addon installed, not only would it not sync right, it would then overwrite all of your alts you had previously configured with default settings again. HOW ANNOYING!!! Fixed...
+
+* Bug2: Audit Log should now properly sort the Promo dates when sorting ascending or descending.
+
+* Bug3: Fixed miscellaneous bug that caused error in some rare cases when loading CommunityFrame for the 1st time.
+
+* Bug4: Portuguese Client should no longer spam adding friends in the system messages as they are properly filtered now.
+
+* Bug5: Korean client was completely broken due to inability to parse creation date. This addon will now work for them perfectly.
+
+* Bug6: A similar but different parsing error in the early configuration of the addon was affecting Mandarin Chinese and Taiwanese clients. This is now resolved and they should work properly...
+
+*Yes, I am really debugging and testing on all 11 supported client languages.*
+
+
+**VERSION 8.0.1R1.29 DATE: October 13th 2018**
+
+**--------------**
+**NEW FEATURE**
+**--------------**
+
+***Improvements to the Guild Recruitment Window***
+
+* Player can now INVITE ALL with one button and it will invite all the players currently online
+
+* Player can now include a guild custom message that is sent to the player when they are invited to the guild. The message can be customized up to 255 characters, or not used at all
+
+***"KICK ALL ALTS" has returned in pseudo form!***
+
+* When kicking a player from the guild, you now have the option to remove all of their alts nearly automatically as well
+
+* The way this works is the addon will build a macro for you that auto-populates all of the alt names into with a /gremove altName1
+
+* Then, it keybinds the macro to "CTRL-SHIFT-K" - This allows you to access this guild kick macro without needing it on a toolbar (A message will remind you of keybind)
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+
+* QoL1: Guild Leader can now force rank restrictions logic with "g2^x" note in either the PUBLIC or OFFICER note. If it is in public, it mandates sync restriction settings guild-wide. If in officer, it only forces officer settings.
+
+* QoL2: Cleaned up some of the UI interactions a bit. Might not be too noticeable, but they are overall better in some areas.
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* Bug1: Fixed an issue related to guild sync where in some cases data would not be shared.
+
+* Bug2: Fixed an issue where there are two copies of a player in the database from an old error if a player has not updated in a long time, fixed that, and ultimately fixed the audit log from being inaccurate on "number of incompletes"
+
+* Bug3: The addon will no longer freeze WOW if you search the log with mature filter enabled.
+
+* Bug4: Mature Language filter shouldn't cause repeat spam on note changes over and over again anymore if player has it enabled
+
+* Bug5: Fixed a bug that could cause a lua error on Log tools line selection for mass deletion.
+
+
+**VERSION 8.0.1R1.28 DATE: September 22nd, 2018**
+
+***NOTE:** Long delay since last major patch was in relation to a recent job promotion at work resulting in a bit more workflow, as well as the BFA launch. I finally have a bit of a work breather, so I hammered this out. I know I didn't get everything, but I got a lot!"
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+
+* QoL1: Player can now set the Custom Note as a destination for auto-joinDate adding.
+
+* QoL2: Player now has the option to set the kick recommendation to only recommend if ALL alts in a grouping have been offline past the deadline (enabled by default)
+
+* QoL3: Log will now display the player's public and officer notes when they leave the guild. You can toggle this on and off in the settings (under scan options)
+
+* QoL4: The Guild recruit window now has a mass purge button that allows you to mass remove ALL guild applicants with one button (with confirmation protection)
+
+* QoL5: Guild Leader can now set Officer note to force all officers to mandated sync restriction rank (This clearly only works for officers, as they are the only that can read the officer note)
+
+* QoL5: -- Use "g2^X" with X being the rank index. 0 = Guild Leader, 9 = Lowest initiate rank.
+
+* QoL5: -- So, if the GL has 2 officer ranks and wants to restrict to that, it is 0 = GL, 1 = officerRank1, 2 = OfficerRank2, thus g2^2 = officer rank and above.
+
+* QoL6: Added a couple of tooltips that are Guild Leader only, for their own use, with instruction on how to use officer note settings (they only appear if not utilized)
+
+* QoL7: Add alt auto-complete names as you type are now shifted more to the left so longer names don't bleed over the edge.
+
+* QoL8: Hard reset button added in the help options... same thing as /grm hardreset. DO NOT USE unless desperate to do full reset account wide of all addon datra.
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* Bug1:	Calendar invite list should scroll properly now.
+
+* Bug2: Calendar Date player modified should now properly be displayed in the tooltip of the calendar as well.
+
+* Bug3:	Fixed 2 different issues that could lead to disconnect when syncing. BUT, I likely will need testers since many are disconnecting immediately.
+
+* Bug4: Whispers were not working for some people who set their whispers to their own separate window. This has been resolved.
+
+* Bug5: Fixed issue where Empty Officer notes were reported to the log as being added Thus "" was added was showing. (This may need some more testing)
+
+* Bug6: Mouseover window should no longer spazz out while looking at guild professions window!
+
+* Bug7: Fixed an issue that was causing syncing of settings among alts wrong.
+
+* Bug8: Fixed a bug that could cause people who haven't updated in a long time to be unable to load the addon properly
+
+* Bug9: Fixed an error that could prevent a player from updating their settings properly in 1.27
+
+* Bug10: Fixed a bug that could cause a lua error if clicking the minimap icon too soon after logon. TY @TimeDrawsNigh
+
+* Bug11: Player should no longer lose focus in ANY situation when typing in the calendar note windows.
+
+* Bug12: Fixed issue on the Promotion date not showing properly in the tooltip and audit log, whilst the mouseover window did. @RedEvil11
+
+* Bug13: System messages must be enabled for this addon to work. A source of problem for several players were those who had them disabled
+
+* Bug13: -- The addon now properly informs them of this status and disables from moving forward until they are re-enabled, without causing error.
+
+* Bug14: Main tag should properly show in all cases now when adding alts
+
+* Bug15: Players with more than 12 alts could end up with misaligned alt lists. The width/wordwrap settings are now correct.
+
+
+
+**VERSION 8.0.1R1.27 DATE: August 13th, 2018**
+
+*MINOR UPDATE*
+
+* Blizz made it so players can now edit their own note, even without being an officer. The addon now supports this.
+
+* You can now toggle the public, officer, and custom note borders to be on or off in the general options.
+
+
+**VERSION 8.0.1R1.26 DATE: August 8th, 2018**
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+
+* QoL1: Export log will now include the numbered lines if you wish.
+
+* QoL2: Officer/Public/Custom note cleaned up a bit more to my liking... no need for the antiquated Blizz box
+
+* QoL3: Officer/public notes should now update instantly if looking at Blizz's player details frame that pops out on clicking on the player. Before you had to click on it again to refresh. I force it now.
+
+* QoL4: Cleaned up some custom note sync UX stuff. A little cleaner.
+
+* QoL5: Blizz's StreamViewMarker is a little flawed and inconsistent on when we really want to scrollback in unread messages. I thus created my own tag.
+
+* QoL6: Added right-click suggestion in tooltip on the mouseover alt names and player name, as many do not seem to know you can right click them for additional options, like setting as main.
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* Bug1: Fixed an issue with retroactive !note tagging where it would scan past MORE than just the unread. Warning, you will need to logout at least once for this to trigger accurately.
+
+* Bug2: Blizz finally fixed the CHAT_MSG_WHISPER and CHAT_MSG_GUILD properly, whcih broke my 1.25 workaround. But that's ok. It's proper now!
+
+* Bug3: Fixed an issue with new players joining the guild where sometimes info wasn't saving accurate on first pass.
+
+* Bug4: Add Alt should be working properly again in all cases
+
+* Bug5: Fixed an issue that would allow new mouseover windows to popup, even though the member detail Blizz side frame was up.
+
+* Bug6: Audit window should now properly auto-update as changes are made in ALL cases without needing to open/close the window.
+
+* Bug7: Fixed an issue with auto-complete on the Add Alt when clicking the name instead of hitting enter.
+
+* Bug8: Fixed an issue when syncing custom notes, shouldn't error out now, which might have crashed your sync.
+
+* Bug9: Fixed an issue where in some cases a lua erorr could occur in showing the player promotion history on mouseover.
+
+
 **VERSION 8.0.1R1.25 DATE: July 29th, 2018**
 
 **--------------**
