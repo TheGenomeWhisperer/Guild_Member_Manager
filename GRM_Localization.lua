@@ -7,8 +7,8 @@
 GRML.TranslationStatusEnum = {
     English = true,
     German = false,
-    French = false,
-    Italian = false,
+    French = true,
+    Italian = true,
     Russian = false,
     SpanishMX = false,
     SpanishEU = false,
@@ -17,6 +17,21 @@ GRML.TranslationStatusEnum = {
     MandarinCN = false,
     MandarinTW = false  
 }
+
+-- Pending use... eventually to honor, will want to get permission from players to use name first.
+-- GRML.TranslatorsToHonor = {
+--     English = { "Arkaan-Zul'jin" },           -- @Me
+--     German = { "" },            -- @Nehry
+--     French = { "" },            -- @Enkh
+--     Italian = { "" },           -- @Nihal6
+--     Russian = { "" },           --
+--     SpanishMX = { "" },
+--     SpanishEU = { "" },
+--     Portuguese = { "" },
+--     Korean = { "" },
+--     MandarinCN = { "" },
+--     MandarinTW = { "" }
+-- }
 
 GRML.Languages = {
     "English",
@@ -234,6 +249,8 @@ if GRM_G.Region == "deDE" then
     GRM_L["added to friends"] = "zur Kontaktliste hinzugefügt."
     GRM_L["is already your friend"] = "ist bereits einer Eurer Kontakte."
     GRM_L["Player not found."] = "Spieler nicht gefunden."
+    GRM_L["has come online."] = "ist jetzt online."
+    GRM_L["has gone offline."] = "ist jetzt offline."
 
     -- CLASSES - R Specific
     GRM_L["R_Deathknight"] = "Todesritter"
@@ -248,6 +265,12 @@ if GRM_G.Region == "deDE" then
     GRM_L["R_Shaman"] = "Schamane"
     GRM_L["R_Warlock"] = "Hexenmeister"
     GRM_L["R_Warrior"] = "Krieger"
+
+    GRM_L["Neutral"] = "Neutral"
+    GRM_L["Friendly"] = "Freundlich"
+    GRM_L["Honored"] = "Wohlwollend"
+    GRM_L["Revered"] = "Respektvoll"
+    GRM_L["Exalted"] = "Ehrfürchtig"
 
     GRML.LoadLanguage[2]();
 
@@ -266,6 +289,8 @@ elseif GRM_G.Region == "frFR" then
     GRM_L["added to friends"] = "fait maintenant partie de vos contacts."
     GRM_L["is already your friend"] = "est déjà dans votre liste de contacts."
     GRM_L["Player not found."] = "Joueur introuvable."
+    GRM_L["has come online."] = "vient de se connecter."
+    GRM_L["has gone offline."] = "vient de se déconnecter."
 
     -- CLASSES - R Specific
     GRM_L["R_Deathknight"] = "Chevalier de la mort"
@@ -280,6 +305,12 @@ elseif GRM_G.Region == "frFR" then
     GRM_L["R_Shaman"] = "Chaman"
     GRM_L["R_Warlock"] = "Démoniste"
     GRM_L["R_Warrior"] = "Guerrier"
+
+    GRM_L["Neutral"] = "Neutre"
+    GRM_L["Friendly"] = "Amical"
+    GRM_L["Honored"] = "Honoré"
+    GRM_L["Revered"] = "Révéré"
+    GRM_L["Exalted"] = "Exalté"
 
     GRML.LoadLanguage[3]();
 
@@ -298,6 +329,8 @@ elseif GRM_G.Region == "itIT" then
     GRM_L["added to friends"] = "all'elenco amici."   
     GRM_L["is already your friend"] = "è già nell'elenco amici."
     GRM_L["Player not found."] = "Personaggio non trovato."
+    GRM_L["has come online."] = "è ora online."
+    GRM_L["has gone offline."] = "è ora offline."
 
     -- CLASSES - R Specific
     GRM_L["R_Deathknight"] = "Cavaliere della Morte"
@@ -312,6 +345,12 @@ elseif GRM_G.Region == "itIT" then
     GRM_L["R_Shaman"] = "Sciamano"
     GRM_L["R_Warlock"] = "Stregone"
     GRM_L["R_Warrior"] = "Guerriero"
+
+    GRM_L["Neutral"] = "Neutrale"
+    GRM_L["Friendly"] = "Amichevole"
+    GRM_L["Honored"] = "Onorato"
+    GRM_L["Revered"] = "Riverito"
+    GRM_L["Exalted"] = "Osannato"
 
     GRML.LoadLanguage[4]();
 
@@ -330,6 +369,8 @@ elseif GRM_G.Region == "ruRU" then
     GRM_L["added to friends"] = " в список друзей."
     GRM_L["is already your friend"] = "уже есть в вашем списке друзей."
     GRM_L["Player not found."] = "Игрок не найден."
+    GRM_L["has come online."] = "входит в игровой мир."
+    GRM_L["has gone offline."] = "выходит из игрового мира."
 
     -- CLASSES - R Specific
     GRM_L["R_Deathknight"] = "Рыцарь смерти"
@@ -344,6 +385,12 @@ elseif GRM_G.Region == "ruRU" then
     GRM_L["R_Shaman"] = "Шаман"
     GRM_L["R_Warlock"] = "Чернокнижник"
     GRM_L["R_Warrior"] = "Воин"
+
+    GRM_L["Neutral"] = "Равнодушие"
+    GRM_L["Friendly"] = "Дружелюбие"
+    GRM_L["Honored"] = "Уважение"
+    GRM_L["Revered"] = "Почтение"
+    GRM_L["Exalted"] = "Превознесение"
 
     GRML.LoadLanguage[5]();
 
@@ -362,6 +409,8 @@ elseif GRM_G.Region == "esMX" then
     GRM_L["added to friends"] = "añadido como amigo."
     GRM_L["is already your friend"] = "ya está en tu lista de amigos."
     GRM_L["Player not found."] = "No se ha encontrado al jugador."
+    GRM_L["has come online."] = "se ha conectado."
+    GRM_L["has gone offline."] = "se ha desconectado."
 
     -- CLASSES - R Specific
     GRM_L["R_Deathknight"] = "Caballero de la Muerte"
@@ -376,6 +425,12 @@ elseif GRM_G.Region == "esMX" then
     GRM_L["R_Shaman"] = "Chamán"
     GRM_L["R_Warlock"] = "Brujo"
     GRM_L["R_Warrior"] = "Guerrero"
+
+    GRM_L["Neutral"] = "Neutral"
+    GRM_L["Friendly"] = "Amistoso"
+    GRM_L["Honored"] = "Honorable"
+    GRM_L["Revered"] = "Venerado"
+    GRM_L["Exalted"] = "Exaltado"
 
     GRML.LoadLanguage[6]();
 
@@ -393,6 +448,8 @@ elseif GRM_G.Region == "esES" then
     GRM_L["added to friends"] = "añadido como amigo."
     GRM_L["is already your friend"] = "en tu lista de amigos."
     GRM_L["Player not found."] = "No se ha encontrado al jugador."
+    GRM_L["has come online."] = "se ha conectado."
+    GRM_L["has gone offline."] = "se ha desconectado."
 
     -- CLASSES - R Specific
     GRM_L["R_Deathknight"] = "Caballero de la Muerte"
@@ -408,6 +465,11 @@ elseif GRM_G.Region == "esES" then
     GRM_L["R_Warlock"] = "Brujo"
     GRM_L["R_Warrior"] = "Guerrero"
 
+    GRM_L["Neutral"] = "Neutral"
+    GRM_L["Friendly"] = "Amistoso"
+    GRM_L["Honored"] = "Honorable"
+    GRM_L["Revered"] = "Venerado"
+    GRM_L["Exalted"] = "Exaltado"
 
     GRML.LoadLanguage[7]();
 
@@ -423,9 +485,11 @@ elseif GRM_G.Region == "ptBR" then
     GRM_L["Professions"] = "Profissões"
     GRM_L["Guild: "] = "Guilda: "
     GRM_L["Guild created "] = "Guilda criada "
-    GRM_L["added to friends"] = "já está na lista de amigos."
-    GRM_L["is already your friend"] = "è già nell'elenco amici."
+    GRM_L["added to friends"] = "adicionado à lista de amigos."
+    GRM_L["is already your friend"] = "já está na lista de amigos."
     GRM_L["Player not found."] = "Jogador não encontrado."
+    GRM_L["has come online."] = "se conectou."
+    GRM_L["has gone offline."] = "se desconectou."
 
     -- CLASSES - R Specific
     GRM_L["R_Deathknight"] = "Cavaleiro da Morte"
@@ -441,6 +505,12 @@ elseif GRM_G.Region == "ptBR" then
     GRM_L["R_Warlock"] = "Bruxo"
     GRM_L["R_Warrior"] = "Guerreiro"
 
+    GRM_L["Neutral"] = "Tolerado"
+    GRM_L["Friendly"] = "Respeitado"
+    GRM_L["Honored"] = "Honrado"
+    GRM_L["Revered"] = "Reverenciado"
+    GRM_L["Exalted"] = "Exaltado"
+
     GRML.LoadLanguage[8]();
 
     -- Korean Defaults
@@ -454,10 +524,12 @@ elseif GRM_G.Region == "koKR" then
     GRM_L["has demoted"] = "로 내렸습니다."
     GRM_L["Professions"] = "전문 기술"
     GRM_L["Guild: "] = "길드: "
-    GRM_L["Guild created "] = "길드 창단일: "
+    GRM_L["Guild created "] = "길드 창단일:"
     GRM_L["added to friends"] = "님이 친구 목록에 등록되었습니다."
     GRM_L["is already your friend"] = "님은 이미 친구 목록에 있습니다."
     GRM_L["Player not found."] = "플레이어를 찾을 수 없습니다."
+    GRM_L["has come online."] = "님이 게임에 접속했습니다."
+    GRM_L["has gone offline."] = "님이 게임을 종료했습니다."
 
     -- CLASSES - R Specific
     GRM_L["R_Deathknight"] = "죽음의 기사"
@@ -472,6 +544,12 @@ elseif GRM_G.Region == "koKR" then
     GRM_L["R_Shaman"] = "주술사"
     GRM_L["R_Warlock"] = "흑마법사"
     GRM_L["R_Warrior"] = "전사"
+
+    GRM_L["Neutral"] = "중립적"
+    GRM_L["Friendly"] = "약간 우호적"
+    GRM_L["Honored"] = "우호적"
+    GRM_L["Revered"] = "매우 우호적"
+    GRM_L["Exalted"] = "확고한 동맹"
 
     GRML.LoadLanguage[9]();
 
@@ -490,6 +568,8 @@ elseif GRM_G.Region == "zhCN" then
     GRM_L["added to friends"] = "已被加入好友名单"
     GRM_L["is already your friend"] = "已经在你的好友名单中了"
     GRM_L["Player not found."] = "没有找到玩家。"
+    GRM_L["has come online."] = "上线了。"
+    GRM_L["has gone offline."] = "下线了。"
 
     -- CLASSES - R Specific
     GRM_L["R_Deathknight"] = "死亡骑士"
@@ -504,6 +584,12 @@ elseif GRM_G.Region == "zhCN" then
     GRM_L["R_Shaman"] = "萨满祭司"
     GRM_L["R_Warlock"] = "术士"
     GRM_L["R_Warrior"] = "战士"
+
+    GRM_L["Neutral"] = "中立"
+    GRM_L["Friendly"] = "友善"
+    GRM_L["Honored"] = "尊敬"
+    GRM_L["Revered"] = "崇敬"
+    GRM_L["Exalted"] = "崇拜"
 
     GRML.LoadLanguage[10]();
 
@@ -522,6 +608,8 @@ elseif GRM_G.Region == "zhTW" then
     GRM_L["added to friends"] = "已被加入好友名單。"
     GRM_L["is already your friend"] = "已經在你的好友名單中了"
     GRM_L["Player not found."] = "找不到該玩家。"
+    GRM_L["has come online."] = "上線了。"
+    GRM_L["has gone offline."] = "下線了。"
 
     -- CLASSES - R Specific
     GRM_L["R_Deathknight"] = "死亡騎士"
@@ -536,6 +624,12 @@ elseif GRM_G.Region == "zhTW" then
     GRM_L["R_Shaman"] = "薩滿"
     GRM_L["R_Warlock"] = "術士"
     GRM_L["R_Warrior"] = "戰士"
+
+    GRM_L["Neutral"] = "中立"
+    GRM_L["Friendly"] = "友好"
+    GRM_L["Honored"] = "尊敬"
+    GRM_L["Revered"] = "崇敬"
+    GRM_L["Exalted"] = "崇拜"
 
     GRML.LoadLanguage[11]();
 
@@ -554,6 +648,8 @@ elseif GRM_G.Region == "enUS" or GRM_G.Region == "enGB" or not GRM_G.Localized t
     GRM_L["added to friends"] = true
     GRM_L["is already your friend"] = true
     GRM_L["Player not found."] = true
+    GRM_L["has come online."] = true
+    GRM_L["has gone offline."] = true
 
     -- CLASSES - R Specific
     GRM_L["R_Deathknight"] = "Death Knight"
@@ -568,6 +664,13 @@ elseif GRM_G.Region == "enUS" or GRM_G.Region == "enGB" or not GRM_G.Localized t
     GRM_L["R_Shaman"] = "Shaman"
     GRM_L["R_Warlock"] = "Warlock"
     GRM_L["R_Warrior"] = "Warrior"
+
+    -- REPUTATION
+    GRM_L["Neutral"] = true
+    GRM_L["Friendly"] = true
+    GRM_L["Honored"] = true
+    GRM_L["Revered"] = true
+    GRM_L["Exalted"] = true
 
     GRML.LoadLanguage[1]();
 end
@@ -618,3 +721,23 @@ end
 --     end
 -- end);
 
+-- -- /run GRML.GetReputations() GRM_LocalizationHelper.GRM_LocalizationHelperText:SetText( ReputationBar14ReputationBarFactionStanding:GetText() )
+
+-- GRML.GetReputations = function ()
+--     ReputationListScrollFrameScrollBar:SetValue(2470)
+--     local result = "";
+--     for i = 1 , 5 do
+--         if i == 1 then
+--             result = "Neutral: " .. ReputationBar7ReputationBarFactionStanding:GetText();
+--         elseif i == 2 then
+--             result = result .. " -- " .. "Friendly: " .. ReputationBar6ReputationBarFactionStanding:GetText();
+--         elseif i == 3 then
+--             result = result .. " -- " .. "Honored: " .. ReputationBar4ReputationBarFactionStanding:GetText();
+--         elseif i == 4 then
+--             result = result .. " -- " .. "Revered: " .. ReputationBar9ReputationBarFactionStanding:GetText();
+--         elseif i == 5 then
+--             result = result .. " -- " .. "Exalted: " .. ReputationBar14ReputationBarFactionStanding:GetText();
+--         end
+--     end
+--     GRM_LocalizationHelper.GRM_LocalizationHelperText:SetText( result );
+-- end

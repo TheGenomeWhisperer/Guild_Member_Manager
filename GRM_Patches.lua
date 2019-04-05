@@ -202,8 +202,107 @@ GRM_Patch.SettingsCheck = function ( numericV )
         GRM_Patch.ExpandOptionsType ( 2 , 2 , 55 );         -- adding 56 and 57
         GRM_Patch.ModifyNewDefaultSetting ( 56 , false );  -- 57 can be true
     end
-end
 
+    if numericV < 1.26 then
+        GRM_Patch.AddStreamViewMarker();
+        GRM_Patch.PratCompatibilityCheck();
+    end
+
+    if numericV < 1.27 then
+        GRM_Patch.ExpandOptionsType ( 2 , 1 , 57 );
+    end
+
+    if numericV < 1.28 then
+        GRM_Patch.ExpandOptionsType ( 2 , 1 , 57 );         -- Needs to be repeated as unfortunately new characters this was not updated properly.
+        GRM_Patch.ExpandOptionsType ( 2 , 2 , 58 );
+        GRM_Patch.ModifyNoteSavedSettings();
+    end
+
+    if numericV < 1.29 then
+        GRM_Patch.RemoveRepeats();
+        GRM_Patch.LogDatabaseRepair();
+        GRM_Patch.ExpandOptionsType ( 2 , 1 , 60 );             -- add a boolean
+        GRM_Patch.ModifyNewDefaultSetting ( 61 , false );       -- Set all booleans to false (default adds it as true)
+        GRM_Patch.ExpandOptionsType ( 4 , 1 , 61 );             -- Add string
+    end
+
+    if numericV < 1.30 then
+        GRM_Patch.ExpandOptionsType ( 2 , 1 , 62 );             -- Add a boolean
+        GRM_Patch.ModifyNewDefaultSetting ( 63 , false );       -- needs to be off by default
+        GRM_Patch.ExpandOptionsType ( 3 , 1 , 63 );             -- for keeping the setpoints...
+        GRM_Patch.ModifyNewDefaultSetting ( 64 , { "" , "" } ); -- needs to be off by default
+    end
+
+    if numericV < 1.31 then
+        -- need to repeat this check as I forgot to build it in the settings last time for new player alts...
+        GRM_Patch.FixCustomMinimapPosition();                   -- need to fix a minimap bug I accidentally introduced...
+        GRM_Patch.ExpandOptionsType ( 3 , 1 , 63 );             -- for keeping the setpoints...
+        GRM_Patch.ModifyNewDefaultSetting ( 64 , { "" , "" } ); -- needs to be off by default
+        GRM_Patch.ExpandOptionsType ( 2 , 1 , 64 );             -- Add boolean for main tag controls
+        GRM_Patch.ModifyNewDefaultSetting ( 65 , false );       -- put them off by default.
+    end
+
+    if numericV < 1.32 then
+        GRM_Patch.ConvertLeaderNoteControlFormatToGuildInfo();  -- Formatting the guild controls to be in the player note window...
+        GRM_Patch.ExpandOptionsType ( 2 , 1 , 65 );             -- Add boolean for leader purge controls
+        GRM_Patch.ModifyNewDefaultSetting ( 66 , false );       -- put them off by default.
+    end
+
+    if numericV < 1.33 then
+        GRM_Patch.ModifyNewDefaultSetting ( 53 , true );            -- set the guild reputation visual to true
+        GRM_Patch.ModifyNewDefaultSetting ( 17 , true );            -- Sets it by default to make sure only "mains" are announced as a bday approaches, to avoid event chat spam.
+        GRM_Patch.ExpandOptionsType ( 2 , 1 , 66 );                 -- Add boolean for showing birthday
+        GRM_Patch.ExpandOptionsType ( 2 , 1 , 67 );                 -- Add boolean for allowing birthday sync
+        GRM_Patch.ConvertAndModifyAnniversaryStorageFormat();       -- Modify the way events are stored and changed!
+        GRM_Patch.ModifyPlayerMetadata ( 22 , { { 0 , 0 , 0 } , false , "" , 0 } , true , 2 ); -- Modify member record details for birthday, resets it to base value
+    end
+
+    if numericV < 1.34 then
+        GRM_Patch.EventDatabaseIntegrityCheckAndRebuild();
+    end
+
+    if numericV < 1.35 then
+        GRM_Patch.AltListRepeatAndSelfCleanup();
+        GRM_Patch.FixEventCalendarAdvanceScanTimeFrame();
+    end
+
+    if numericV < 1.39 then
+        GRM_Patch.ModifyNewDefaultSetting ( 55 , true );                                                        -- Ensures the setting to only announce returning from inactivity if ALL alts meet the criteria.
+        GRM_Patch.ModifyNewDefaultSetting ( 56 , true );                                                        -- Record leveling data
+        GRM_Patch.ModifyNewDefaultSetting ( 47 , { true , true , true , true , true , true , true , true } );   -- Level filtering options
+        GRM_Patch.CleanupErroneousSlashesInBanNames();                                                          -- Custom names from ban list cleaned up a little.
+        GRM_Patch.AddBanSlotIndex();
+    end
+
+    if numericV < 1.40 then
+        GRM_Patch.AddBanSlotIndex();
+    end
+
+    if numericV < 1.41 then
+        GRM_Patch.ModifyNewDefaultSetting ( 66 , false );                -- Auto Focus the search bar.
+    end
+
+    if numericV < 1.42 then
+        GRM_Patch.FixUnknownPromoShowing();
+    end
+
+    if numericV < 1.43 then
+        GRM_Patch.ConvertEmptyGUID();
+        GRM_Patch.FixLeftPlayersClassToUppercase();
+        GRM_Patch.AddPlayerMetaDataSlot ( 42 , false );            -- Adding the ban flag and is currently no longer on server position...
+        GRM_Patch.BuildGUIDProfilesForAllNoLongerInGuild();
+    end
+
+    if numericV < 1.44 then
+        GRM_Patch.FixLogOfNilEntries();
+    end
+
+    if numericV < 1.45 then
+        GRM_Patch.FixBanData();
+        GRM_Patch.FixAltListsDatabaseWide();
+        GRM_Patch.ModifyPlayerMetadata ( 37 , {} , false );
+    end
+end
         -------------------------------
         --- START PATCH LOGIC ---------
         -------------------------------
@@ -314,7 +413,7 @@ GRM_Patch.IntroduceUnknown = function()
         end
     end
 end
-
+-- /run local n=GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ];for i=2,#n do if n[i][1]=="Vulnir-LaughingSkull" then print("Vulnir Found at: " .. i );end;end
 
 -- Introduced Patch R1.125
 -- Bug fix... need to purge of repeats
@@ -750,10 +849,18 @@ GRM_Patch.ExpandOptionsType = function( typeToAdd , numberSlots , referenceCheck
     end
     -- Updating settings for all
     for i = 1 , #GRM_AddonSettings_Save do
-        for j = 2 , #GRM_AddonSettings_Save[i] do
-            if #GRM_AddonSettings_Save[i][j][2] == referenceCheck then
-                for k = 1 , numberSlots do
-                    table.insert ( GRM_AddonSettings_Save[i][j][2] , expansionType );
+        for j = #GRM_AddonSettings_Save[i] , 2 , -1 do
+            if #GRM_AddonSettings_Save[i][j] == nil then
+                table.remove ( GRM_AddonSettings_Save[i] , j );
+            else
+                if #GRM_AddonSettings_Save[i][j] == 1 then
+                    table.remove ( GRM_AddonSettings_Save[i] , j );                 -- Error protection in case bad settings profile build
+                else
+                    if #GRM_AddonSettings_Save[i][j][2] == referenceCheck then
+                        for k = 1 , numberSlots do
+                            table.insert ( GRM_AddonSettings_Save[i][j][2] , expansionType );
+                        end
+                    end
                 end
             end
         end
@@ -962,9 +1069,31 @@ GRM_Patch.ModifyPlayerMetadata = function ( index , newValue , toArraySetting , 
             end
         end
     end
+
+    -- Need backup info to be modified as well...
+    if GRM_GuildDataBackup_Save ~= nil then
+        for i = 1 , #GRM_GuildDataBackup_Save do
+            for j = 2 , #GRM_GuildDataBackup_Save[i] do
+                for s = 2 , #GRM_GuildDataBackup_Save[i][j] do
+                    if #GRM_GuildDataBackup_Save[i][j][s] > 0 then
+                        -- 3 and 4 = history and leftHistory
+                        for m = 3 , 4 do
+                            for n = 2 , #GRM_GuildDataBackup_Save[i][j][s][m] do
+                                if not toArraySetting then
+                                    GRM_GuildDataBackup_Save[i][j][s][m][n][index] = newValue;
+                                else
+                                    GRM_GuildDataBackup_Save[i][j][s][m][n][index][arrayIndex] = newValue;
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
 end
 
--- NEED METHOD TO MODIFY THE BACKUP DATA TOO!!!!!!
+
 -- Added patch 1.20
 -- Method:          GRM_Patch.AddPlayerMetaDataSlot ( int , object )
 -- What it Does:    Allows the player to insert into the metadata for ALL profiles in every guild in the database with one method
@@ -985,6 +1114,26 @@ GRM_Patch.AddPlayerMetaDataSlot = function ( previousMaxIndex , newValue )
             for r = 2 , #GRM_PlayersThatLeftHistory_Save[i][j] do           -- The players in each guild (starts at 2 as position 1 is the name of the guild).
                 if #GRM_PlayersThatLeftHistory_Save[i][j][r] == previousMaxIndex then
                     table.insert ( GRM_PlayersThatLeftHistory_Save[i][j][r] , newValue );
+                end
+            end
+        end
+    end
+
+    -- Need backup info to be modified as well...
+    if GRM_GuildDataBackup_Save ~= nil then
+        for i = 1 , #GRM_GuildDataBackup_Save do
+            for j = 2 , #GRM_GuildDataBackup_Save[i] do
+                for s = 2 , #GRM_GuildDataBackup_Save[i][j] do
+                    if #GRM_GuildDataBackup_Save[i][j][s] > 0 then
+                        -- 3 and 4 = history and leftHistory
+                        for m = 3 , 4 do
+                            for n = 2 , #GRM_GuildDataBackup_Save[i][j][s][m] do
+                                if #GRM_GuildDataBackup_Save[i][j][s][m][n] == previousMaxIndex then
+                                    table.insert ( GRM_GuildDataBackup_Save[i][j][s][m][n] , newValue );
+                                end
+                            end
+                        end
+                    end
                 end
             end
         end
@@ -1384,17 +1533,756 @@ GRM_Patch.FixPlayerListOfAltsDatabase = function()
     GRM_Patch.RemoveAltCopies();
 end
 
--- GRM.Cleanup24HrErroneousTags = function()
---     local t = GRM_GuildMemberHistory_Save[GRM_G.FID][GRM_G.saveGID];
---     for i = 2 , #t do if string.find(t[i][35][1],"24HR")~=nil then t[i][35][1]=string.sub(t[i][35][1],1,string.find(t[i][35][1],"24HR")-1);print(t[i][35][1]);end;end
--- end
+-- Added in patch 1.26
+-- StreamViewMarker is setting an "Unread Messages" marker.
+GRM_Patch.AddStreamViewMarker = function()
+    for i = 1 , #GRM_GuildMemberHistory_Save do
+        for j = 2 , #GRM_GuildMemberHistory_Save[i] do
+            if #GRM_GuildMemberHistory_Save[i][j][1] == 4 then
+                table.insert ( GRM_GuildMemberHistory_Save[i][j][1] , 0 );      -- Initially set to zero the first time...
+            end
+        end
+    end
 
--- /run table.insert ( GRM_PlayersThatLeftHistory_Save[GRM_G.FID][GRM_G.saveGID] , GRM_PlayersThatLeftHistory_Save[GRM_G.FID][GRM_G.saveGID][10])
--- /run local t=GRM_GuildMemberHistory_Save[GRM_G.FID][GRM_G.saveGID];local s=GRM.
+    for i = 1 , #GRM_GuildDataBackup_Save do
+        for j = 2 , #GRM_GuildDataBackup_Save[i] do
+            for s = 2 , #GRM_GuildDataBackup_Save[i][j] do
+                if #GRM_GuildDataBackup_Save[i][j][s] > 0 and #GRM_GuildDataBackup_Save[i][j][s][3][1] == 4 then
+                    table.insert ( GRM_GuildDataBackup_Save[i][j][s][3][1] , 0 );
+                end
+            end
+        end
+    end
+end
 
--- ( string.sub ( t[2][20][#t[2][20]] , 1 , string.find ( t[2][20][#t[2][20]] , "'" ) + 2 ));print(s[4])
--- /run local t=GRM_GuildMemberHistory_Save[GRM_G.FID][GRM_G.saveGID];print ( GRM.GetTimePassedUsingStringStamp ( string.sub ( t[316][20][#t[316][20]] , 1 , string.find ( t[316][20][#t[316][20]] , "'" ) + 2 ) ) );
--- Potential alt and removed alt patch check...
--- /run local t=GRM_CalendarAddQue_Save[GRM_G.FID][GRM_G.saveGID];for i=2,#t do for j=1,#t[i][11] do if type(t[i][11][j][6])=="boolean" then print(t[i][1]);break;end;end;end
--- /run local t=GRM_GuildMemberHistory_Save[GRM_G.FID][GRM_G.saveGID];for i=2,#t do for j=1,#t[i][37] do if t[i][37][j][6]==nil then print(t[i][1]);end;end;end
--- /run local t=GRM_GuildMemberHistory_Save[GRM_G.FID][GRM_G.saveGID];for i=2,#t do print(t[i][22][1][2]); end
+-- Added in patch 1.26
+-- Noticed an issue with only 1 format
+GRM_Patch.PratCompatibilityCheck = function()
+    if IsAddOnLoaded("Prat-3.0") then
+        for i = 1 , #GRM_AddonSettings_Save do
+            for j = 2 , #GRM_AddonSettings_Save[i] do
+                if GRM_AddonSettings_Save[i][j][2][42] == 1 then
+                    GRM_AddonSettings_Save[i][j][2][42] = 2;
+                elseif GRM_AddonSettings_Save[i][j][2][42] == 3 then
+                    GRM_AddonSettings_Save[i][j][2][42] = 4;
+                end
+            end
+        end
+    end
+end
+
+-- Introduced patch R1.28
+-- Method:          GRM_Patch.ModifyNoteSavedSettings()
+-- What it Does:    Converts the boolean saved variable to an int, so I can have a 1,2, or 3 for public, officer, custom note options
+-- Purpose:         To adapt the old database to new UI configuration options without creating a new index or needlessly complicating the code.
+GRM_Patch.ModifyNoteSavedSettings = function()
+    for i = 1 , #GRM_AddonSettings_Save do
+        for j = 2 , #GRM_AddonSettings_Save[i] do
+            if GRM_AddonSettings_Save[i][j][2][20] == true then
+                GRM_AddonSettings_Save[i][j][2][20] = 1;
+            elseif GRM_AddonSettings_Save[i][j][2][20] == false then
+                GRM_AddonSettings_Save[i][j][2][20] = 2;
+            end
+        end
+    end
+end
+
+-- Introduced patch 1.29
+-- Method:          GRM_Patch.LogDatabaseRepair()
+-- What it Does:    Looks for a code when searching in a string that can cause WOW to freeze and removes the string
+-- Purpose:         Mature language filter cause some weird censored strings to build on save, which messaged up when trying to parse through em that could freeze WOW. This cleans that up
+GRM_Patch.LogDatabaseRepair = function()
+    for i = 1 , #GRM_LogReport_Save do
+        for j = 2 , #GRM_LogReport_Save[i] do
+            for k = #GRM_LogReport_Save[i][j] , 2 , -1 do   -- Increment in reverse down as you will possibly be removing a bunch of error'd messages.
+                if string.find ( GRM_LogReport_Save[i][j][k][2] , "\000" ) ~= nil then
+                    table.remove ( GRM_LogReport_Save[i][j] , k );
+                end
+            end
+        end
+    end
+end
+
+-- Introduced patch 1.31
+-- Method:          GRM_Patch.FixCustomMinimapPosition()
+-- Method:          If custom position was set in 1.30, it now removes it and resets position...
+-- Purpose:         There was an error in the R1.30 release that sync'd settings erroneously that needed to be resolved
+GRM_Patch.FixCustomMinimapPosition = function()
+    for i = 1 , #GRM_AddonSettings_Save do
+        for j = 2 , #GRM_AddonSettings_Save[i] do
+            if GRM_AddonSettings_Save[i][j][2][63] then
+                GRM_AddonSettings_Save[i][j][2][63] = false;
+                GRM_AddonSettings_Save[i][j][2][26] = 78;
+                GRM_AddonSettings_Save[i][j][2][25] = 345;
+            end
+        end
+    end
+end
+
+-- This should only be done if you are the officer...
+-- Intoduced 1.32
+-- Method:          GRM_Patch.ConvertLeaderNoteControlFormatToGuildInfo()
+-- What it Does:    It looks for the 2 codes, removes them from the public or officer note, and then adds them to guild info.
+-- Purpose:         Cleanup for new feature!
+GRM_Patch.ConvertLeaderNoteControlFormatToGuildInfo = function()
+    -- No need to do the work if you can't!
+    local result = "";
+    if CanEditOfficerNote() then
+        local g1 = false;
+        local g2 = false;
+
+        for i = 1 , GRM.GetNumGuildies() do
+            -- For guild info
+            local _ , _ , rankInd , _ , _ , _ , note , officerNote = GetGuildRosterInfo ( i );
+            if rankInd == 0 then
+                -- Guild Leader identified!
+                -- first, let's look for grm1, if it's there, let's get rid of it.
+                -- make it easier to match the case.
+
+                local ind , ind2 = 0 , 0;
+                local msg = "";
+                for j = 1 , 2 do
+                    if j == 1 then
+                        msg = note;
+                    else
+                        msg = officerNote;
+                    end
+
+                    ind = string.find ( msg , "grm1" );
+
+                    -- Checking the public note
+                    local num;
+                    local sign;
+                    
+                    if ind ~= nil then      -- grm1!!
+                        num = ind;
+                        sign = string.sub ( msg , num - 1 , num - 1 );
+                        
+                        -- we found a note!
+                        if sign ~= nil and ( sign == "+" or sign == "-" ) then
+                            -- Note is valid! Convert and add it to result!
+                            if not g1 then
+                                result = "g1^" .. sign .. "_" .. result;
+                                g1 = true;
+                            end
+                            -- Remove it from note now!
+                            if j == 1 then
+                                msg = string.gsub ( msg , sign .. "grm1" , "" );
+                                GuildRosterSetPublicNote ( i , GRM.Trim( msg ) );
+                            else
+                                msg = string.gsub ( msg , sign .. "grm1" , "" );
+                                GuildRosterSetOfficerNote ( i , GRM.Trim( msg ) );
+                            end
+                        end;
+                    end
+
+                    ind2 = select ( 2 , string.find ( msg , "g2^" ) );
+                    if ind2 ~= nil then     -- g2^!!
+                        num = ind2;
+                        sign = string.sub ( msg , num + 1 , num + 1 );
+
+                        -- we found a note!
+                        if sign ~= nil and tonumber ( sign ) ~= nil then
+                            -- Note is valid! Convert and add it to result!
+                            if not g2 then
+                                result = result .. "g2^" .. sign;
+                                g2 = true;
+                            end
+                            -- Remove it from note now!
+                            if j == 1 then
+                                msg = string.gsub ( msg , "g2^" .. sign , "" );
+                                GuildRosterSetPublicNote ( i , GRM.Trim( msg ) );
+                            else
+                                msg = string.gsub ( msg , "g2^" .. sign , "" );
+                                GuildRosterSetOfficerNote ( i , GRM.Trim( msg ) );
+                            end
+                        end;
+                    end
+                end
+                break;
+            end
+        end
+    end
+    if result ~= "" then
+        result = "\n\n" .. GRM.L ( "GRM:" ) .. "\n" .. string.gsub ( result , "_" , "\n" );
+        local guildInfo = GetGuildInfoText();
+        GRM.L ( "GRM has moved the Guild Leader setting restriction codes to the Guild Info tab." );
+        if #guildInfo + #result <= 500 then
+            SetGuildInfoText ( guildInfo .. result );
+        else
+            GRM.L ( "Please make room for them and re-add." );
+        end
+    end
+end
+
+-- Method:          GRM_Patch.ConvertAndModifyAnniversaryStorageFormat()
+-- What it Does:    Converts the old string format to the new better storage format for anniversary dates
+-- Purpose:         Better, cleaner scanning of events. Less parsing text
+GRM_Patch.ConvertAndModifyAnniversaryStorageFormat = function()
+    local date = {};
+    local template = { { 0 , 0 , 0 } , false , "" };
+
+    for i = 1 , #GRM_GuildMemberHistory_Save do                         -- Horde and Alliance
+        for j = 2 , #GRM_GuildMemberHistory_Save[i] do                  -- The guilds in each faction
+            for r = 2 , #GRM_GuildMemberHistory_Save[i][j] do           -- The players in each guild (starts at 2 as position 1 is the name of the guild).
+                if not GRM_GuildMemberHistory_Save[i][j][r][40] and #GRM_GuildMemberHistory_Save[i][j][r][20] > 0 then
+                    date = GRM.ConvertGenericTimestampToIntValues ( GRM_GuildMemberHistory_Save[i][j][r][20][#GRM_GuildMemberHistory_Save[i][j][r][20]] );
+                    if date ~= nil then
+                        GRM_GuildMemberHistory_Save[i][j][r][22][1] = { { date[1] , date[2] , date[3] } , false , "" };
+                    else
+                        GRM_GuildMemberHistory_Save[i][j][r][20] = {};
+                        GRM_GuildMemberHistory_Save[i][j][r][22][1] = template;
+                    end
+                else
+                    GRM_GuildMemberHistory_Save[i][j][r][22][1] = template;
+                end
+            end
+        end
+    end
+
+    -- need to update the left player's database too...
+    for i = 1 , #GRM_PlayersThatLeftHistory_Save do                         -- Horde and Alliance
+        for j = 2 , #GRM_PlayersThatLeftHistory_Save[i] do                  -- The guilds in each faction
+            for r = 2 , #GRM_PlayersThatLeftHistory_Save[i][j] do           -- The players in each guild (starts at 2 as position 1 is the name of the guild).
+                if not GRM_PlayersThatLeftHistory_Save[i][j][r][40] and #GRM_PlayersThatLeftHistory_Save[i][j][r][20] > 0 then
+                    date = GRM.ConvertGenericTimestampToIntValues ( GRM_PlayersThatLeftHistory_Save[i][j][r][20][#GRM_PlayersThatLeftHistory_Save[i][j][r][20]] );
+                    if date ~= nil then
+                        GRM_PlayersThatLeftHistory_Save[i][j][r][22][1] = { { date[1] , date[2] , date[3] } , false , "" };
+                    else
+                        GRM_PlayersThatLeftHistory_Save[i][j][r][20] = {};
+                        GRM_PlayersThatLeftHistory_Save[i][j][r][22][1] = template;
+                    end
+                else
+                    GRM_PlayersThatLeftHistory_Save[i][j][r][22][1] = template;
+                end
+            end
+        end
+    end
+
+    -- Need backup info to be modified as well...
+    if GRM_GuildDataBackup_Save ~= nil then
+        for i = 1 , #GRM_GuildDataBackup_Save do
+            for j = 2 , #GRM_GuildDataBackup_Save[i] do
+                for s = 2 , #GRM_GuildDataBackup_Save[i][j] do
+                    if #GRM_GuildDataBackup_Save[i][j][s] > 0 then
+                        -- 3 and 4 = history and leftHistory
+                        for m = 3 , 4 do
+                            for n = 2 , #GRM_GuildDataBackup_Save[i][j][s][m] do
+                                if not GRM_GuildDataBackup_Save[i][j][s][m][n][40] and #GRM_GuildDataBackup_Save[i][j][s][m][n][20] > 0 then
+                                    date = GRM.ConvertGenericTimestampToIntValues ( GRM_GuildDataBackup_Save[i][j][s][m][n][20][#GRM_GuildDataBackup_Save[i][j][s][m][n][20]] );
+                                    if date ~= nil then
+                                        GRM_GuildDataBackup_Save[i][j][s][m][n][22][1] = { { date[1] , date[2] , date[3] } , false , "" };
+                                    else
+                                        GRM_GuildDataBackup_Save[i][j][s][m][n][20] = {};
+                                        GRM_GuildDataBackup_Save[i][j][s][m][n][22][1] = template;
+                                    end
+                                else
+                                    GRM_GuildDataBackup_Save[i][j][s][m][n][22][1] = template;
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+-- R1.34
+-- Method:          GRM_Patch.EventDatabaseIntegrityCheckAndRebuild()
+-- what it Does:    Checks if the anniversary date formatting has been properly reset, and if so, rebuilds it.
+-- Purpose:         Patch 1.33 had some unexpected bugs and some people's databases did not convert. This resolves that.
+GRM_Patch.EventDatabaseIntegrityCheckAndRebuild = function()
+    if GRM_GuildMemberHistory_Save[GRM_G.FID][2][2][22][1][1] ~= nil and type ( GRM_GuildMemberHistory_Save[GRM_G.FID][2][2][22][1][1] ) == "table" and #GRM_GuildMemberHistory_Save[GRM_G.FID][2][2][22][1][1] == 3 then
+        -- do nothing...
+    else
+        GRM_Patch.ConvertAndModifyAnniversaryStorageFormat();
+        GRM_Patch.ModifyPlayerMetadata ( 22 , { { 0 , 0 , 0 } , false , "" , 0 } , true , 2 ); -- Modify member record details for birthday, resets it to base value
+    end
+end
+
+-- R1.35
+-- Method:          GRM_Patch.AltListRepeatAndSelfCleanup()
+-- What it Does:    Removes all alt list copies and instances where main is listed as own alt.
+-- Purpose:         Clean up the alt lists!
+GRM_Patch.AltListRepeatAndSelfCleanup = function()
+    local c = 1; -- C will be my reusable count variable.
+    local result = 0;
+
+    for i = 1 , #GRM_GuildMemberHistory_Save do                         -- Horde and Alliance
+        for j = 2 , #GRM_GuildMemberHistory_Save[i] do                  -- The guilds in each faction
+            for r = 2 , #GRM_GuildMemberHistory_Save[i][j] do           -- The players in each guild (starts at 2 as position 1 is the name of the guild).
+                -- Ok, now we need to check the alt lists, parse through them, eliminate repeats, and instances the name matches the players name.
+                if #GRM_GuildMemberHistory_Save[i][j][r][11] > 0 then
+                    c = 1;
+                    while c <= #GRM_GuildMemberHistory_Save[i][j][r][11] do
+                        if GRM_GuildMemberHistory_Save[i][j][r][11][c][1] == nil or GRM_GuildMemberHistory_Save[i][j][r][11][c][1] == GRM_GuildMemberHistory_Save[i][j][r][1] then  -- if altName is playerName, they are listed as their own alt. Remove! Cleanup!
+                            table.remove ( GRM_GuildMemberHistory_Save[i][j][r][11] , c );
+                            c = c - 1;
+                            result = result + 1;
+                        else
+                            for k = #GRM_GuildMemberHistory_Save[i][j][r][11] , c , -1 do
+                                if k ~= c and ( GRM_GuildMemberHistory_Save[i][j][r][11][k][1] == nil or GRM_GuildMemberHistory_Save[i][j][r][11][c][1] == GRM_GuildMemberHistory_Save[i][j][r][11][k][1] ) then
+                                    table.remove ( GRM_GuildMemberHistory_Save[i][j][r][11] , k );
+                                    result = result + 1;
+                                end
+                            end
+                        end
+                        c = c + 1;
+                    end
+                end                
+            end
+        end
+    end
+
+    -- Left player history
+    for i = 1 , #GRM_PlayersThatLeftHistory_Save do                         -- Horde and Alliance
+        for j = 2 , #GRM_PlayersThatLeftHistory_Save[i] do                  -- The guilds in each faction
+            for r = 2 , #GRM_PlayersThatLeftHistory_Save[i][j] do           -- The players in each guild (starts at 2 as position 1 is the name of the guild).
+                -- Ok, now we need to check the alt lists, parse through them, eliminate repeats, and instances the name matches the players name.
+                if #GRM_PlayersThatLeftHistory_Save[i][j][r][11] > 0 then
+                    c = 1;
+                    while c <= #GRM_PlayersThatLeftHistory_Save[i][j][r][11] do
+                        if GRM_PlayersThatLeftHistory_Save[i][j][r][11][c][1] == nil or GRM_PlayersThatLeftHistory_Save[i][j][r][11][c][1] == GRM_PlayersThatLeftHistory_Save[i][j][r][1] then  -- if altName is playerName, they are listed as their own alt. Remove! Cleanup!
+                            table.remove ( GRM_PlayersThatLeftHistory_Save[i][j][r][11] , c );
+                            c = c - 1;
+                            result = result + 1;
+                        else
+                            for k = #GRM_PlayersThatLeftHistory_Save[i][j][r][11] , c , -1 do
+                                if k ~= c and ( GRM_PlayersThatLeftHistory_Save[i][j][r][11][k][1] == nil or GRM_PlayersThatLeftHistory_Save[i][j][r][11][c][1] == GRM_PlayersThatLeftHistory_Save[i][j][r][11][k][1] ) then
+                                    table.remove ( GRM_PlayersThatLeftHistory_Save[i][j][r][11] , k );
+                                    result = result + 1;
+                                end
+                            end
+                        end
+                        c = c + 1;
+                    end
+                end                
+            end
+        end
+    end
+
+    -- Backups
+    if GRM_GuildDataBackup_Save ~= nil then
+        for i = 1 , #GRM_GuildDataBackup_Save do
+            for j = 2 , #GRM_GuildDataBackup_Save[i] do
+                for s = 2 , #GRM_GuildDataBackup_Save[i][j] do
+                    if #GRM_GuildDataBackup_Save[i][j][s] > 0 then
+                        -- 3 and 4 = history and leftHistory
+                        for m = 3 , 4 do
+                            for n = 2 , #GRM_GuildDataBackup_Save[i][j][s][m] do
+                                -- Now, do the work on the saved database...
+                                if #GRM_GuildDataBackup_Save[i][j][s][m][n][11] > 0 then
+                                    c = 1;
+                                    while c <= #GRM_GuildDataBackup_Save[i][j][s][m][n][11] do
+                                        if GRM_GuildDataBackup_Save[i][j][s][m][n][11][c][1] == nil or GRM_GuildDataBackup_Save[i][j][s][m][n][11][c][1] == GRM_GuildDataBackup_Save[i][j][s][m][n][1] then  -- if altName is playerName, they are listed as their own alt. Remove! Cleanup!
+                                            table.remove ( GRM_GuildDataBackup_Save[i][j][s][m][n][11] , c );
+                                            c = c - 1;
+                                            result = result + 1;
+                                        else
+                                            for k = #GRM_GuildDataBackup_Save[i][j][s][m][n][11] , c , -1 do
+                                                if k ~= c and ( GRM_GuildDataBackup_Save[i][j][s][m][n][11][k][1] == nil or GRM_GuildDataBackup_Save[i][j][s][m][n][11][c][1] == GRM_GuildDataBackup_Save[i][j][s][m][n][11][k][1] ) then
+                                                    table.remove ( GRM_GuildDataBackup_Save[i][j][s][m][n][11] , k );
+                                                    result = result + 1;
+                                                end
+                                            end
+                                        end
+                                        c = c + 1;
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    if result > 0 then
+        print ( "GRM: " .. result .. " errors were found and fixed in the alt database integrity check (patch 1.35)" );
+    end
+end
+
+--R1.35
+-- Method:          GRM_Patch.FixEventCalendarAdvanceScanTimeFrame()
+-- What it Does:    If the time to announce events in advance is greater than 28 it defaults it to 28
+-- Purpose:         Issue where a setting was set to between 1 and 99 and should have been between 1 and 28, so some people had setting more in advance.
+--                  This is problematic as the scanning is built to only go a max 1 month in advance, so to keep it clean it defaults to 4 weeks, or 28 days, which also happens
+--                  to be the length of the shortest month, thus always ensuring 28 days is never greater than 1 month away (in other words 31 day month, Jan 30th, 31 days later = March 3rd, for example)
+GRM_Patch.FixEventCalendarAdvanceScanTimeFrame = function()
+    for i = 1 , #GRM_AddonSettings_Save do
+        for j = 2 , #GRM_AddonSettings_Save[i] do
+            if GRM_AddonSettings_Save[i][j][2][5] > 28 then
+                GRM_AddonSettings_Save[i][j][2][5] = 28;
+            end
+        end
+    end
+end
+
+--R1.39
+-- Method:          GRM_Patch.CleanupErroneousSlashesInBanNames()
+-- What it Does:    Due to a previous erroneous method where custom names with forward slash could be added, it removes any bad names like that.
+-- Purpose:         Cleanup Left players lists
+GRM_Patch.CleanupErroneousSlashesInBanNames = function()
+    for i = 1 , #GRM_PlayersThatLeftHistory_Save do                         -- Horde and Alliance
+        for j = 2 , #GRM_PlayersThatLeftHistory_Save[i] do                  -- The guilds in each faction
+            for r = #GRM_PlayersThatLeftHistory_Save[i][j] , 2 , - 1 do           -- The players in each guild (starts at 2 as position 1 is the name of the guild).
+                if string.find ( GRM_PlayersThatLeftHistory_Save[i][j][r][1] , "/" ) ~= nil then
+                    table.remove ( GRM_PlayersThatLeftHistory_Save[i][j] , r );
+                end
+            end
+        end
+    end
+end
+
+-- Added patch 1.39
+-- Method:          GRM_Patch.AddBanSlotIndex ()
+-- What it Does:    Allows the player to modify the metadata for ALL profiles in every guild in the database with one method
+-- Purpose:         One function to rule them all! Keep code bloat down.
+GRM_Patch.AddBanSlotIndex = function ()
+    local table = {};
+    for i = 1 , #GRM_GuildMemberHistory_Save do                         -- Horde and Alliance
+        for j = 2 , #GRM_GuildMemberHistory_Save[i] do                  -- The guilds in each faction
+            for r = 2 , #GRM_GuildMemberHistory_Save[i][j] do           -- The players in each guild (starts at 2 as position 1 is the name of the guild).
+                table = { GRM_GuildMemberHistory_Save[i][j][r][17][1] , GRM_GuildMemberHistory_Save[i][j][r][17][2] , GRM_GuildMemberHistory_Save[i][j][r][17][3] , "" };
+                GRM_GuildMemberHistory_Save[i][j][r][17] = table;
+            end
+        end
+    end
+
+    -- need to update the left player's database too...
+    for i = 1 , #GRM_PlayersThatLeftHistory_Save do                         -- Horde and Alliance
+        for j = 2 , #GRM_PlayersThatLeftHistory_Save[i] do                  -- The guilds in each faction
+            for r = 2 , #GRM_PlayersThatLeftHistory_Save[i][j] do           -- The players in each guild (starts at 2 as position 1 is the name of the guild)
+                table = { GRM_PlayersThatLeftHistory_Save[i][j][r][17][1] , GRM_PlayersThatLeftHistory_Save[i][j][r][17][2] , GRM_PlayersThatLeftHistory_Save[i][j][r][17][3] , "" };
+                GRM_PlayersThatLeftHistory_Save[i][j][r][17] = table;
+            end
+        end
+    end
+
+    -- Need backup info to be modified as well...
+    if GRM_GuildDataBackup_Save ~= nil then
+        for i = 1 , #GRM_GuildDataBackup_Save do
+            for j = 2 , #GRM_GuildDataBackup_Save[i] do
+                for s = 2 , #GRM_GuildDataBackup_Save[i][j] do
+                    if #GRM_GuildDataBackup_Save[i][j][s] > 0 then
+                        -- 3 and 4 = history and leftHistory
+                        for m = 3 , 4 do
+                            for n = 2 , #GRM_GuildDataBackup_Save[i][j][s][m] do
+                                table = { GRM_GuildDataBackup_Save[i][j][s][m][n][17][1] , GRM_GuildDataBackup_Save[i][j][s][m][n][17][2] , GRM_GuildDataBackup_Save[i][j][s][m][n][17][3] , "" };
+                                GRM_GuildDataBackup_Save[i][j][s][m][n][17] = table;
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+-- Patch 1.42
+-- Method:          GRM_Patch.FixUnknownPromoShowing()
+-- What it Does:    If the promo date has been configured, it will ensure the Unknown flag is off
+-- Purpose:         Previously, if a player was set to "unknown", it would only overwrite their promotion date on a sync, but if they detected it on their own in the log scan, it would still say unknown.
+--                  The timestamp was stored, just the unknown flag needed to be set to off.
+GRM_Patch.FixUnknownPromoShowing = function()
+
+    for i = 1 , #GRM_GuildMemberHistory_Save do                         -- Horde and Alliance
+        for j = 2 , #GRM_GuildMemberHistory_Save[i] do                  -- The guilds in each faction
+            for r = 2 , #GRM_GuildMemberHistory_Save[i][j] do           -- The players in each guild (starts at 2 as position 1 is the name of the guild).
+                if GRM_GuildMemberHistory_Save[i][j][r][12] ~= nil then
+                    GRM_GuildMemberHistory_Save[i][j][r][41] = false;
+                end
+            end
+        end
+    end
+
+    -- need to update the left player's database too...
+    for i = 1 , #GRM_PlayersThatLeftHistory_Save do                         -- Horde and Alliance
+        for j = 2 , #GRM_PlayersThatLeftHistory_Save[i] do                  -- The guilds in each faction
+            for r = 2 , #GRM_PlayersThatLeftHistory_Save[i][j] do           -- The players in each guild (starts at 2 as position 1 is the name of the guild)
+                if GRM_PlayersThatLeftHistory_Save[i][j][r][12] ~= nil then
+                    GRM_PlayersThatLeftHistory_Save[i][j][r][41] = false;
+                end
+            end
+        end
+    end
+
+    -- Backups
+    if GRM_GuildDataBackup_Save ~= nil then
+        for i = 1 , #GRM_GuildDataBackup_Save do
+            for j = 2 , #GRM_GuildDataBackup_Save[i] do
+                for s = 2 , #GRM_GuildDataBackup_Save[i][j] do
+                    if #GRM_GuildDataBackup_Save[i][j][s] > 0 then
+                        -- 3 and 4 = history and leftHistory
+                        for m = 3 , 4 do
+                            for n = 2 , #GRM_GuildDataBackup_Save[i][j][s][m] do
+                                -- Now, do the work on the saved database...
+                                if GRM_GuildDataBackup_Save[i][j][s][m][n][12] ~= nil then
+                                    GRM_GuildDataBackup_Save[i][j][s][m][n][41] = false;
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+-- Patch 1.43
+-- Method:          GRM_Patch.ConvertEmptyGUID()
+-- What it Does:    In case of when players had been added to ban list, if they were lacking the GUID, this converts it to an empty string prepping for update
+-- Purpose:         guid discovery for pre-patch 8.0 players that are on the left player list.
+GRM_Patch.ConvertEmptyGUID = function()
+    for i = 1 , #GRM_GuildMemberHistory_Save do                         -- Horde and Alliance
+        for j = 2 , #GRM_GuildMemberHistory_Save[i] do                  -- The guilds in each faction
+            for r = 2 , #GRM_GuildMemberHistory_Save[i][j] do           -- The players in each guild (starts at 2 as position 1 is the name of the guild).
+                if GRM_GuildMemberHistory_Save[i][j][r][42] == nil then
+                    GRM_GuildMemberHistory_Save[i][j][r][42] = "";
+                end
+            end
+        end
+    end
+
+    -- need to update the left player's database too...
+    for i = 1 , #GRM_PlayersThatLeftHistory_Save do                         -- Horde and Alliance
+        for j = 2 , #GRM_PlayersThatLeftHistory_Save[i] do                  -- The guilds in each faction
+            for r = 2 , #GRM_PlayersThatLeftHistory_Save[i][j] do           -- The players in each guild (starts at 2 as position 1 is the name of the guild)
+                if GRM_PlayersThatLeftHistory_Save[i][j][r][42] == nil then
+                    GRM_PlayersThatLeftHistory_Save[i][j][r][42] = "";
+                end
+            end
+        end
+    end
+
+    -- Backups
+    if GRM_GuildDataBackup_Save ~= nil then
+        for i = 1 , #GRM_GuildDataBackup_Save do
+            for j = 2 , #GRM_GuildDataBackup_Save[i] do
+                for s = 2 , #GRM_GuildDataBackup_Save[i][j] do
+                    if #GRM_GuildDataBackup_Save[i][j][s] > 0 then
+                        -- 3 and 4 = history and leftHistory
+                        for m = 3 , 4 do
+                            for n = 2 , #GRM_GuildDataBackup_Save[i][j][s][m] do
+                                -- Now, do the work on the saved database...
+                                if GRM_GuildDataBackup_Save[i][j][s][m][n][42] == nil then
+                                    GRM_GuildDataBackup_Save[i][j][s][m][n][42] = "";
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+-- Patch 1.43
+-- Method:          GRM_Patch.FixLeftPlayersClassToUppercase()
+-- What it Does:    If it finds a string, it makes it upper case... in current form it is not properly formated for localization free class formatting.
+-- Purpose:         Prevent downstream bugs
+GRM_Patch.FixLeftPlayersClassToUppercase = function()
+    for i = 1 , #GRM_PlayersThatLeftHistory_Save do                         -- Horde and Alliance
+        for j = 2 , #GRM_PlayersThatLeftHistory_Save[i] do                  -- The guilds in each faction
+            for r = 2 , #GRM_PlayersThatLeftHistory_Save[i][j] do           -- The players in each guild (starts at 2 as position 1 is the name of the guild)
+                if GRM_PlayersThatLeftHistory_Save[i][j][r][9] ~= nil then
+                    GRM_PlayersThatLeftHistory_Save[i][j][r][9] = string.upper ( GRM_PlayersThatLeftHistory_Save[i][j][r][9] );
+                else
+                    GRM_PlayersThatLeftHistory_Save[i][j][r][9] = "PRIEST";     -- sets default to priest, even though it is wrong... fixes previous bug.
+                end
+            end
+        end
+    end
+
+    -- Backups
+    if GRM_GuildDataBackup_Save ~= nil then
+        for i = 1 , #GRM_GuildDataBackup_Save do
+            for j = 2 , #GRM_GuildDataBackup_Save[i] do
+                for s = 2 , #GRM_GuildDataBackup_Save[i][j] do
+                    if #GRM_GuildDataBackup_Save[i][j][s] > 0 then
+                        -- 3 and 4 = history and leftHistory
+                        for n = 2 , #GRM_GuildDataBackup_Save[i][j][s][4] do
+                                -- Now, do the work on the saved database...
+                            if GRM_GuildDataBackup_Save[i][j][s][4][n][9] ~= nil then
+                                GRM_GuildDataBackup_Save[i][j][s][4][n][9] = string.upper ( GRM_GuildDataBackup_Save[i][j][s][4][n][9] );
+                            else
+                                GRM_GuildDataBackup_Save[i][j][s][4][n][9] = "PRIEST";
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+-- Patch 1.43
+-- Method:                  GRM_Patch.BuildGUIDProfilesForAllNoLongerInGuild()
+-- What it Does:            Does an initial trigger check to identify all the GUIDs of players no longer in the guild and adds them, as well as fixes their classes
+-- Purpose:                 GUID was not readily available pre-8.0. This brings up all old info up to parity properly.
+GRM_Patch.BuildGUIDProfilesForAllNoLongerInGuild = function()
+    if not GRM_G.OnFirstLoad and not GRM_G.CheckingGUIDThroughFriendsList then
+        GRM.QueryPlayersGUIDByFriendsList ( GRM.GetPlayersWithoutGUID() , 1 , true );
+    elseif GRM_G.CheckingGUIDThroughFriendsList then
+        return;
+    else
+        C_Timer.After ( 5 , GRM_Patch.BuildGUIDProfilesForAllNoLongerInGuild )
+    end
+end
+
+-- Patch 1.44
+-- Method:          GRM_Patch.FixLogOfNilEntries()
+-- What it Does:    Removes entries that are nil that should be text
+-- Purpose:         Cleans up the log of errors.
+GRM_Patch.FixLogOfNilEntries = function()
+    local c = 0;
+
+    for i = 1 , #GRM_LogReport_Save do 
+        for j = 2 , #GRM_LogReport_Save[i] do 
+            for s = #GRM_LogReport_Save[i][j] , 2 , -1 do
+                if GRM_LogReport_Save[i][j][s][2] == nil then 
+                    table.remove ( GRM_LogReport_Save[i][j] , s );
+                    c = c + 1;
+                end;
+            end;
+        end;
+    end; 
+
+    for i = 1 , #GRM_GuildDataBackup_Save do 
+        for j = 2 , #GRM_GuildDataBackup_Save[i] do 
+            for s = 2 , #GRM_GuildDataBackup_Save[i][j] do 
+                if #GRM_GuildDataBackup_Save[i][j][s] > 0 then 
+                    for m = #GRM_GuildDataBackup_Save[i][j][s][5] , 2 , -1 do 
+                        if GRM_GuildDataBackup_Save[i][j][s][5][m][2] == nil then 
+                            table.remove ( GRM_GuildDataBackup_Save[i][j][s][5] , m );
+                            c = c + 1;
+                        end;
+                    end;
+                end;
+            end;
+        end;
+    end;
+
+    if c > 0 then
+        print("GRM Update - Log entries fixed: " .. c );
+    end
+end
+
+-- Patch 1.45
+-- Method:          GRM_Patch.FixBanData()
+-- What it DOes:    For some reason some people previously didn't update properly
+-- Purpose:         To prevent Lua errors.
+GRM_Patch.FixBanData = function()
+    for i = 1 , #GRM_GuildMemberHistory_Save do                         -- Horde and Alliance
+        for j = 2 , #GRM_GuildMemberHistory_Save[i] do                  -- The guilds in each faction
+            for r = 2 , #GRM_GuildMemberHistory_Save[i][j] do           -- The players in each guild (starts at 2 as position 1 is the name of the guild).
+                if GRM_GuildMemberHistory_Save[i][j][r][17][4] == nil then
+                    GRM_GuildMemberHistory_Save[i][j][r][17][4] = "";
+                end
+            end
+        end
+    end
+
+    -- need to update the left player's database too...
+    for i = 1 , #GRM_PlayersThatLeftHistory_Save do                         -- Horde and Alliance
+        for j = 2 , #GRM_PlayersThatLeftHistory_Save[i] do                  -- The guilds in each faction
+            for r = 2 , #GRM_PlayersThatLeftHistory_Save[i][j] do           -- The players in each guild (starts at 2 as position 1 is the name of the guild)
+                if GRM_PlayersThatLeftHistory_Save[i][j][r][17][4] == nil then
+                    GRM_PlayersThatLeftHistory_Save[i][j][r][17][4] = "";
+                end
+            end
+        end
+    end
+
+    -- Need backup info to be modified as well...
+    if GRM_GuildDataBackup_Save ~= nil then
+        for i = 1 , #GRM_GuildDataBackup_Save do
+            for j = 2 , #GRM_GuildDataBackup_Save[i] do
+                for s = 2 , #GRM_GuildDataBackup_Save[i][j] do
+                    if #GRM_GuildDataBackup_Save[i][j][s] > 0 then
+                        -- 3 and 4 = history and leftHistory
+                        for m = 3 , 4 do
+                            for n = 2 , #GRM_GuildDataBackup_Save[i][j][s][m] do
+                                if GRM_GuildDataBackup_Save[i][j][s][m][n][17][4] == nil then
+                                    GRM_GuildDataBackup_Save[i][j][s][m][n][17][4] = "";
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+-- Method:          GRM_Patch.FixAltCopies ( 2D Array )
+-- What it Does:    Removes all copies of alts on a list
+-- Purpose:         Cleans up alt lists a bit from a previous flaw.
+GRM_Patch.FixAltCopies = function( listOfAlts )
+    local found = false;
+    local i = 1;
+    
+    while i <= #listOfAlts do
+        for j = #listOfAlts , 1 , -1 do
+            if j ~= i and listOfAlts[j][1] == listOfAlts[i][1] then
+                table.remove ( listOfAlts , j );
+            end
+        end
+        i = i + 1;
+    end
+    return listOfAlts;
+end
+
+-- Method:          GRM_Patch.FixAltListsDatabaseWide()
+-- What it Does:    Cleans up the alt lists
+-- Purpose:         There was a flaw that might have caused some alt lists to represent incorrectly.
+GRM_Patch.FixAltListsDatabaseWide = function()
+    for i = 1 , #GRM_GuildMemberHistory_Save do                         -- Horde and Alliance
+        for j = 2 , #GRM_GuildMemberHistory_Save[i] do                  -- The guilds in each faction
+            for r = 2 , #GRM_GuildMemberHistory_Save[i][j] do           -- The players in each guild (starts at 2 as position 1 is the name of the guild).
+                if #GRM_GuildMemberHistory_Save[i][j][r][11] > 0 then
+                    GRM_GuildMemberHistory_Save[i][j][r][11] = GRM_Patch.FixAltCopies ( GRM_GuildMemberHistory_Save[i][j][r][11] );
+                end
+            end
+        end
+    end
+
+    -- need to update the left player's database too...
+    for i = 1 , #GRM_PlayersThatLeftHistory_Save do                         -- Horde and Alliance
+        for j = 2 , #GRM_PlayersThatLeftHistory_Save[i] do                  -- The guilds in each faction
+            for r = 2 , #GRM_PlayersThatLeftHistory_Save[i][j] do           -- The players in each guild (starts at 2 as position 1 is the name of the guild)
+                if #GRM_PlayersThatLeftHistory_Save[i][j][r][11] > 0 then
+                    GRM_PlayersThatLeftHistory_Save[i][j][r][11] = GRM_Patch.FixAltCopies ( GRM_PlayersThatLeftHistory_Save[i][j][r][11] );
+                end
+            end
+        end
+    end
+
+    if GRM_GuildDataBackup_Save ~= nil then
+        for i = 1 , #GRM_GuildDataBackup_Save do
+            for j = 2 , #GRM_GuildDataBackup_Save[i] do
+                for s = 2 , #GRM_GuildDataBackup_Save[i][j] do
+                    if #GRM_GuildDataBackup_Save[i][j][s] > 0 then
+                        -- 3 and 4 = history and leftHistory
+                        for m = 3 , 4 do
+                            for n = 2 , #GRM_GuildDataBackup_Save[i][j][s][m] do
+                                if #GRM_GuildDataBackup_Save[i][j][s][m][n][11] > 0 then
+                                    GRM_GuildDataBackup_Save[i][j][s][m][n][11] = GRM_Patch.FixAltCopies ( GRM_GuildDataBackup_Save[i][j][s][m][n][11] );
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+
+end
+
+
+
+
+
+
