@@ -7,7 +7,7 @@
 GRML.TranslationStatusEnum = {
     English = true,
     German = false,
-    French = true,
+    French = false,
     Italian = true,
     Russian = false,
     SpanishMX = false,

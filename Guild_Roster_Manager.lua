@@ -32,9 +32,9 @@ GRML = {};
 GRM_G = {}; 
 
 -- Addon Details:
-GRM_G.Version = "8.1.0R1.46";
-GRM_G.PatchDay = 1552808170;             -- In Epoch Time
-GRM_G.PatchDayString = "1552808170";     -- 2 Versions saves on conversion computational costs... just keep one stored in memory. Extremely minor gains, but very useful if syncing thousands of pieces of data in large guilds.
+GRM_G.Version = "8.1.5R1.47";
+GRM_G.PatchDay = 1554101288;             -- In Epoch Time
+GRM_G.PatchDayString = "1554101288";     -- 2 Versions saves on conversion computational costs... just keep one stored in memory. Extremely minor gains, but very useful if syncing thousands of pieces of data in large guilds.
 GRM_G.Patch = "8.1.5";
 GRM_G.LvlCap = GetMaxPlayerLevel();
 
@@ -438,6 +438,96 @@ GRM.ConfigureMiscForPlayer = function( playerFullName )
     } );
 end
 
+-- Method:          GRM.GetRankRestrictedDefaultRankIndex();
+-- What it Does:    Returns the index based on the rank restricted default of a guild, which is a number based on total number of ranks in the guild.
+-- Purpose:         For establishing default settings, it is important to know what the default rank is in the guild.
+GRM.GetRankRestrictedDefaultRankIndex = function()
+    local rankRestrictedDefault;
+    if IsInGuild() then
+        rankRestrictedDefault = GuildControlGetNumRanks() - 1;
+    else
+        rankRestrictedDefault = 2;
+    end
+    return rankRestrictedDefault;
+end
+
+-- Method:          GRM.GetDefaultAddonSettings()
+-- What it Does:    Establishes the default addon setttings for all of the options and some other misc. stored variables, like minimap position
+-- Purpose:         Easy access to settings on a default reset.
+GRM.GetDefaultAddonSettings = function()
+    local defaults = {
+        GRM_G.Version,                                                                                          -- 1)  Version
+        true,                                                                                                   -- 2)  View on Load
+        { true , true , true , true , true , true , true , true , true , true , true , true , true , true },    -- 3)  All buttons are checked in the log window (14 so far)
+        336,                                                                                                    -- 4)  Report inactive return of player coming back (2 weeks is default value)
+        14,                                                                                                     -- 5)  Event Announce in Advance - Cannot be higher than 4 weeks ( 28 days ) ( 1 week is default);
+        30,                                                                                                     -- 6)  How often to check for changes ( in seconds )
+        false,                                                                                                  -- 7)  Add Timestamp on join to Officer Note
+        true,                                                                                                   -- 8)  Use Calendar Announcements
+        12,                                                                                                     -- 9)  Months Player Has Been Offline to Add Announcement To Kick
+        false,                                                                                                  -- 10) Recommendations!
+        true,                                                                                                   -- 11) Report Inactive Returns
+        true,                                                                                                   -- 12) Announce Upcoming Events.
+        { true , true , true , true , true , true , true , true , true , true , true , true , true , true },    -- 13) Checkbox for message frame announcing. Disable 
+        true,                                                                                                   -- 14) Allow Data sharing between guildies
+        GRM.GetRankRestrictedDefaultRankIndex(),                                                                -- 15) Rank Player must be to accept sync updates from them.
+        true,                                                                                                   -- 16) Receive Notifications if others in the guild send updates!
+        true,                                                                                                   -- 17) Only announce the anniversary of players set as the "main"
+        true,                                                                                                   -- 18) Scan for changes
+        true,                                                                                                   -- 19) Sync only with players who have current version or higher.
+        1,                                                                                                      -- 20) Add Join Date to Officer Note = 1, Public Note = 2 , custom = 3
+        true,                                                                                                   -- 21) Sync Ban List
+        2,                                                                                                      -- 22) Rank player must be to send or receive Ban List sync updates!
+        1,                                                                                                      -- 23) Only Report level increase greater than or equal to this.
+        1,                                                                                                      -- 24) 100 % speed
+        345,                                                                                                    -- 25) Minimap Position
+        78,                                                                                                     -- 26) Minimap Radius
+        true,                                                                                                   -- 27) Notify when player requests to join guild the recruitment window
+        false,                                                                                                  -- 28) Only View on Load if Changes were found
+        true,                                                                                                   -- 29) Show "main" name in guild/whispers if player speaking on their alt
+        false,                                                                                                  -- 30) Only show those needing to input data on the audit window.
+        false,                                                                                                  -- 31) Sync Settings of all alts in the same guild
+        true,                                                                                                   -- 32) Show Minimap Button
+        true,                                                                                                   -- 33) Audit Frame - Unknown Counts as complete
+        true,                                                                                                   -- 34) Allow Autobackups
+        true,                                                                                                   -- 35) Share data with ALL guildies, but only receive from your threshold rank
+        true,                                                                                                   -- 36) Show line numbers in log
+        true,                                                                                                   -- 37) Enable Shift-Click Line removal of the log...
+        true,                                                                                                   -- 38) Custom Note Sync allowed
+        GRM.Use24HrBasedOnDefaultLanguage(),                                                                    -- 39) Use 24hr Scale
+        true,                                                                                                   -- 40) Track Birthdays
+        7,                                                                                                      -- 41) Auto Backup Interval in Days
+        2,                                                                                                      -- 42) Main Tag format index
+        GRM_G.LocalizedIndex,                                                                                   -- 43) Selected Language ( 1 default is English)
+        1,                                                                                                      -- 44) Selected Font ( 1 is Default )
+        0,                                                                                                      -- 45) Font Modifier Size
+        { 1 , 0 , 0 },                                                                                          -- 46) RGB color selection on the "Main" tagging (Default is Red)
+        { true , true , true , true , true , true , true , true },                                              -- 47) Level Filter Options - 60 , 70 , 80 , 85 , 90 , 100 , 110 , 120
+        {},                                                                                                     -- 48) ''
+        2,                                                                                                      -- 49) Default rank for syncing Custom Note
+        0.9,                                                                                                    -- 50) Default Tooltip Size
+        1,                                                                                                      -- 51) Date Format  -- 1 = default  "1 Mar '18"
+        true,                                                                                                   -- 52) Use "Fade" on tabbing
+        true,                                                                                                   -- 53) Disable Guild Reputation visual
+        true,                                                                                                   -- 54) Enable Auto-Popup of the recruitment window if a player comes online.
+        true,                                                                                                   -- 55) Only report returning from inactivity of ALL alts are past the threshold date.
+        true,                                                                                                   -- 56) Report Leveling Data to Log
+        true,                                                                                                   -- 57) Include "Joined:" in the officer/public note join date tag
+        true,                                                                                                   -- 58) Show Borders around public/officer/custom notes
+        true,                                                                                                   -- 59) Report notes to the log on leaving guild...
+        true,                                                                                                   -- 60) Only recommend player to kick if ALL alts are offline for the given time.
+        true,                                                                                                   -- 61) Use a custom message in the guild recruit window when inviting players
+        "",                                                                                                     -- 62) The custom message
+        false,                                                                                                  -- 63) Using a customized minimap position.
+        { "" , "" },                                                                                            -- 64) The setpoints of the custom minimap position
+        true,                                                                                                   -- 65) Main Tags...
+        false,                                                                                                  -- 66) Auto Focus the search bar when opening the log.
+        true,                                                                                                   -- 67) Show Birthday on the player detail window...
+        true                                                                                                    -- 68) Allow Birthday Sync
+    }
+    return defaults;
+end
+
 -- Method:          GRM.LoadSettings()
 -- What it Does:    On first time loading addon, it builds default addon settings. It checks for addon version change
 --                  And, if there are any changes, they will be added into that logic block. 
@@ -466,84 +556,8 @@ GRM.LoadSettings = function()
         table.insert ( GRM_AddonSettings_Save[GRM_G.FID] , { GRM_G.addonPlayerName } );
         GRM_G.setPID = #GRM_AddonSettings_Save[GRM_G.FID];                                -- We know what the ID is...
         GRM.Report ( "\n" .. GRM.L ( "Configuring Guild Roster Manager for {name} for the first time." , GetUnitName ( "PLAYER" , false ) ) );
-        local rankRestrictedDefault;
-        if IsInGuild() then
-            rankRestrictedDefault = GuildControlGetNumRanks() - 1;
-        else
-            rankRestrictedDefault = 2;
-        end
 
-        local AllDefaultSettings = {
-
-            GRM_G.Version,                                                                                          -- 1)  Version
-            true,                                                                                                   -- 2)  View on Load
-            { true , true , true , true , true , true , true , true , true , true , true , true , true , true },    -- 3)  All buttons are checked in the log window (13 so far)
-            336,                                                                                                    -- 4)  Report inactive return of player coming back (2 weeks is default value) - in hrs
-            14,                                                                                                     -- 5)  Event Announce in Advance - Cannot be higher than 4 weeks ( 28 days ) ( 1 week is default);
-            30,                                                                                                     -- 6)  How often to check for changes ( in seconds )
-            false,                                                                                                  -- 7)  Add Timestamp on join to Officer Note or to custom note
-            true,                                                                                                   -- 8)  Use Calendar Announcements
-            12,                                                                                                     -- 9)  Months Player Has Been Offline to Add Announcement To Kick
-            false,                                                                                                  -- 10) Recommendations!
-            true,                                                                                                   -- 11) Report Inactive Returns
-            true,                                                                                                   -- 12) Announce Upcoming Events.
-            { true , true , true , true , true , true , true , true , true , true , true , true , true , true },    -- 13) Checkbox for message frame announcing. Disable 
-            true,                                                                                                   -- 14) Allow Data sharing between guildies
-            rankRestrictedDefault,                                                                                  -- 15) Rank Player must be to accept sync updates from them.
-            true,                                                                                                   -- 16) Receive Notifications if others in the guild send updates!
-            true,                                                                                                   -- 17) Only announce the anniversary of players set as the "main"
-            true,                                                                                                   -- 18) Scan for changes
-            true,                                                                                                   -- 19) Sync only with players who have current version or higher.
-            1,                                                                                                      -- 20) Add Join Date to Officer Note = 1, Public Note = 2 , custom = 3
-            true,                                                                                                   -- 21) Sync Ban List
-            2,                                                                                                      -- 22) Rank player must be to send or receive Ban List sync updates!
-            1,                                                                                                      -- 23) Only Report level increase greater than or equal to this.
-            1,                                                                                                      -- 24) 100 % speed
-            345,                                                                                                    -- 25) Minimap Position
-            78,                                                                                                     -- 26) Minimap Radius
-            true,                                                                                                   -- 27) Notify when player requests to join guild the recruitment window
-            false,                                                                                                  -- 28) Only View on Load if Changes were found
-            true,                                                                                                   -- 29) Show "main" name in guild/whispers if player speaking on their alt
-            false,                                                                                                  -- 30) Only show those needing to input data on the audit window.
-            false,                                                                                                  -- 31) Sync Settings of all alts in the same guild
-            true,                                                                                                   -- 32) Show Minimap Button
-            true,                                                                                                   -- 33) Audit Frame - Unknown Counts as complete
-            true,                                                                                                   -- 34) Allow Autobackups
-            true,                                                                                                   -- 35) Share data with ALL guildies, but only receive from your threshold rank
-            true,                                                                                                   -- 36) Show Line Numbers in Log
-            true,                                                                                                   -- 37) Enable Shift-Click Line removal of the log...
-            true,                                                                                                   -- 38) Allow Custom Note Sync
-            GRM.Use24HrBasedOnDefaultLanguage(),                                                                    -- 39) Use 24hr Scale
-            true,                                                                                                   -- 40) Track Birthdays
-            7,                                                                                                      -- 41) Auto Backup Interval in Days
-            2,                                                                                                      -- 42) Main Tag format index
-            GRM_G.LocalizedIndex,                                                                                   -- 43) Selected Language ( 1 default is English)
-            1,                                                                                                      -- 44) Selected Font ( 1 is Default )
-            0,                                                                                                      -- 45) Font Modifier Size
-            { 1 , 0 , 0 },                                                                                          -- 46) RGB color selection on the "Main" tagging (Default is Red)
-            { true , true , true , true , true , true , true , true },                                              -- 47) Level Filter Options - 60 , 70 , 80 , 85 , 90 , 100 , 110 , 120
-            {},                                                                                                     -- 48) ''
-            2,                                                                                                      -- 49) Default rank for syncing Custom Note
-            0.9,                                                                                                    -- 50) Default Tooltip Size
-            1,                                                                                                      -- 51) Date Format  -- 1 = default  "1 Mar '18"
-            true,                                                                                                   -- 52) Use "Fade" on tabbing
-            true,                                                                                                   -- 53) Disable Guild Reputation visual
-            true,                                                                                                   -- 54) Enable Auto-Popup of the recruitment window if a player comes online.
-            true,                                                                                                   -- 55) Only report returning from inactivity of ALL alts are past the threshold date.
-            true,                                                                                                   -- 56) Report Leveling Data to Log
-            true,                                                                                                   -- 57) Include "Joined:" in the officer/public note join date tag
-            true,                                                                                                   -- 58) Show Borders around public/officer/custom notes
-            true,                                                                                                   -- 59) Report notes to the log on leaving guild...
-            true,                                                                                                   -- 60) Only recommend player to kick if ALL alts are offline for the given time.
-            true,                                                                                                   -- 61) Use a custom message in the guild recruit window when inviting players
-            "",                                                                                                     -- 62) The custom message
-            false,                                                                                                  -- 63) Using a customized minimap position.
-            { "" , "" },                                                                                            -- 64) The setpoints of the custom minimap position
-            true,                                                                                                   -- 65) Main Tags...
-            false,                                                                                                  -- 66) Auto Focus the search bar when opening the log.
-            true,                                                                                                   -- 67) Show Birthday on the player detail window...
-            true                                                                                                    -- 68) Allow Birthday Sync
-        };
+        local AllDefaultSettings = GRM.GetDefaultAddonSettings();
        
         -- Unique Settings added to the player.
         table.insert ( GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID] , AllDefaultSettings );
@@ -648,87 +662,9 @@ GRM.ResetDefaultSettings = function()
     
     -- Purge it from memory
     GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2] = nil;
-
-    local rankRestrictedDefault;
-    if IsInGuild() then
-        rankRestrictedDefault = GuildControlGetNumRanks() - 1;
-    else
-        rankRestrictedDefault = 2;
-    end
     
     -- Reset to default
-    GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2] = {
-
-        GRM_G.Version,                                                                                          -- 1)  Version
-        true,                                                                                                   -- 2)  View on Load
-        { true , true , true , true , true , true , true , true , true , true , true , true , true , true },    -- 3)  All buttons are checked in the log window (14 so far)
-        336,                                                                                                    -- 4)  Report inactive return of player coming back (2 weeks is default value)
-        14,                                                                                                     -- 5)  Event Announce in Advance - Cannot be higher than 4 weeks ( 28 days ) ( 1 week is default);
-        30,                                                                                                     -- 6)  How often to check for changes ( in seconds )
-        false,                                                                                                  -- 7)  Add Timestamp on join to Officer Note
-        true,                                                                                                   -- 8)  Use Calendar Announcements
-        12,                                                                                                     -- 9)  Months Player Has Been Offline to Add Announcement To Kick
-        false,                                                                                                  -- 10) Recommendations!
-        true,                                                                                                   -- 11) Report Inactive Returns
-        true,                                                                                                   -- 12) Announce Upcoming Events.
-        { true , true , true , true , true , true , true , true , true , true , true , true , true , true },    -- 13) Checkbox for message frame announcing. Disable 
-        true,                                                                                                   -- 14) Allow Data sharing between guildies
-        rankRestrictedDefault,                                                                                  -- 15) Rank Player must be to accept sync updates from them.
-        true,                                                                                                   -- 16) Receive Notifications if others in the guild send updates!
-        true,                                                                                                   -- 17) Only announce the anniversary of players set as the "main"
-        true,                                                                                                   -- 18) Scan for changes
-        true,                                                                                                   -- 19) Sync only with players who have current version or higher.
-        1,                                                                                                      -- 20) Add Join Date to Officer Note = 1, Public Note = 2 , custom = 3
-        true,                                                                                                   -- 21) Sync Ban List
-        2,                                                                                                      -- 22) Rank player must be to send or receive Ban List sync updates!
-        1,                                                                                                      -- 23) Only Report level increase greater than or equal to this.
-        1,                                                                                                      -- 24) 100 % speed
-        345,                                                                                                    -- 25) Minimap Position
-        78,                                                                                                     -- 26) Minimap Radius
-        true,                                                                                                   -- 27) Notify when player requests to join guild the recruitment window
-        false,                                                                                                  -- 28) Only View on Load if Changes were found
-        true,                                                                                                   -- 29) Show "main" name in guild/whispers if player speaking on their alt
-        false,                                                                                                  -- 30) Only show those needing to input data on the audit window.
-        false,                                                                                                  -- 31) Sync Settings of all alts in the same guild
-        true,                                                                                                   -- 32) Show Minimap Button
-        true,                                                                                                   -- 33) Audit Frame - Unknown Counts as complete
-        true,                                                                                                   -- 34) Allow Autobackups
-        true,                                                                                                   -- 35) Share data with ALL guildies, but only receive from your threshold rank
-        true,                                                                                                   -- 36) Show line numbers in log
-        true,                                                                                                   -- 37) Enable Shift-Click Line removal of the log...
-        true,                                                                                                   -- 38) Custom Note Sync allowed
-        GRM.Use24HrBasedOnDefaultLanguage(),                                                                    -- 39) Use 24hr Scale
-        true,                                                                                                   -- 40) Track Birthdays
-        7,                                                                                                      -- 41) Auto Backup Interval in Days
-        2,                                                                                                      -- 42) Main Tag format index
-        GRM_G.LocalizedIndex,                                                                                   -- 43) Selected Language ( 1 default is English)
-        1,                                                                                                      -- 44) Selected Font ( 1 is Default )
-        0,                                                                                                      -- 45) Font Modifier Size
-        { 1 , 0 , 0 },                                                                                          -- 46) RGB color selection on the "Main" tagging (Default is Red)
-        { true , true , true , true , true , true , true , true },                                              -- 47) Level Filter Options - 60 , 70 , 80 , 85 , 90 , 100 , 110 , 120
-        {},                                                                                                     -- 48) ''
-        2,                                                                                                      -- 49) Default rank for syncing Custom Note
-        0.9,                                                                                                    -- 50) Default Tooltip Size
-        1,                                                                                                      -- 51) Date Format  -- 1 = default  "1 Mar '18"
-        true,                                                                                                   -- 52) Use "Fade" on tabbing
-        true,                                                                                                   -- 53) Disable Guild Reputation visual
-        true,                                                                                                   -- 54) Enable Auto-Popup of the recruitment window if a player comes online.
-        true,                                                                                                   -- 55) Only report returning from inactivity of ALL alts are past the threshold date.
-        true,                                                                                                   -- 56) Report Leveling Data to Log
-        true,                                                                                                   -- 57) Include "Joined:" in the officer/public note join date tag
-        true,                                                                                                   -- 58) Show Borders around public/officer/custom notes
-        true,                                                                                                   -- 59) Report notes to the log on leaving guild...
-        true,                                                                                                   -- 60) Only recommend player to kick if ALL alts are offline for the given time.
-        true,                                                                                                   -- 61) Use a custom message in the guild recruit window when inviting players
-        "",                                                                                                     -- 62) The custom message
-        false,                                                                                                  -- 63) Using a customized minimap position.
-        { "" , "" },                                                                                            -- 64) The setpoints of the custom minimap position
-        true,                                                                                                   -- 65) Main Tags...
-        false,                                                                                                  -- 66) Auto Focus the search bar when opening the log.
-        true,                                                                                                   -- 67) Show Birthday on the player detail window...
-        true                                                                                                    -- 68) Allow Birthday Sync
-
-    }
+    GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2] = GRM.GetDefaultAddonSettings();
 
     -- If scan  was previously disabled, need to re-trigger it.
     if not GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_ScanningOptionsFrame.GRM_RosterTimeIntervalCheckButton:GetChecked() then
@@ -2260,6 +2196,17 @@ GRM.GetAllCurrentAndFormerGuildies = function()
     sort ( result , function ( a , b ) return a[1] < b[1] end );    -- Alphabetizing it for easier parsing for buttontext updating. - This sorts the first index of the 2D array
 
     return result;
+end
+
+-- Method:          GRM.SortDeepArrayInOrder ( multi-dArray )
+-- What it Does:    sorts a deep array with the first index sorted together. It also removes the first index which is the guild identifier before continuing...
+-- Purpose:         To be able to organize the given array.
+GRM.SortDeepArrayInOrder = function( givenArray )
+    local tempIndex = givenArray[1];
+    table.remove ( givenArray , 1 );
+    sort ( givenArray , function ( a , b ) return a[1] < b[1] end );
+    table.insert ( givenArray , 1 , tempIndex );
+    return givenArray;
 end
 
 -- NOTE: This is assuming 2D arrays and match is at index [i][1]
@@ -4000,6 +3947,34 @@ GRM.Trim = function ( str )
     return ( str:gsub ( "^%s*(.-)%s*$" , "%1" ) );
 end
 
+-- Method:          GRM.StringToCharArray ( string [, bool]);
+-- What it Does:    Converts a string into a char array, and has the option to remove all indexes of a given char
+-- Purpose:         More easily cleanup strings, especially when sending data back and forth using the '?' separator
+GRM.StringToCharArray = function( text , removeChar )
+    local result = {};
+    local temp = "";
+    for i = 1 , #text do
+        temp = string.sub ( text , i , i );
+        -- Remove the char by ignoring it
+        if not removeChar or ( removeChar and removeChar ~= temp ) then
+            table.insert ( result , string.sub ( text , i , i ) );
+        end
+    end
+    return result;
+end
+
+GRM.ConvertStringNumArrayToBoolArray = function ( listOfNum )
+    local result = {};
+    for i = 1 , #listOfNum do
+        if listOfNum[i] == "1" then
+            result[i] = true;
+        else
+            result[i] = false;
+        end
+    end
+    return result;
+end 
+
 -- Method:          GRM.ResetTempLogs()
 -- What it Does:    Empties the arrays of the reporting logs
 -- Purpose:         Logs are used to build changes in the guild and then to cleanly report them in order.
@@ -4038,7 +4013,6 @@ GRM.CalendarGetDate = function()
 	
     return weekday, month, day, year;
 end
-
 
 -- Method:          GRM.IsLeapYear(int)
 -- What it Does:    Returns true if the given year is a leapYear
@@ -4476,6 +4450,10 @@ end
 -- Purpose:         Useful for checking if the player has been, for example, offline X number of months, if the time has passed, since the server gives time in hours since last online.
 GRM.GetNumHoursTilRecommend = function( numMonths )
     local _ , month , day , year = GRM.CalendarGetDate();
+    -- Error protection
+    if month == 0 or day == 0 then
+        return nil;
+    end
     local totalDays = 0;
     local numYears = math.floor ( numMonths / 12 );
     numMonths = numMonths % 12;
@@ -7077,7 +7055,6 @@ end
 ----- END OF GUILD INVITE MANAGEMENT ---
 ----------------------------------------
 
-
 ------------------------------------
 ------ METADATA TRACKING LOGIC -----
 --- Reporting, Live Tracking, Etc --
@@ -7088,12 +7065,21 @@ end
 -- Purpose:         For reliable guild data tracking.
 GRM.AddMemberRecord = function ( memberInfo , isReturningMember , oldMemberInfo )
 
+    local insertIndex = 2;
+
     -- First things first... ensure the player is not already added...
     for j = 2 , #GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ] do
         if GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][j][1] == memberInfo[1] then
             return
         end
+        if memberInfo[1] > GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][j][1] then
+            insertIndex = j + 1;        -- Find the alphabetical place to insert at.
+        else
+            insertIndex = j;
+            break;
+        end
     end
+
     -- Metadata to track on all players.
     -- Basic Info
     local timeSeconds = time();
@@ -7169,8 +7155,8 @@ GRM.AddMemberRecord = function ( memberInfo , isReturningMember , oldMemberInfo 
             customNote = oldMemberInfo[23];
             rankHistory = oldMemberInfo[25];
             playerLevelOnJoining = oldMemberInfo[26];
-            joinDateTimestamp[1] = joinDate;
-            joinDateTimestamp[2] = timeSeconds;
+            joinDateTimestamp = oldMemberInfo[35];
+            promoDateTimestamp = oldMemberInfo[36];
         else
             bannedFromGuild = oldMemberInfo[17];
             reasonBanned = oldMemberInfo[18];
@@ -7180,7 +7166,8 @@ GRM.AddMemberRecord = function ( memberInfo , isReturningMember , oldMemberInfo 
     -- For both returning players and new adds
     table.insert ( rankHistory , { rank , string.sub ( joinDate , 1 , string.find ( joinDate , "'" ) + 2 ) , joinDateMeta } );
 
-    table.insert ( GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ] , { 
+    -- sort to the proper index
+    table.insert ( GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ] , insertIndex , { 
         name, 
         joinDate,
         joinDateMeta,
@@ -7265,7 +7252,15 @@ GRM.AddMemberToLeftPlayers = function ( memberInfo , leftGuildMeta , oldJoinDate
                 GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][j][18] = "";
             end
             -- Adding to LeftGuild Player history library
-            table.insert ( GRM_PlayersThatLeftHistory_Save[ GRM_G.FID ][GRM_G.saveGID] , GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][j] );
+            local insertIndex = #GRM_PlayersThatLeftHistory_Save[ GRM_G.FID ][GRM_G.saveGID] + 1;
+            for i = 2 , #GRM_PlayersThatLeftHistory_Save[ GRM_G.FID ][GRM_G.saveGID] do
+                if GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][j][1] > GRM_PlayersThatLeftHistory_Save[ GRM_G.FID ][GRM_G.saveGID][i][1] then
+                    insertIndex = i + 1;
+                else
+                    break;
+                end
+            end
+            table.insert ( GRM_PlayersThatLeftHistory_Save[ GRM_G.FID ][GRM_G.saveGID] , insertIndex , GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][j] );
             break;
         end
     end
@@ -7273,7 +7268,7 @@ GRM.AddMemberToLeftPlayers = function ( memberInfo , leftGuildMeta , oldJoinDate
     -- Now need to remove it from the end position. But should still cycle through just in case over overlapping parallel actions.
     for i = #GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ] , 2 , -1 do
         if GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][i][1] == memberInfo[1] then
-            table.remove ( GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ] , #GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ] );
+            table.remove ( GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ] , i );
             break;
         end
     end
@@ -9899,7 +9894,15 @@ GRM.RecordKickChanges = function ( unitName , playerKicked )
                 tempGuildDatabase[j][18] = "";
             end
             -- Adding to LeftGuild Player history library
-            table.insert ( GRM_PlayersThatLeftHistory_Save[ GRM_G.FID ][GRM_G.saveGID] , tempGuildDatabase[j] );
+            local insertIndex = #GRM_PlayersThatLeftHistory_Save[ GRM_G.FID ][GRM_G.saveGID] + 1;
+            for i = 2 , #GRM_PlayersThatLeftHistory_Save[ GRM_G.FID ][GRM_G.saveGID] do
+                if tempGuildDatabase[j][1] > GRM_PlayersThatLeftHistory_Save[ GRM_G.FID ][GRM_G.saveGID][i][1] then
+                    insertIndex = i + 1;
+                else
+                    break;
+                end
+            end
+            table.insert ( GRM_PlayersThatLeftHistory_Save[ GRM_G.FID ][GRM_G.saveGID] , insertIndex , tempGuildDatabase[j] );
 
             -- Removing it from the alt list
             if #tempGuildDatabase[j][11] > 0 then
@@ -10178,7 +10181,7 @@ GRM.IsRejoinAndSetDetails = function( memberInfo , simpleName , tempTimeStamp , 
                     if tempString ~= nil and tempString ~= "" then
                         local tempData = GRM.GetTimestampBasedOnTimePassed ( GRM_G.GuildLogDate );
                         timestamp2 = tempData[1];
-                         epochTime = tempData[2];
+                        epochTime = tempData[2];
                         isFoundInLog = true;
                         logReport = ( GRM.FormatTimeStamp ( timestamp2 , true ) .. " : " .. tempString );
                      else
@@ -10739,7 +10742,7 @@ GRM.CheckPlayerChanges = function ( metaData , guildName , guildNotFound )
                     -- No need to do any of this if they haven't logged in... the only potential change necessary to check would be public/officer note as that is the only thing that can change when offline.
                     -- This boolean is all about massive resource saving
                     -- if online, or hours since last logged is different or public note is different or officer note is different and you can read it.
-                    if metaData[j][13] or metaData[j][8] ~= tempRosterCopy[r][24] or metaData[j][2] ~= tempRosterCopy[r][4] or metaData[j][3] ~= tempRosterCopy[r][5] or metaData[j][4] ~= tempRosterCopy[r][6] or metaData[j][5] ~= tempRosterCopy[r][7] or ( metaData[j][6] ~= tempRosterCopy[r][8] and CanViewOfficerNote() ) then
+                    if metaData[j][13] or metaData[j][8] ~= tempRosterCopy[r][24] or metaData[j][2] ~= tempRosterCopy[r][4] or metaData[j][3] ~= tempRosterCopy[r][5] or metaData[j][4] ~= tempRosterCopy[r][6] or metaData[j][5] ~= tempRosterCopy[r][7] or metaData[j][7] ~= tempRosterCopy[r][9] or ( metaData[j][6] ~= tempRosterCopy[r][8] and CanViewOfficerNote() ) then
 
                         for k = 2 , 8 do
                             if k < 7 and metaData[j][k] ~= tempRosterCopy[r][k + 2] then -- CHANGE FOUND! New info and old info are not equal!
@@ -10902,6 +10905,14 @@ GRM.CheckPlayerChanges = function ( metaData , guildName , guildNotFound )
                                         GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerOfficerNoteEditBox:SetText (  metaData[j][6] );
                                     end
                                 end
+
+                            -- Class Change - fix error or future class change redundancy if they ever implemented
+                            elseif k == 7 and metaData[j][7] ~= tempRosterCopy[r][9] then
+                                tempRosterCopy[r][9] = metaData[j][7];
+
+                                -- TO DO IF EVER IMPLEMENTED
+                                -- UPDATE THE ALT INFO CLASS AS WELL IF NEED TO CHANGE.
+                                
                             elseif k == 8 and not guildNotFound then
                                 if metaData[j][8] ~= -1 then
                                     if GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][11] and tempRosterCopy[r][24] > GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][4] and metaData[j][8] < GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][4] and tempRosterCopy[r][24] > metaData[j][8] then  -- Player has logged in after having been inactive for greater than given time
@@ -11526,7 +11537,7 @@ GRM.SetBirthdayForAltGrouping = function ( indexInt , playerName , day , month ,
         end
     end
 end
-
+ 
 -- Method:          GRM.SyncBirthdayWithNewAlt ( string )
 -- What it Does:    Sets the new alt to the same birthday as the previous alts
 -- Purpose:         Keep alts all in sync on the birthday.
@@ -14962,6 +14973,7 @@ GRM.ClearPromoDateHistory = function ( name , isUnknown )
             guildData[j][25] = nil;
             guildData[j][25] = {};
             table.insert ( guildData[j][25] , { guildData[j][4] , string.sub ( guildData[j][2] , 1 , string.find ( guildData[j][2] , "'" ) + 2 ) , guildData[j][3] } );
+            guildData[j][36] = { "" , 0 };
             guildData[j][41] = false;
             if name == GRM_G.currentName and GRM_UI.GRM_MemberDetailMetaData:IsVisible() then
                 GRM_UI.GRM_altDropDownOptions:Hide();
@@ -14983,7 +14995,7 @@ GRM.ClearJoinDateHistory = function ( name , isUnknown )
     for j = 2 , #guildData do
         if guildData[j][1] == name then        -- Player found!
             -- Ok, let's clear the history now!
-            guildData[j][40] = false;
+            
             guildData[j][20] = nil;   -- oldJoinDate wiped!
             guildData[j][20] = {};
             guildData[j][21] = nil;
@@ -14994,6 +15006,8 @@ GRM.ClearJoinDateHistory = function ( name , isUnknown )
             guildData[j][16] = {};
             guildData[j][2] = GRM.GetTimestamp();
             guildData[j][3] = time();
+            guildData[j][35] = { "" , 0 };
+            guildData[j][40] = false;
             if name == GRM_G.currentName and GRM_UI.GRM_MemberDetailMetaData:IsVisible() then
                 GRM_UI.GRM_MemberDetailMetaData.GRM_JoinDateText:Hide();
                 GRM_UI.GRM_altDropDownOptions:Hide();
@@ -18152,7 +18166,7 @@ local function Tracking()
             end
 
             -- Add an escape if necessary due to unloaded data points. It will try again in 10 seconds or less, whenever the server calls back.
-            if GRM_G.guildCreationDate == "" then
+            if GRM_G.guildCreationDate == "" or GRM_G.NumberOfHoursTilRecommend == nil then
                 GRM.DelayForGuildInfoCallback();
                 return
             end
@@ -18234,6 +18248,9 @@ GRM.DelayForGuildInfoCallback = function()
         end
         GRM.SetGuildInfoDetails();
         GuildRoster();
+        C_Timer.After ( 1 , GRM.DelayForGuildInfoCallback );
+    elseif GRM_G.NumberOfHoursTilRecommend == nil then
+        GRM_G.NumberOfHoursTilRecommend = GRM.GetNumHoursTilRecommend ( GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][9] );
         C_Timer.After ( 1 , GRM.DelayForGuildInfoCallback );
     else
         GRM_G.timeDelayValue = 0;
@@ -18412,12 +18429,21 @@ GRM.ActivateAddon = function ( _ , event , addon , isReload )
             GRMsyncGlobals.reloadControl = true;
         end
 
+        GRM.DataLoadDelayProtection();
+    end
+end
+
+-- Method:          GRM.DataLoadDelayProtection()
+-- What it Does:    It checks if the calendar and date info is available from the server yet and if not, it recursively reloads
+-- Purpose:         To prevent certain errors due to the server returning this information slowly as of patch 8.1.5 for some reason.
+GRM.DataLoadDelayProtection = function()
+    if C_Calendar.GetDate().month ~= nil then       -- Critical to be receiving data properly from the server...
         GRM.LoadSettings();
 
         -- Rerun this for the language changes...
         -- this will also build initial frames...
         GRML.SetNewLanguage ( GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][43] , true );
-       
+        
         -- Double check on setting
         if GRM_G.setPID == 0 then
             for i = 2 , #GRM_AddonSettings_Save[GRM_G.FID] do
@@ -18447,8 +18473,10 @@ GRM.ActivateAddon = function ( _ , event , addon , isReload )
         else
             GRM.ManageGuildStatus();
         end
+    else
+        C_Timer.After ( 0.2 , GRM.DataLoadDelayProtection );
     end
-end
+end;
 
 
 -- Initialize the first frames as game is being loaded.
@@ -18583,7 +18611,7 @@ Initialization:SetScript ( "OnEvent" , GRM.ActivateAddon );
     
     -- Create powerful SYNC tool - only for GM. Ability to push all current data as most-current.
 
-    -- MAIN TO DO GOALS
+    -- Eventual TO DO GOALS
 
     -- 3) Custom Notifications/Reminders -  Basically, I want to build in a feature where the player types /roster remind, or something like that, which pops up a window to set a time and date for any kind of reminder the player wants, just type it out. I've written out a rough UI on how I wish this to look, and I think it is going to be killer useful. You could set reminder to minutes or hours from now, to days or months. Very useful for on-the-spot thoughts. 
     -- It will have a custom UI to quickly set a specific time and date, and note reminder
@@ -18625,6 +18653,21 @@ Initialization:SetScript ( "OnEvent" , GRM.ActivateAddon );
     -------------------------------------
     ----- BUSY work ---------------
     -------------------------------------
+
+    -- Birthdate sync is not seemingly working...
+
+    -- Re-enable option to only sync with those up to date this patch for all.
+
+    -- Remove copies of birthdate date for >= 18 database wide...
+
+    -- /run local g=GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ]; for i = 2 , #g do if #g[i][17]~=4 or g[i][17][2]==nil then print(i);end;end  -- need to check integrity here or it is the i index that is the issue
+    -- Don't hide the ban window when swapping to the log
+    -- Scan all bans - parse down the strings until just 75 bytes
+    -- Bdays getting multiplied... it keeps halving every subsequent sync. WTF!!! Something is leaking to other toons on the sync process of birthdays
+
+    -- check for this and remove ""1 Jan '01 12:01am""
+
+    -- On players that "Still in guild" on ban list add a button to remove them. -- This will require hotkey creation
 
     -- Re-check the ban list for unknowns on loading.
 
@@ -18691,12 +18734,16 @@ Initialization:SetScript ( "OnEvent" , GRM.ActivateAddon );
     -- New Feature
             
     -- QOL
-
+            -- Accumulating many "patches" now so I rewrote the patching logic to be a bit more reusable and clean. I might go back and cleanup some old logic, but for now the database manipulation function is built and can just be fed
+            -- custom function fixes without needing to re-copy the database structure each subsequent patch. Much much much leaner code, though this is all a "behind the scenes" kind of thing.
 
     -- BUGS
-            -- 
-            -- 
-            -- 
+            -- Fixed an issue that seems to have popped up in 8.1.5 in relation to some calendar bug reporting on some addons.
+            -- Fixed an issue that allowed players using special characters to type more than the 75 character limit in the ban note.
+            -- Fixed an issue where a returning player's join/promo dates could overwrite other's in a sync, which is not noticeable for players that login frequently, but let's say a player takes 6 months off the game, comes back, another guildie has rejoined since then
+            -- so the addon determines it, but because the event happened > 100 guild log lines previous the player cannot determine from the server the actual date, so it just marks the day the player logged in as the event date. This is ok on the visual front end, but it owuld be bad
+            -- if that was considered the correct and most recent update because others likely have more accurate data. But, for the player's sake, he needs to have his own data to look at so something is stored until he can sync. This should no longer take priority over other's data.
+            -- I suspect this was largely unnoticed because it's pretty rare that people leave and then come back, let alone have such a significant time pass.
             -- 
             -- 
 
