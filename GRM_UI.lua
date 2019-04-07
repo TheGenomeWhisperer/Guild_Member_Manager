@@ -794,6 +794,9 @@ GRM_UI.GRM_RosterChangeLogFrame.GRM_CoreBanListFrame.GRM_AddBanFrame.GRM_AddBanS
 GRM_UI.GRM_RosterChangeLogFrame.GRM_CoreBanListFrame.GRM_AddBanFrame.GRM_AddBanScrollChildFrame = CreateFrame ( "Frame" , "GRM_AddBanScrollChildFrame" );
 GRM_UI.GRM_RosterChangeLogFrame.GRM_CoreBanListFrame.GRM_AddBanFrame.GRM_AddBanScrollFrame.GRM_AddBanScrollFrameSlider = CreateFrame ( "Slider" , "GRM_AddBanScrollFrameSlider" , GRM_UI.GRM_RosterChangeLogFrame.GRM_CoreBanListFrame.GRM_AddBanFrame.GRM_AddBanScrollFrame , "UIPanelScrollBarTemplate" );
 GRM_UI.GRM_RosterChangeLogFrame.GRM_CoreBanListFrame.GRM_AddBanFrame.GRM_AddBanScrollFrame.GRM_BanFrameHelperText = GRM_UI.GRM_RosterChangeLogFrame.GRM_CoreBanListFrame.GRM_AddBanFrame.GRM_AddBanScrollFrame:CreateFontString ( "GRM_BanFrameHelperText" , "OVERLAY" , "GameFontWhiteTiny" );
+-- Ban Tooltips
+GRM_UI.GRM_RosterChangeLogFrame.GRM_CoreBanListFrame.GRM_BanHeaderTooltip = CreateFrame ( "GameTooltip" , "GRM_BanHeaderTooltip" , GRM_UI.GRM_RosterChangeLogFrame.GRM_CoreBanListFrame , "GameTooltipTemplate" );
+GRM_UI.GRM_RosterChangeLogFrame.GRM_CoreBanListFrame.GRM_BanHeaderTooltip:Hide();
 
 -- AUDIT FRAME
 GRM_UI.GRM_RosterChangeLogFrame.GRM_AuditFrame.GRM_AuditFrameTitleText = GRM_UI.GRM_RosterChangeLogFrame.GRM_AuditFrame:CreateFontString ( "GRM_AuditFrameTitleText" , "OVERLAY" , "GameFontNormal" );
@@ -886,6 +889,9 @@ GRM_UI.GRM_MemberDetailMetaData.GRM_AltGroupingScrollBorderFrame.GRM_AltGrouping
 GRM_UI.GRM_MemberDetailMetaData.GRM_AltGroupingScrollBorderFrame.GRM_AltGroupingRank = GRM_UI.GRM_MemberDetailMetaData.GRM_AltGroupingScrollBorderFrame:CreateFontString ( "GRM_AltGroupingRank" , "OVERLAY" , "GameFontNormal" );
 GRM_UI.GRM_MemberDetailMetaData.GRM_AltGroupingScrollBorderFrame.GRM_AltGroupingMain = GRM_UI.GRM_MemberDetailMetaData.GRM_AltGroupingScrollBorderFrame:CreateFontString ( "GRM_AltGroupingMain" , "OVERLAY" , "GameFontNormal" );
 GRM_UI.GRM_MemberDetailMetaData.GRM_AltGroupingScrollBorderFrame.GRM_AltGroupingLastOnline = GRM_UI.GRM_MemberDetailMetaData.GRM_AltGroupingScrollBorderFrame:CreateFontString ( "GRM_AltGroupingLastOnline" , "OVERLAY" , "GameFontNormal" );
+GRM_UI.GRM_MemberDetailMetaData.GRM_AltGroupingScrollBorderFrame.GRM_AltGroupHeaderTooltip = CreateFrame ( "GameTooltip" , "GRM_AltGroupHeaderTooltip" , GRM_UI.GRM_MemberDetailMetaData.GRM_AltGroupingScrollBorderFrame , "GameTooltipTemplate" );
+GRM_UI.GRM_MemberDetailMetaData.GRM_AltGroupingScrollBorderFrame.GRM_AltGroupHeaderTooltip:Hide();
+
 -- Tooltip
 GRM_UI.GRM_MemberDetailMetaData.GRM_AltGroupingTooltip = CreateFrame ( "GameTooltip" , "GRM_AltGroupingTooltip" , GRM_UI.GRM_MemberDetailMetaData , "GameTooltipTemplate" );
 GRM_UI.GRM_MemberDetailMetaData.GRM_AltGroupingTooltip:Hide();
@@ -997,6 +1003,8 @@ GRM_UI.NewTooltipScale = function()
     GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailNJDSyncTooltip:SetScale ( GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][50] - 0.15 );
     GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_UIOptionsFrame.GRM_GuildNameTooltip:SetScale ( GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][50] + 0.05 );
     GRM_UI.GRM_MemberDetailMetaData.GRM_AltGroupingTooltip:SetScale ( GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][50] - 0.15 );
+    GRM_UI.GRM_MemberDetailMetaData.GRM_AltGroupingScrollBorderFrame.GRM_AltGroupHeaderTooltip:SetScale ( GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][50] - 0.15 );
+    GRM_UI.GRM_RosterChangeLogFrame.GRM_CoreBanListFrame.GRM_BanHeaderTooltip:SetScale ( GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][50] + 0.05 );
     GRM_UI.GRM_MemberDetailMetaData.GRM_BirthdayTooltip:SetScale ( GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][50] - 0.15 )
     GRM_UI.GRM_RosterChangeLogFrame.GRM_AddonUsersFrame.GRM_AddonUsersTooltip:SetScale ( GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][50] + 0.05 );
 end
@@ -3145,7 +3153,7 @@ GRM_UI.GR_MetaDataInitializeUIThird = function( isManualUpdate )
 
             -- For birthdays
             elseif buttonName == GRM.L ( "Remove Date" ) then
-                GRM.ResetBirthdayForAltGroup ( altDetails[1] );
+                GRM.ResetBirthdayForAltGroup ( altDetails[1] , false , 0 , nil );
 
             -- For player online and active status
             elseif buttonName == GRM.L ( "Notify When Player Goes Offline" ) then
@@ -3190,13 +3198,6 @@ GRM_UI.GR_MetaDataInitializeUIThird = function( isManualUpdate )
     end);
 
     if not isManualUpdate then
-        GRM_UI.GRM_MemberDetailMetaData.GRM_AltGroupingScrollBorderFrame:SetScript ( "OnUpdate" , function ( _ , elapsed )
-            GRM_G.timer6 = GRM_G.timer6 + elapsed;
-            if GRM_G.timer6 > 10 then
-                GRM.BuildAltGroupingScrollFrame();
-                GRM_G.timer6 = 0;
-            end
-        end);
 
         -- These should not compete. Only one or the other will be visible.
         GRM_UI.GRM_CoreAltFrame.GRM_AddAltEditFrame:SetScript ( "OnShow" , function()
@@ -3701,6 +3702,8 @@ GRM_UI.MetaDataInitializeUIrosterLog1 = function( isManualUpdate )
         GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailNotifyStatusChangeTooltip:SetScale ( 0.65 );
         GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailNJDSyncTooltip:SetScale ( 0.65 );
         GRM_UI.GRM_MemberDetailMetaData.GRM_AltGroupingTooltip:SetScale ( 0.65 );
+        GRM_UI.GRM_MemberDetailMetaData.GRM_AltGroupingScrollBorderFrame.GRM_AltGroupHeaderTooltip:SetScale ( 0.65 );
+        GRM_UI.GRM_RosterChangeLogFrame.GRM_CoreBanListFrame.GRM_BanHeaderTooltip:SetScale ( 0.65 );
         GRM_UI.GRM_MemberDetailMetaData.GRM_BirthdayTooltip:SetScale ( 0.65 );
         GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_UIOptionsFrame.GRM_GuildNameTooltip:SetScale ( 0.85 );
     end
@@ -8002,12 +8005,11 @@ GRM_UI.MetaDataInitializeUIrosterLog2 = function()
         end
     end);
 
-    GRM_G.sortRestrictionTimer = 0;
     -- For tooltip on the audit frame...
     GRM_UI.GRM_RosterChangeLogFrame.GRM_AuditFrame:SetScript ( "OnUpdate" , function ( self , elapsed )
         GRM_G.auditTimer = GRM_G.auditTimer + elapsed;
         if GRM_G.auditTimer > 0.05 then
-            if GRM_AuditFrame:IsMouseOver() then
+            if self:IsMouseOver() then
                 local isOverAFrame = false;
                 if self.GRM_AuditScrollBorderFrame:IsMouseOver() then
                     for i = 1 , #self.GRM_AuditScrollChildFrame.AllFrameFontstrings do
@@ -9178,11 +9180,57 @@ GRM_UI.MetaDataInitializeUIrosterLog2 = function()
             GRM.QueryPlayersGUIDByFriendsList ( GRM.GetPlayersWithoutGUID() , 1 , true , false );
         end
     end);
-    GRM_UI.GRM_RosterChangeLogFrame.GRM_CoreBanListFrame:SetScript ( "OnHide" , function()
-        if GRM_UI.GRM_RosterChangeLogFrame.GRM_CoreBanListFrame.GRM_AddBanFrame:IsVisible() then
-            GRM_UI.GRM_RosterChangeLogFrame.GRM_CoreBanListFrame.GRM_AddBanFrame:Hide();
-        end
-    end);
+
+    if not isManualUpdate then
+        -- Logic for sorting the ban list frames
+        GRM_UI.GRM_RosterChangeLogFrame.GRM_CoreBanListFrame:SetScript ( "OnUpdate" , function ( self , elapsed )
+            GRM_G.TimerBanUpdate = GRM_G.TimerBanUpdate + elapsed;
+            if GRM_G.TimerBanUpdate > 0.05 then
+                if GetMouseFocus() == GRM_UI.GRM_RosterChangeLogFrame and IsMouseButtonDown ( 1 ) and ( time() - GRM_G.sortRestrictionTimer ) > 0.2 then
+                    GRM_G.sortRestrictionTimer = time();
+                    local needsRefresh = false;
+
+                    local setValue = function ( int )
+                        if GRM_G.banDetailsControl[1] ~= int then
+                            GRM_G.banDetailsControl = { int , true };
+                        else
+                            if GRM_G.banDetailsControl[2] then
+                                GRM_G.banDetailsControl[2] = false;
+                            else
+                                GRM_G.banDetailsControl[2] = true;
+                            end
+                        end
+                    end
+
+                    if self.GRM_CoreBanListFrameTitleText2:IsMouseOver ( 1 , -1 , -1 , 1 ) then
+                        setValue ( 2 );
+                        needsRefresh = true;
+                    elseif self.GRM_CoreBanListFrameTitleText3:IsMouseOver ( 1 , -1 , -1 , 1 ) then
+                        setValue ( 3 );
+                        needsRefresh = true;
+                    elseif self.GRM_CoreBanListFrameTitleText4:IsMouseOver ( 1 , -1 , -1 , 1 ) then
+                        setValue ( 4 );
+                        needsRefresh = true;
+                    end
+                    if needsRefresh then
+                        GRM.RefreshBanListFrames();
+                    end
+                end
+
+                if self.GRM_CoreBanListFrameTitleText2:IsMouseOver ( 1 , -1 , -1 , 1 ) or self.GRM_CoreBanListFrameTitleText3:IsMouseOver ( 1 , -1 , -1 , 1 ) or self.GRM_CoreBanListFrameTitleText4:IsMouseOver ( 1 , -1 , -1 , 1 ) then
+                    if not self.GRM_BanHeaderTooltip:IsVisible() then
+                        self.GRM_BanHeaderTooltip:SetOwner ( self , "ANCHOR_CURSOR" );
+                        self.GRM_BanHeaderTooltip:AddLine( GRM.L ( "Click to Sort" ) );
+                        self.GRM_BanHeaderTooltip:Show();
+                    end;
+                elseif self.GRM_BanHeaderTooltip:IsVisible() then
+                    self.GRM_BanHeaderTooltip:Hide();
+                end
+
+                GRM_G.TimerBanUpdate = 0;
+            end
+        end);
+    end
 
     -- Removing a player from the ban list that is no longer in the guild.
     GRM_UI.GRM_RosterChangeLogFrame.GRM_CoreBanListFrame.GRM_BanListRemoveButton:SetScript ( "OnClick" , function( _ , button )
@@ -9528,7 +9576,7 @@ GRM_UI.MetaDataInitializeUIrosterLog2 = function()
             GRM_UI.GRM_MemberDetailMetaData.GRM_AltGroupingScrollBorderFrame.GRM_AltGroupingScrollFrame:SetVerticalScroll ( self:GetValue() );
     end);
 
-    GRM_UI.GRM_MemberDetailMetaData.GRM_AltGroupingScrollBorderFrame.GRM_AltGroupingScrollChildFrame.GRM_MainTag:SetFont ( GRM_G.FontChoice , GRM_G.FontModifier + 7.5 );
+    GRM_UI.GRM_MemberDetailMetaData.GRM_AltGroupingScrollBorderFrame.GRM_AltGroupingScrollChildFrame.GRM_MainTag:SetFont ( GRM_G.FontChoice , GRM_G.FontModifier + 7 );
     GRM_UI.GRM_MemberDetailMetaData.GRM_AltGroupingScrollBorderFrame.GRM_AltGroupingScrollChildFrame.GRM_MainTag:SetText ( GRM.L ( "(main)" ) );
     GRM_UI.GRM_MemberDetailMetaData.GRM_AltGroupingScrollBorderFrame.GRM_AltGroupingScrollChildFrame.GRM_MainTag:SetTextColor ( 1.0 , 0.0 , 0.0 , 1.0 );
 
@@ -9590,6 +9638,67 @@ GRM_UI.MetaDataInitializeUIrosterLog2 = function()
             self:Hide();
         end
     end);
+
+    -- Logic for initializing the sort lists of the alt grouping shift-click side frams
+    GRM_UI.GRM_MemberDetailMetaData.GRM_AltGroupingScrollBorderFrame:SetScript ( "OnMouseDown" , function ( self , button )
+        if button == "LeftButton" then
+            local needsRefresh = false;
+
+            local setValue = function ( int )
+                if GRM_G.altDetailsControl[1] ~= int then
+                    GRM_G.altDetailsControl = { int , true };
+                else
+                    if GRM_G.altDetailsControl[2] then
+                        GRM_G.altDetailsControl[2] = false;
+                    else
+                        GRM_G.altDetailsControl[2] = true;
+                    end
+                end
+            end
+
+            if GRM_UI.GRM_MemberDetailMetaData.GRM_AltGroupingScrollBorderFrame.GRM_AltGroupingName:IsMouseOver ( 1 , -1 , -1 , 1 ) then
+                setValue ( 1 );
+                needsRefresh = true;
+            elseif GRM_UI.GRM_MemberDetailMetaData.GRM_AltGroupingScrollBorderFrame.GRM_AltGroupingLastOnline:IsMouseOver ( 1 , -1 , -1 , 1 ) then
+                setValue ( 2 );
+                needsRefresh = true;
+            elseif GRM_UI.GRM_MemberDetailMetaData.GRM_AltGroupingScrollBorderFrame.GRM_AltGroupingLevel:IsMouseOver ( 1 , -1 , -1 , 1 ) then
+                setValue ( 3 );
+                needsRefresh = true;
+            elseif GRM_UI.GRM_MemberDetailMetaData.GRM_AltGroupingScrollBorderFrame.GRM_AltGroupingRank:IsMouseOver ( 1 , -1 , -1 , 1 ) then
+                setValue ( 4 );
+                needsRefresh = true;
+            end
+
+            if needsRefresh then
+                GRM.BuildAltGroupingScrollFrame();
+            end
+        end
+    end);
+
+    if not isManualUpdate then
+        GRM_UI.GRM_MemberDetailMetaData.GRM_AltGroupingScrollBorderFrame:SetScript ( "OnUpdate" , function ( self , elapsed )
+            GRM_G.timer6 = GRM_G.timer6 + elapsed;
+            GRM_G.timer7 = GRM_G.timer7 + elapsed;
+            if GRM_G.timer6 > 0.05 then
+                if ( self.GRM_AltGroupingName:IsMouseOver ( 1 , -1 , -1 , 1 ) or self.GRM_AltGroupingLastOnline:IsMouseOver ( 1 , -1 , -1 , 1 ) or self.GRM_AltGroupingLevel:IsMouseOver ( 1 , -1 , -1 , 1 ) or self.GRM_AltGroupingRank:IsMouseOver ( 1 , -1 , -1 , 1 ) ) then
+                    if not self.GRM_AltGroupHeaderTooltip:IsVisible() then
+                        self.GRM_AltGroupHeaderTooltip:SetOwner ( self , "ANCHOR_CURSOR" );
+                        self.GRM_AltGroupHeaderTooltip:AddLine( GRM.L ( "Click to Sort" ) );
+                        self.GRM_AltGroupHeaderTooltip:Show();
+                    end;
+                elseif self.GRM_AltGroupHeaderTooltip:IsVisible() then
+                    self.GRM_AltGroupHeaderTooltip:Hide();
+                end
+                
+                if GRM_G.timer7 > 300 then
+                    GRM.BuildAltGroupingScrollFrame();      -- Rebuild every 5 min just in case changes.
+                    GRM_G.timer7 = 0;
+                end
+                GRM_G.timer6 = 0;
+            end
+        end);
+    end
 
     -- GENERAL POPUP WINDOW FOR ANY FEATURE TO USE
     GRM_UI.GRM_GeneralPopupWindow:Hide();

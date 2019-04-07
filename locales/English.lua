@@ -940,4 +940,17 @@ GRML.English = function()
     GRM_L["Former and Current Members"] = true
     GRM_L["No Matches Found. Add a Custom New Player or Match"] = true       -- as in, autocomplete typing matching
 
+    --1.50
+    GRM_L["{name}'s alt grouping has had their Birthday removed by: {name2}"] = true
+    GRM_L["{name}'s Birthday has been removed by: {name2}"] = true
+    GRM_L["Click to Sort"] = true
+    GRM_L["No Updates"] = true
+
+    -- If ppossible, try to maintain the allignment of the numbers, but only if it makes sense.
+    GRM_L["{num}: Join Dates"] = true
+    GRM_L["{num}: Promo Dates"] = true
+    GRM_L["{num}: Alts"] = true
+    GRM_L["{num}: Main Tags"] = true
+    GRM_L["{num}: Custom Notes"] = true
+    GRM_L["{num}: Birthdays"] = true
 end
