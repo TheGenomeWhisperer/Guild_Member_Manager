@@ -8,7 +8,6 @@ local chat = DEFAULT_CHAT_FRAME;
 -- What it Does:    Holds the patch logic for when people upgrade the addon
 -- Purpose:         To keep the database healthy and corrected from dev design errors and unanticipated consequences of code.
 GRM_Patch.SettingsCheck = function ( numericV )
-    print("TEST")
     -- Introduced in 1.133 - placed in the beginning to to critcal issue with database
     if numericV < 1.133 then
         GRM.CleanupGuildNames();
@@ -306,12 +305,18 @@ GRM_Patch.SettingsCheck = function ( numericV )
 
     if numericV < 1.47 then
         GRM_Patch.IntegrityCheckAndFixBdayAndAnniversaryEvents();
+        GRM_Patch.ModifyNewDefaultSetting ( 19 , true );                                                                               -- Needs to be reset to only sync with players with current version due to overhaul
         GRM_Patch.ModifyNewDefaultSetting ( 24 , 1 );                                           -- Due to the changes in sync, resetting people back to defautl 100% as some are killing themselves too low lol
         GRM_Patch.SortGuildRosterDeepArray();
         GRM_Patch.PlayerMetaDataDatabaseWideEdit ( GRM_Patch.CleanUpAltLists , true , false , true );
         GRM_Patch.PlayerMetaDataDatabaseWideEdit ( GRM_Patch.RemoveUnnecessaryHours , true , false , false );
         GRM_Patch.PlayerMetaDataDatabaseWideEdit ( GRM_Patch.CleanupPromoDateSyncErrorForRejoins , true , false , false );
         GRM_Patch.PlayerMetaDataDatabaseWideEdit ( GRM_Patch.CleanupPromoJoinDateOriginalTemplateDates , true , false , false );
+        GRM_Patch.PlayerMetaDataDatabaseWideEdit ( GRM_Patch.CleanupBirthdayRepeats , true , false , true );
+        GRM_Patch.PlayerMetaDataDatabaseWideEdit ( GRM_Patch.SlimBanReason , true , true , true );
+    
+    
+    
     end
 end
         -------------------------------
@@ -2515,5 +2520,45 @@ GRM_Patch.CleanupPromoJoinDateOriginalTemplateDates = function ( player )
     return player;
 end
 
+-- 1.50
+-- Method:          GRM_Patch.CleanupBirthdayRepeats ( array , array )
+-- What it Does:    Checks for birthday repeats due to previous bug...
+-- Purpose:         Remove previous database error
+GRM_Patch.CleanupBirthdayRepeats = function( guildData , player )
+    local count = 1;
+    if player[22][2][1][1] > 0 then
+        for i = 2 , #guildData do
+            if guildData[i][22][2][1][1] == player[22][2][1][1] and guildData[i][22][2][1][2] == player[22][2][1][2] then
+                -- Birthdays found
+                count = count + 1;
+            end
+            if count > 17 then  -- Clears the birthdays of people with more than 17 total toons - minimizes data cleaneup to affect only those with real issue or those with multi accounts, so more rare
+                -- Need to cleanup all birthdays of this date.
+                GRM.CleanupBirthdays ( guildData[i][22][2][1][1] , guildData[i][22][2][1][2] , false );
+                break;
+            end
+        end
+    end
+    return player;
+end
+
+-- 1.50
+
+-- Method:          GRM_Patch.SlimBanReason( array );
+-- What it Does:    Cleans up Ban list reasons to fit properly as there was some override allowed previously due to erro
+-- Purpose:         Prevent failure to sync bans because of this issue
+GRM_Patch.SlimBanReason = function ( player )
+    if type ( player[18] ) ~= "string" then
+        player[18] = "";
+    else
+        if #player[18] > 75 then
+            player[18] = string.sub ( player[18] , 1 , 74 );
+        end
+    end
+    return player;
+end
+
+-- /run local c=GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ];GRM_Patch.CleanupBirthdayRepeats(c,c[3]);
+-- /run local c=GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ];for i = 2,#c do if c[i][22][2][1][1]==0 then GRM.SetBirthday(c[i][1],8,9,1,"8 Sep '19'",time(),true,"Arkaan-Zul'jin",false);end;end
 -- /run GRM_Patch.PlayerMetaDataDatabaseWideEdit ( GRM_Patch.CleanupPromoJoinDateOriginalTemplateDates , true , false )
 -- /run local g=GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ]; for i = 2 , #g do if g[i][12]~= nil and g[i][36][1]=="" then print(i);end;end
