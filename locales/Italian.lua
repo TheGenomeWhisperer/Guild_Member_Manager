@@ -85,6 +85,7 @@
 			GRM_L["Joined"] = "È Entrato"
 			GRM_L["Left:"] = "Ha Lasciato:"                               -- as in, "Left" the guild
 			GRM_L["Rejoined:"] = "È Rientrato il:"                           -- as in, "Rejoined" the guild
+			GRM_L["Rejoined"] = "È Rientrato il"
 			GRM_L["Reset Data!"] = "Resetta Dati!"
 			GRM_L["Notify When Player is Active"] = "Manda una notifica quando il giocatore torna attivo"
 			GRM_L["Notify When Player Goes Offline"] = "Manda una notifica quando il giocatore va Offline"
@@ -782,9 +783,6 @@
 		GRM_L["Recruit window will open when combat ends."] = "La finestra di reclutamento si aprirà alla fine del combattimento"
 		GRM_L["GRM window will open when combat ends."] = "La finestra di GRM si aprirà alla fine del combattimento"
 		
-		-- R1.22
-		GRM_L["Please manually select your guild to view player details"] = "Seleziona manualmente la tua gilda per vedere i dettagli dei giocatori"
-	
 		-- R1.24
 		GRM_L["This also will change the <Alt> format to match"] = "Anche il formato degli <Alt> verrà cambiato"
 		GRM_L["M"] = "M"                                           -- Of note, the "M" is short for "Main" and this is the reference to the main tag on alts in guild chat. For use in the Main tagging <M> (M) etc...
@@ -957,6 +955,27 @@
 		GRM_L["Click or Press TAB to cycle through each step."] = "Clicca o premi Tab per scorrere tra le opzioni"
 		GRM_L["Former and Current Members"] = "Ex e attuali membri"
 		GRM_L["No Matches Found. Add a Custom New Player or Match"] = "Nessun riscontro trovato." --WIP      -- as in, autocomplete typing matching
+		
+		--1.50
+		GRM_L["{name}'s alt grouping has had their Birthday removed by: {name2}"] = true
+		GRM_L["{name}'s Birthday has been removed by: {name2}"] = true
+		GRM_L["Click to Sort"] = true
+		GRM_L["No Updates"] = true
+		GRM_L["Timestamp Formatting has been Globally Set to: < {name} >"] = true
+		GRM_L["Your Guild Leader Has Globally Set the Timestamp Formatting to: < {name} >"] = true
+		GRM_L["Unable to Modify. Global setting is set to :   {name}"] = true
+		GRM_L["'g1^X' - Establish a universal timestamp format based on dropdown selection position"] = true
+	
+		-- If ppossible, try to maintain the allignment of the numbers, but only if it makes sense.
+		GRM_L["{num}{custom1}: Join Dates"] = true
+		GRM_L["{num}{custom1}: Promo Dates"] = true
+		GRM_L["{num}{custom1}: Alts"] = true
+		GRM_L["{num}{custom1}: Main Tags"] = true
+		GRM_L["{num}{custom1}: Custom Notes"] = true
+		GRM_L["{num}{custom1}: Birthdays"] = true
+		
+		-- 1.52
+		GRM_L["Times in Guild: {num}"] = true
 		
 	end
 	

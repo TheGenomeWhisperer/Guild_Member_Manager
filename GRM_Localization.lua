@@ -1,6 +1,5 @@
 
 
-
 -- LOCALIZATION ENUMS AND LOGIC
 
 -- Table used for lookup, to determine the extent of the translation work compelted or not. This will be used as a quick lookup reference rather than parsing and counting the entire dictionaries

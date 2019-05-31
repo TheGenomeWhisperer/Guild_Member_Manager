@@ -84,6 +84,7 @@ GRML.Russian = function()
     GRM_L["Joined"] = "Вербовка"
     GRM_L["Left:"] = "Покинул:"                            	-- as in, "Left" the guild
     GRM_L["Rejoined:"] = "Вернулся:"                         -- as in, "Rejoined" the guild
+    GRM_L["Rejoined"] = "Вернулся"
     GRM_L["Reset Data!"] = true
     GRM_L["Notify When Player is Active"] = true
     GRM_L["Notify When Player Goes Offline"] = true
@@ -771,10 +772,6 @@ GRML.Russian = function()
     GRM_L["Recruit window will open when combat ends."] = true
     GRM_L["GRM window will open when combat ends."] = true
 	
-	-- R1.22
-    -- R1.22
-    GRM_L["Please manually select your guild to view player details"] = true
-
     -- R1.24
     GRM_L["This also will change the <Alt> format to match"] = true
     GRM_L["M"] = true                                           -- Of note, the "M" is short for "Main" and this is the reference to the main tag on alts in guild chat. For use in the Main tagging <M> (M) etc...
@@ -946,6 +943,27 @@ GRML.Russian = function()
     GRM_L["Click or Press TAB to cycle through each step."] = true
     GRM_L["Former and Current Members"] = true
     GRM_L["No Matches Found. Add a Custom New Player or Match"] = true       -- as in, autocomplete typing matching
+    
+    --1.50
+    GRM_L["{name}'s alt grouping has had their Birthday removed by: {name2}"] = true
+    GRM_L["{name}'s Birthday has been removed by: {name2}"] = true
+    GRM_L["Click to Sort"] = true
+    GRM_L["No Updates"] = true
+    GRM_L["Timestamp Formatting has been Globally Set to: < {name} >"] = true
+    GRM_L["Your Guild Leader Has Globally Set the Timestamp Formatting to: < {name} >"] = true
+    GRM_L["Unable to Modify. Global setting is set to :   {name}"] = true
+    GRM_L["'g1^X' - Establish a universal timestamp format based on dropdown selection position"] = true
+
+    -- If ppossible, try to maintain the allignment of the numbers, but only if it makes sense.
+    GRM_L["{num}{custom1}: Join Dates"] = true
+    GRM_L["{num}{custom1}: Promo Dates"] = true
+    GRM_L["{num}{custom1}: Alts"] = true
+    GRM_L["{num}{custom1}: Main Tags"] = true
+    GRM_L["{num}{custom1}: Custom Notes"] = true
+    GRM_L["{num}{custom1}: Birthdays"] = true
+
+    -- 1.52
+    GRM_L["Times in Guild: {num}"] = true
     
 end
 

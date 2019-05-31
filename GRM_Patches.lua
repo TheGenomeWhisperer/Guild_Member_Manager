@@ -303,26 +303,41 @@ GRM_Patch.SettingsCheck = function ( numericV )
         GRM_Patch.ModifyPlayerMetadata ( 37 , {} , false );
     end
 
-    if numericV < 1.47 then
+    if numericV < 1.50 then
         GRM_Patch.IntegrityCheckAndFixBdayAndAnniversaryEvents();
-        GRM_Patch.ModifyNewDefaultSetting ( 19 , true );                                                                               -- Needs to be reset to only sync with players with current version due to overhaul
+        GRM_Patch.ModifyNewDefaultSetting ( 19 , true );                                        -- Needs to be reset to only sync with players with current version due to overhaul
         GRM_Patch.ModifyNewDefaultSetting ( 24 , 1 );                                           -- Due to the changes in sync, resetting people back to defautl 100% as some are killing themselves too low lol
         GRM_Patch.SortGuildRosterDeepArray();
         GRM_Patch.PlayerMetaDataDatabaseWideEdit ( GRM_Patch.CleanUpAltLists , true , false , true );
-        GRM_Patch.PlayerMetaDataDatabaseWideEdit ( GRM_Patch.RemoveUnnecessaryHours , true , false , false );
-        GRM_Patch.PlayerMetaDataDatabaseWideEdit ( GRM_Patch.CleanupPromoDateSyncErrorForRejoins , true , false , false );
-        GRM_Patch.PlayerMetaDataDatabaseWideEdit ( GRM_Patch.CleanupPromoJoinDateOriginalTemplateDates , true , false , false );
+        GRM_Patch.PlayerMetaDataDatabaseWideEdit ( GRM_Patch.RemoveUnnecessaryHours , true , true , false );
+        GRM_Patch.PlayerMetaDataDatabaseWideEdit ( GRM_Patch.CleanupPromoDateSyncErrorForRejoins , true , true , false );
+        GRM_Patch.PlayerMetaDataDatabaseWideEdit ( GRM_Patch.CleanupPromoJoinDateOriginalTemplateDates , true , true , false );
         GRM_Patch.PlayerMetaDataDatabaseWideEdit ( GRM_Patch.CleanupBirthdayRepeats , true , false , true );
-        GRM_Patch.PlayerMetaDataDatabaseWideEdit ( GRM_Patch.SlimBanReason , true , true , true );
-    
-    
-    
+        GRM_Patch.PlayerMetaDataDatabaseWideEdit ( GRM_Patch.CleanupBanFormat , true , true , false );
+        GRM_Patch.PlayerMetaDataDatabaseWideEdit ( GRM_Patch.SlimBanReason , true , true , false );
+        GRM_Patch.PlayerMetaDataDatabaseWideEdit ( GRM_Patch.CleanupRemovedAlts , true , true , true );
+        GRM_Patch.FinalAltListCleanup()
+        GRM_Patch.PlayerMetaDataDatabaseWideEdit ( GRM_Patch.CleanupCustomNoteError , true , true , false );
+        GRM_Patch.PlayerMetaDataDatabaseWideEdit ( GRM_Patch.CleanupJoinAndPromosSetUnknownError , true , true , false );
+    end
+
+    if numericV < 1.51 then
+        GRM_Patch.PlayerMetaDataDatabaseWideEdit ( GRM_Patch.CleanupPromoDateSituation , true , true , false );
+    end
+
+    if numericV < 1.53 then
+        GRM_Patch.GuildDataDatabaseWideEdit ( GRM_Patch.CleanupJoinDateError );
+    end
+
+    if numericV < 1.56 then
+        GRM_Patch.ExpandOptionsType ( 2 , 1 , 68 );                 -- Add boolean for checkbox for JD Audit tool
+        GRM_Patch.ModifyNewDefaultSetting ( 69 , false ); 
     end
 end
+
         -------------------------------
         --- START PATCH LOGIC ---------
         -------------------------------
-
 
 -- Introduced Patch R1.092
 -- Alt tracking of the player - so it can auto-add the player's own alts to the guild info on use.
@@ -889,8 +904,29 @@ end
 -- Purpose:         To create a universally reusable patcher.
 GRM_Patch.ModifyNewDefaultSetting = function ( index , newSetting )
     for i = 1 , #GRM_AddonSettings_Save do
-        for j = 2 , #GRM_AddonSettings_Save[i] do
-            GRM_AddonSettings_Save[i][j][2][index] = newSetting;
+        for j = #GRM_AddonSettings_Save[i] , 2 , -1 do
+            if GRM_AddonSettings_Save[i][j][2] ~= nil and GRM_AddonSettings_Save[i][j][2][index] ~= nil then
+                GRM_AddonSettings_Save[i][j][2][index] = newSetting;
+            else
+                table.remove ( GRM_AddonSettings_Save[i] , j );
+
+                -- Double check if it is current player still is found
+                local isFound = false;
+                for k = 2 , #GRM_AddonSettings_Save[GRM_G.FID] do
+                    if GRM_AddonSettings_Save[GRM_G.FID][k][1] == GRM_G.addonPlayerName then
+                        isFound = true;
+                        break;
+                    end
+                end
+                if not isFound then -- Edge case scenario of addon settings being lost thus are replaced with defaults.
+                    table.insert ( GRM_AddonSettings_Save[GRM_G.FID] , { GRM_G.addonPlayerName } );
+                    GRM_G.setPID = #GRM_AddonSettings_Save[GRM_G.FID];
+                    table.insert ( GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID] , GRM.GetDefaultAddonSettings() );
+                    GRM_G.IsNewToon = true;
+                    -- Forcing core log window/options frame to load on the first load ever as well
+                    GRM_G.ChangesFoundOnLoad = true;
+                end
+            end
         end
     end
 end
@@ -2297,7 +2333,7 @@ GRM_Patch.FixAltListsDatabaseWide = function()
     end
 end
 
--- 1.47
+-- 1.50
 -- Method:          GRM_Patch.IntegrityCheckAndFixBdayAndAnniversaryEvents()
 -- What it Does:    Rechecks database conversion integrity due to previous issue where in the process of converting, the database did not convert properly, and then rebuilds it properly if issue found
 -- Purpose:         In a prior update it has been discovered that a select few people while they were updating, the whole thing came to a crashing fault due to a lua error elsewhere in the addon that caused the process
@@ -2353,7 +2389,7 @@ GRM_Patch.IntegrityCheckAndFixBdayAndAnniversaryEvents = function()
     end
 end
 
--- 1.47
+-- 1.50
 -- Method:              GRM_Patch.SortGuildRosterDeepArray()
 -- What it Does:        Sorts all character data stored arrays
 -- Purpose:             To keep the databases alphabetized and the same between databases.
@@ -2387,7 +2423,7 @@ GRM_Patch.SortGuildRosterDeepArray = function()
     end
 end
 
--- 1.47
+-- 1.50
 -- Method:          GRM_Patch.PlayerMetaDataDatabaseWideEdit ( function , bool , bool )
 -- What it Does:    Implements the function logic argument on all metadata profiles of all character profiles database wide: in-guild, previously in-guild, and all backup data indexes
 -- Purpose:         Patch code bloat getting large. Streamline the process of writing patches a bit and allow me to condense previous changes as well without risk of inconsistent
@@ -2444,7 +2480,7 @@ GRM_Patch.PlayerMetaDataDatabaseWideEdit = function ( databaseChangeFunction , e
     end
 end
 
--- 1.47
+-- 1.50
 -- Method:          GRM_Patch.CleanUpAltLists( MDarray , MDarray )
 -- What it Does:    Removes alts that are listed still but yet are not actually in the guild.
 -- Purpose:         Previous error discovered in edge case scenario that could cause an alt to not be fully removed from the database even if their toon is removed from the guild.
@@ -2466,7 +2502,7 @@ GRM_Patch.CleanUpAltLists = function( guildData , player )
     return player;
 end
 
--- 1.47
+-- 1.50
 -- Method:          GRM_Patch.RemoveUnnecessaryHours ( array )
 -- What it Does:    Removes the hour/min stamps on the join date timestamps
 -- Purpose:         Due to previous error when syncing join dates, the unnecesary hour stamp was included and is just wasted space and no need to force addon to parse everytime.
@@ -2477,7 +2513,7 @@ GRM_Patch.RemoveUnnecessaryHours = function (  player )
     return player;
 end
 
--- 1.47
+-- 1.50
 -- Method:          GRM_Patch.CleanupPromoDateSyncErrorForRejoins ( array )
 -- What it Does:    if the player has a promotion date stored, yet has empty sync data, this cleans it up.
 -- Purpose:         Due to a previous erro whose source has been squashed, the template placeholder date was included and sync'd around, overwriting as legit.
@@ -2488,7 +2524,7 @@ GRM_Patch.CleanupPromoDateSyncErrorForRejoins = function ( player )
     return player;
 end
 
--- 1.47
+-- 1.50
 -- Method:          GRM_Patch.CleanupPromoJoinDateOriginalTemplateDates ( array )
 -- What it Does:    Removes the placeholder template that has existed on error and spread around thanks to sync
 -- Purpose:         Cleanup the database 
@@ -2526,16 +2562,20 @@ end
 -- Purpose:         Remove previous database error
 GRM_Patch.CleanupBirthdayRepeats = function( guildData , player )
     local count = 1;
-    if player[22][2][1][1] > 0 then
-        for i = 2 , #guildData do
-            if guildData[i][22][2][1][1] == player[22][2][1][1] and guildData[i][22][2][1][2] == player[22][2][1][2] then
-                -- Birthdays found
-                count = count + 1;
-            end
-            if count > 17 then  -- Clears the birthdays of people with more than 17 total toons - minimizes data cleaneup to affect only those with real issue or those with multi accounts, so more rare
-                -- Need to cleanup all birthdays of this date.
-                GRM.CleanupBirthdays ( guildData[i][22][2][1][1] , guildData[i][22][2][1][2] , false );
-                break;
+    if player[22][2][1] == nil or player[22][2][1][1] == nil then
+        player[22][2] = { { 0 , 0 , 0 } , false , "" , 0 };
+    else
+        if player[22][2][1][1] > 0 then
+            for i = 2 , #guildData do
+                if guildData[i][22][2][1][1] == player[22][2][1][1] and guildData[i][22][2][1][2] == player[22][2][1][2] then
+                    -- Birthdays found
+                    count = count + 1;
+                end
+                if count > 17 then  -- Clears the birthdays of people with more than 17 total toons - minimizes data cleaneup to affect only those with real issue or those with multi accounts, so more rare
+                    -- Need to cleanup all birthdays of this date.
+                    GRM.CleanupBirthdays ( guildData[i][22][2][1][1] , guildData[i][22][2][1][2] , false , guildData );
+                    break;
+                end
             end
         end
     end
@@ -2543,7 +2583,6 @@ GRM_Patch.CleanupBirthdayRepeats = function( guildData , player )
 end
 
 -- 1.50
-
 -- Method:          GRM_Patch.SlimBanReason( array );
 -- What it Does:    Cleans up Ban list reasons to fit properly as there was some override allowed previously due to erro
 -- Purpose:         Prevent failure to sync bans because of this issue
@@ -2558,7 +2597,272 @@ GRM_Patch.SlimBanReason = function ( player )
     return player;
 end
 
+-- 1.50
+-- Method:          GRM_Patch.CleanupBanFormat ( array )
+-- What it Does:    Checks proper formatting of the ban table and fixes it.
+-- Purpose:         Fix previous error in the ban system.
+GRM_Patch.CleanupBanFormat = function ( player )
+    if type ( player[17] ) ~= "table" or #player[17] ~= 4 then
+        player[17] = { false , 0 , false , "" };
+        player[18] = "";
+    end
+
+    return player;
+end
+
+-- 1.50
+-- Method:          GRM_Patch.CleanupRemovedAlts ( string )
+-- What it Does:    Cleans up all the "Remove Alt" data in a guild in resets it.
+-- Purpose:         Due to a discovery in a flaw in how this data was stored when a player is removed from the guild, it has been fixed at the source in code, but 
+--                  this is kind of a messy fix and just needs a hard reset. It likely won't affect players' alt lists much at all.
+GRM_Patch.CleanupRemovedAlts = function ( guildData , player )
+    local isFound = false;
+    if #player[37] > 0 then
+        -- Next, determine if player is no longer in the guild
+        for i = #player[37] , 1 , -1 do
+            isFound = false;
+            for j = 2 , #guildData do
+                if guildData[j][1] == player[37][i][1] then
+                    isFound = true;
+                    break;
+                end
+            end
+            if not isFound then
+                table.remove ( player[37] , i );
+            end
+        end
+        player[37] = GRM_Patch.FixAltCopies(player[37]);
+    end
+    return player;
+end
+
+-- 1.50
+-- Method:          GRM_Patch.FinalAltListCleanup()
+-- What it Does:    Fixes some previous flaws to align the database properly
+-- Purpose:         To enable quick syncing pre-check comparisons the compare strings need to be exactl
+-- Algorithm steps.
+-- Step 1:  Determine if player has alts
+-- Step 2:  Cycle through each alt of his own and find its index in the database
+-- Step 3:  Determine if his name is on that al list
+-- Step 4:  If not on the alt list, add the alt properly.
+-- Step 5:  Remove altName from all other groupings
+-- Step 5a: Ensure current list of alts is added to and maintained as reference
+GRM_Patch.FinalAltListCleanup = function ()
+    local guildData = GRM_GuildMemberHistory_Save;
+    local isFound = false;
+    local classColors = {};
+    local collectedIndexes = {};
+
+    local isValidIndex = function ( ind )
+        local result = true;
+        for i = 1 , #collectedIndexes do
+            if collectedIndexes[i] == ind then
+                result = false;
+            end
+        end
+        return result;
+    end
+
+    for p = 1 , #guildData do
+        for q = 2 , #guildData[p] do
+
+            for i = 2 , #guildData[p][q] do
+                if #guildData[p][q][i][11] > 0 then
+                    collectedIndexes = {};
+                    -- Player has been found with alts
+                    -- Now, cycling through each alt
+                    for m = 1 , #guildData[p][q][i][11] do
+                        isFound = false;
+                        -- Checking the alts lits of each alt, determine if player is on it.
+                        for k = 2 , #guildData[p][q] do
+                            if guildData[p][q][i][11][m][1] == guildData[p][q][k][1] then       -- Player's initial alt has had their alt grouping found...
+                                -- Collecting the index 
+                                table.insert ( collectedIndexes , k );
+                                -- Now, let's determine if main player is on each of their lists properly
+                                for r = 1 , #guildData[p][q][k][11] do
+                                    if guildData[p][q][k][11][r][1] == guildData[p][q][i][1] then
+                                        isFound = true;
+                                        -- Confirmed! Player is on the alt lists of his alts.
+                                        break;
+                                    end
+                                end
+                                if not isFound then
+                                    -- Let's add it!
+                                    classColors = GRM.GetClassColorRGB ( guildData[p][q][i][9] , false );
+                                    table.insert ( guildData[p][q][k][11] , { guildData[p][q][i][1] , classColors[1] , classColors[2] , classColors[3] , guildData[p][q][i][10] , time() } );
+                                end
+                                break;
+                            end
+                        end
+                    end
+
+                    -- Now, remove the alt from all other alt Groupings...
+                    for j = 2 , #guildData[p][q] do
+                        if isValidIndex ( j ) then                  -- No need to check players that are saved.
+                            for m = #guildData[p][q][j][11] , 1 , -1 do
+                                if guildData[p][q][j][11][m][1] == guildData[p][q][i][1] then
+                                    table.remove ( guildData[p][q][i][11] , m );
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+            
+        end
+    end
+end
+
+-- 1.50
+-- Method:          GRM_Patch.CleanupCustomNoteError()
+-- What it Does:    Checks the end of the custom note for a '?' sendAddonMessage comms divider. If found, it checks if next is an index number, if so, it clears the last 2 markers at end, example, like "9?"
+-- Purpose:         This is due to incorrect parsing previously on sync that in some cases added an X number with divider at end of the new custom note, so like "Arkaan's Discord Name is Arkaan9?"
+--                  The source of the error is now resolved, so just cleaning up notes where this may apply
+GRM_Patch.CleanupCustomNoteError = function( player )
+    if player[23][6] == nil then
+        -- let's fix it if it's broken!!!
+        player[23] = { true , 0 , "" , GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][49] , false , "" };
+    elseif #player[23][6] > 2 and string.sub ( player[23][6] , #player[23][6] , #player[23][6] ) == "?" and tonumber ( string.sub ( player[23][6] , #player[23][6] - 1 , #player[23][6] -1 ) ) ~= nil then
+        player[23][6] = string.sub ( player[23][6] , 1 , #player[23][6] - 2 );
+    end
+    return player
+end
+
+-- 1.50
+-- Method:          GRM_Patch.CleanupJoinAndPromosSetUnknownError ( array )
+-- What it Does:    Rebuilds the database properly for a previous "Set as Unknown" bug that existed.
+-- Purpose:         To cleanup previous errors
+GRM_Patch.CleanupJoinAndPromosSetUnknownError = function( player )
+    -- join date
+    if #player[20] == 0 and player[36][1] ~= "" and player[35][1] ~= "1 Jan '01" and player[35][1] ~= "1 Jan '01 12:01am" then
+        if player[35][1] ~= GRMsync.SlimDate ( GRM.GetTimestamp() ) then
+            table.insert ( player[20] , GRMsync.SlimDate ( player[35][1] ) );
+            table.insert ( player[21] , player[35][2] );
+            player[40] = false;     -- unknown set to false
+        end
+    end
+    
+    -- promo date
+    if player[12] == nil and player[36][1] ~= "" and player[36][1] ~= "1 Jan '01" and player[36][1] ~= "1 Jan '01 12:01am" then
+        player[12] = GRMsync.SlimDate ( player[36][1] );
+        player[13] = player[36][2];
+        player[41] = false;     -- unknown set to false
+    end
+
+    return player;
+end
+
+-- 1.51
+-- Method:          GRM_Patch.CleanupPromoDateSituation ( array )
+-- What it Does:    Fixes an old issue with the database
+-- Purpose:         Prevent Lua errors when reporting times are off when looking at their dates.
+GRM_Patch.CleanupPromoDateSituation = function( player )
+    if #player[20] > 0 and player[20][1] == "" then
+        player[20] = {};
+    end
+
+    if player[12] ~= nil and player[12] == "" then
+        player[12] = nil;
+    end
+    return player
+end
+
+-- 1.53
+-- Method:          GRM_Patch.CleanupJoinDateError ( array , array )
+-- What it Does:    Checks for repeats of join date, and if it finds > 40 (threshold I find reasonable for cleaning up > so small guilds may not receive benefit)
+--                  if repeats found > 40 then it cleans them up
+-- Purpose:         Error in the massive 1.50 overhaul that affects *some* people.
+GRM_Patch.CleanupJoinDateError = function ( guildData )
+    local count = 0;
+    local tempGuild = guildData;
+    for i = 2 , #guildData do
+        count = 0;
+        if guildData[i][35][1] ~= "" then
+            for j = 2 , #tempGuild do
+                if tempGuild[j][35][1] ~= "" and tempGuild[j][35][1] == guildData[i][35][1] then
+                    count = count + 1;
+                end
+                if count > 75 then  -- Cleanup JoinDates
+                    break;
+                end
+            end
+        end
+        if count > 40 then
+            guildData = GRM_Patch.CleanupJoinDateRepeats ( guildData , guildData[i][35][1] );
+            break;
+        end
+    end
+    return guildData;
+end
+
+-- 1.53
+-- Method:          GRM_Patch.CleanupJoinDateRepeats ( array , string )
+-- What it Does:    Removes all instances of the same given date and either resets the data, or moves back one index to previous setting
+-- Purpose:         Error in updating the databases for 
+GRM_Patch.CleanupJoinDateRepeats = function ( guildData , date )
+    for i = 2 , #guildData do
+        if guildData[i][35][1] == date then
+            if #guildData[i][20] > 1 then
+                table.remove ( guildData[i][15] , #guildData[i][15] );
+                table.remove ( guildData[i][16] , #guildData[i][16] );
+                table.remove ( guildData[i][20] , #guildData[i][20] );
+                table.remove ( guildData[i][21] , #guildData[i][21] );
+
+                guildData[i][2] = guildData[i][20][#guildData[i][20]];
+                guildData[i][3] = guildData[i][21][#guildData[i][21]];
+                guildData[i][35] = { guildData[i][20][#guildData[i][20]] , guildData[i][21][#guildData[i][21]] };
+            else
+                guildData[i][2] = GRM.GetTimestamp();
+                guildData[i][3] = time();
+                guildData[i][15] = {};
+                guildData[i][16] = {};
+                guildData[i][20] = {};
+                guildData[i][21] = {};
+                guildData[i][35] = { "" , 0 };
+            end
+            guildData[i][40] = false;
+        end
+    end
+    return guildData;
+end
+
+-- 1.53
+-- Method:          GRM_Patch.GuildDataDatabaseWideEdit ( function )
+-- What it Does:    Implements function logic on the guild as a whole
+-- Purpose:         Rather than focusing on the metadata, it focuses on the guild.
+GRM_Patch.GuildDataDatabaseWideEdit = function ( databaseChangeFunction )
+    for i = 1 , #GRM_GuildMemberHistory_Save do                         -- Horde and Alliance
+        for j = 2 , #GRM_GuildMemberHistory_Save[i] do                  -- The guilds in each faction
+            GRM_GuildMemberHistory_Save[i][j] = databaseChangeFunction ( GRM_GuildMemberHistory_Save[i][j] );
+        end
+    end
+
+    for i = 1 , #GRM_PlayersThatLeftHistory_Save do                         -- Horde and Alliance
+        for j = 2 , #GRM_PlayersThatLeftHistory_Save[i] do                  -- The guilds in each faction
+            GRM_PlayersThatLeftHistory_Save[i][j] = databaseChangeFunction ( GRM_PlayersThatLeftHistory_Save[i][j] );
+        end
+    end
+
+    if GRM_GuildDataBackup_Save ~= nil then
+        for i = 1 , #GRM_GuildDataBackup_Save do
+            for j = 2 , #GRM_GuildDataBackup_Save[i] do
+                for s = 2 , #GRM_GuildDataBackup_Save[i][j] do
+                    if #GRM_GuildDataBackup_Save[i][j][s] > 0 then
+                        -- 3 and 4 = history and leftHistory
+                        for m = 3 , 4 do
+                            GRM_GuildDataBackup_Save[i][j][s][m] = databaseChangeFunction ( GRM_GuildDataBackup_Save[i][j][s][m] );
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+
+-- /run local c=GRM_PlayersThatLeftHistory_Save;for i=1,#c do print(c[i][1]);for k = 2, #c[i] do print("Guild: "..c[i][k][1][1]);for j=2,#c[i][k] do if c[i][k][j][23][6] == nil then print(j);end;end;end;end
 -- /run local c=GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ];GRM_Patch.CleanupBirthdayRepeats(c,c[3]);
 -- /run local c=GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ];for i = 2,#c do if c[i][22][2][1][1]==0 then GRM.SetBirthday(c[i][1],8,9,1,"8 Sep '19'",time(),true,"Arkaan-Zul'jin",false);end;end
 -- /run GRM_Patch.PlayerMetaDataDatabaseWideEdit ( GRM_Patch.CleanupPromoJoinDateOriginalTemplateDates , true , false )
 -- /run local g=GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ]; for i = 2 , #g do if g[i][12]~= nil and g[i][36][1]=="" then print(i);end;end
+-- /run c,g=GRM_GuildMemberHistory_Save,c;for i=1,#c do print(c[i][1]);g=0;for j=2,#c[i] do print(c[i][j][1][1]);for k=2,#c[i][j] do if c[i][j][k][22][2][1][1]==nil then g=g+1;end;end;print("Errors: "..g);end;end
