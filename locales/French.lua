@@ -84,6 +84,7 @@ GRML.French = function()
     GRM_L["Joined"] = "A rejoint"
     GRM_L["Left:"] = "A quitté :"                               -- as in, "Left" the guild
     GRM_L["Rejoined:"] = "a rejoint de nouveau :"                           -- as in, "Rejoined" the guild
+    GRM_L["Rejoined"] = "a rejoint de nouveau"
     GRM_L["Reset Data!"] = "Réinitialiser les données !"
     GRM_L["Notify When Player is Active"] = "Notifier quand le joueur est Actif"
     GRM_L["Notify When Player Goes Offline"] = "Notifier quand le joueur se déconnecte"
@@ -764,9 +765,6 @@ GRML.French = function()
     GRM_L["Recruit window will open when combat ends."] = "La fenêtre de postulants s'ouvrira à la fin du combat."
     GRM_L["GRM window will open when combat ends."] = "La fenêtre GRM s'ouvrira à la fin du combat."
 
-    -- R1.22
-    GRM_L["Please manually select your guild to view player details"] = "Merci de sélectionner manuellement votre guilde pour afficher les détails des joueurs"
-
     -- R1.24
     GRM_L["This also will change the <Alt> format to match"] = "Cela changera aussi le format <Alt> pour correspondre"
     GRM_L["M"] = "M"                                           -- Of note, the "M" is short for "Main" and this is the reference to the main tag on alts in guild chat. For use in the Main tagging <M> (M) etc...
@@ -941,6 +939,28 @@ GRML.French = function()
     GRM_L["Former and Current Members"] = true
     GRM_L["No Matches Found. Add a Custom New Player or Match"] = true       -- as in, autocomplete typing matching
 
+    --1.50
+    GRM_L["{name}'s alt grouping has had their Birthday removed by: {name2}"] = true
+    GRM_L["{name}'s Birthday has been removed by: {name2}"] = true
+    GRM_L["Click to Sort"] = true
+    GRM_L["No Updates"] = true
+    GRM_L["Timestamp Formatting has been Globally Set to: < {name} >"] = true
+    GRM_L["Your Guild Leader Has Globally Set the Timestamp Formatting to: < {name} >"] = true
+    GRM_L["Unable to Modify. Global setting is set to :   {name}"] = true
+    GRM_L["'g1^X' - Establish a universal timestamp format based on dropdown selection position"] = true
+
+    -- If ppossible, try to maintain the allignment of the numbers, but only if it makes sense.
+    GRM_L["{num}{custom1}: Join Dates"] = true
+    GRM_L["{num}{custom1}: Promo Dates"] = true
+    GRM_L["{num}{custom1}: Alts"] = true
+    GRM_L["{num}{custom1}: Main Tags"] = true
+    GRM_L["{num}{custom1}: Custom Notes"] = true
+    GRM_L["{num}{custom1}: Birthdays"] = true
+    
+    -- 1.52
+    GRM_L["Times in Guild: {num}"] = true
+
+    
 end
 
 -- BuildLog() - might have some extra work, conditionally based on localization as it will now have a mix of languages saved to the log, since log is not retroactively changed.

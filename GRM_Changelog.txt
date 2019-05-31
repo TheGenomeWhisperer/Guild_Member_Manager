@@ -1,7 +1,134 @@
+**VERSION 8.1.5R1.55 DATE: April 19th, 2019**
 
-@everyone**VERSION 8.1.5R1.45 DATE: March 16th, 2019**
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
 
-*A felt a bit off my groove for a couple of weeks. Things feel a bit better now. This focused almost solely on the reported issues when I was gone, as well as some other misc. things that came as a result of those distractions.*
+* QoL1: Added player tooltip mouseover compatibility for any other addons that utilize the guild community frame player tooltip (like Raider.io) - universal compatibility for all.
+
+* QoL2: /grm audit and /grm ban slashcommands that bring up their respective windows is now available.
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* BUG1: Fixed an issue where some people's database might not load properly initially.
+
+* BUG2: Fixed an issue that could cause some sync data to be lost or never sent
+
+* BUG3: Misc. tweaks here and there...
+
+
+**VERSION 8.1.5R1.54 DATE: April 18th, 2019**
+
+*Minor patch update that could prevent some player's addon from loading the database properly and updating. This would only affect few people, but needed to be addressed as I didn't see the error until a report*
+
+
+**VERSION 8.1.5R1.53 DATE: April 17th, 2019**
+
+*Minor efficiency update on the database that seemed to stall on some people's PCs. Should complete a little less resource intensive now*
+
+
+**VERSION 8.1.5R1.52 DATE: April 17th, 2019**
+
+* QoL1: Adding some infrastructur for adding in custom easter eggs I wish to add
+
+* BUG1: Fixed an issue that could cause sync to error out if at the tail end of a sync when triggered again
+
+* BUG2: Some misc. issues with the new sync process have been corrected
+
+* BUG3: Fixed an issue that led to some repeated join date spreading, and also cleaned up the repeats.
+
+
+**VERSION 8.1.5R1.51 DATE: April 12th, 2019**
+
+* Fixed 2 misc. bugs related to previous patch that were quickly reported :D
+
+**VERSION 8.1.5R1.50 DATE: April 12th, 2019**
+
+*NOTE: One of the reasons I was hesitant to go down the rabbit hole that was this patch is I just knew it was going to take a lot of effort to put out, so I avoided focusing on some things to focus on others. It was something I had always wanted to revisit, and while the updates are not fully 100% implemented in all aspects, and while there is some work still to do, we are at a significantly improved position. The delay with this patch is because I got lured into finally getting it over with, got seduced by how much easier the implementation seemed at first, then once I was past the point of no return found about 50 tentacles of the code all over the pladce that I had to deal with to get it working consistently and flawlessly.*
+
+***NEW FEATURES***
+
+***SYNC SYSTEM OVERHAUL***
+
+* Sync system has been significantly updated and in some places, completely rewritten. The entire pre-check algorithm has been rebuilt and some of the sharing methods are far more efficient now. This will become obvious very quickly. Thanks @Xulu#1278 for some suggestions here.
+
+* Theoretically, this rewrite should be the final nail in the coffin to the occasional disconnect bug that has plagued some people inconsistently.
+
+* The addon will now report *what* information was sync'd. I think I will expand this further, but it is better than "x items updated"
+
+* The addon now states if a sync is even necessary or not and no longer syncs without it being necessary. Be aware, while it may state "No Updates" on your end, the person you sync'd with received some info from you, or else no sync would have occurred.
+
+* Of note, if alt data needs to be shared, while still significantly improved, this is a bit more tedious an implementation and you may find that the other areas that sync ligning fast, in a matter of 2 or 3 seconds, maye find the alt system taking just a tiny bit longer. This will be rectified further probably in the next update.
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+
+* QoL1: "g1^" global setting is returning in modified form! Use it to control which timestamp format is universally used in the guild. Add "g1^1" to the guildInfo, anywhere, to force all players. Example g1^1 = default. or g1^15 = the last selection in the timestamp format dropdown window.
+
+* QoL2: Sort the ban list by clicking on the headers
+
+* QoL3: Sort the alt details window (the shift-click alt window) by clicking the column headers as well
+
+* QoL4: Addon settings are now stored automatically and sync'd after every manually change of the settings rather than only on closing the window, which could create problems if you modify settings and logoff without closing GRM window which used to be the trigger.
+
+* QoL5: The Add Ban window no longer auto-hides if you swap windows to look at say, the Log.
+
+* QoL6: The ban list should now re-check the GUID returns more consistently when looking at it to determine if the player has left the server
+
+* QoL7: Patch code is in the process of being re-written, with initial foundation set and this major patch implementing the new tools. This is to prevent the code-bloat occurring on the patches now that many fixes have come and gone.
+
+* QoL8: Rebuilt some aspects of the database to be more consistently alligned between the 2 clients.
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+*Note - Many many bug fixes, so I will just report them in no particular of what was a bigger issue.
+
+* Bug1: Fixed an issue that seems to have popped up in 8.1.5 in relation to some calendar bug reporting on some addons.
+
+* Bug2: Fixed an issue that allowed players using special characters to type more than the 75 character limit in the ban note.
+
+* Bug3: Fixed an issue with the ban reasons that allowed player to overshoot the char count limit and slimmed the reasons that did.
+
+* Bug4: Fixed an issue where a returning player's join/promo dates could overwrite other's in a sync, which is not noticeable for players that login frequently, but let's say a player takes 6 months off the game, comes back, another guildie has rejoined since then. This could occur for people who had not logged on in a very long time with GRM outdated data.
+
+* Bug5: Birthdates should now properly sync in all cases. Found an issue here that could prevent it from occurring. This includes when you remove a birthdate, for conformity.
+
+* Bug6: Cleans up error related to mass copying of birthdate across the guild. This cleans that error up.
+
+* Bug7: New toons and alts of yours that join the guild should no longer write-over addon options settings with defaults and should properly sync to the already existing settings now.
+
+* Bug8: Fixed an issue where sync would re-trigger 1 more time than as necessary on a new build.
+
+* Bug9: Fixed major issue with syncing alts properly that was also not obvious but could end up in some alts taking multiple syncs to get tagged properly rather than on first time.
+
+* Bug10: Fixed an isse that could occur with players returning to the guild that possibly could cause the addon to crash due to a previous bug when they left so it never recorded the date they left. The addon cannot recover that info, but it will now at least say "Date Left: Unknown" in its place, when before it would Lua error out and crash. This may have gone unnoticed as it would not break the addon completely so you'd only see it with Lua error reporting tools.
+
+* Bug11: Fixed an issue that could prevent custom notes from sync properly on the first attempt, thus often in a subsquent sync you will see it say it was updated, but it didn't happen initially. It should now be consistent.
+
+* Bug12: Fixed a major database flaw that could be restored using old old backups. Surprised this one was never found but I found it as I was creating some integrity tests of the database. It would only potentially affect you if you had a very old back as my update forgot to account for the backup data.
+
+* Bug13: Fixed an issue if clicking the minimap early and it has not initialized the database fully yet.
+
+* Bug14: Made it so the addon sync process would not trigger until the exact moment the database updates have been fully processes and the players that left and joining players have all been analyzed and updated. This is only necessary for mega guilds that kick hundreds at a time.
+
+* Bug15: Fixed double copying of dates to the custom note that could occur if multiple officers online at same time
+
+* Bug16: Fixed several other misc. Lua errors that I don't think are necessary to report here.
+
+
+**VERSION 8.1.5R1.46 DATE: March 16th, 2019**
+
+* BUG1: One more fix for the night! Sync Users should now display properly with people with older versions of the addon.
+
+
+**VERSION 8.1.5R1.45 DATE: March 16th, 2019**
+
+*I felt a bit off my groove for a couple of weeks. Things feel a bit better now. This focused almost solely on the reported issues when I was gone, as well as some other misc. things that came as a result of those distractions.*
 
 
 **--------------**
@@ -242,7 +369,6 @@
 
 * BUG1: Fixed a bug that will only affect people who have never used the addon before from dumb mistake I made in 1.37 update!
 
-@everyone 
 **VERSION 8.1.0R1.37 DATE: January 6th, 2019**
 
 ***NEW FEATURES***
