@@ -2273,7 +2273,6 @@ end
 -- What it Does:    Removes all copies of alts on a list
 -- Purpose:         Cleans up alt lists a bit from a previous flaw.
 GRM_Patch.FixAltCopies = function( listOfAlts )
-    local found = false;
     local i = 1;
     
     while i <= #listOfAlts do

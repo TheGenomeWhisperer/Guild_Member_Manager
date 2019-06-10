@@ -881,7 +881,7 @@ GRML.English = function()
     GRM_L["No player was found to have that birthday."] = true
 
     -- R1.35
-    GRM_L["\"{custom1}\" setting is not valid. Value must be between 1 and 3. Defaulting to set join date to officer note with \"g5^1\""] = true    -- The custom1 will be something like "g5^8" or something. It's to account for typos or error warnings.
+    GRM_L["\"{custom1}\" setting is not valid. Value must be between 1 and 3. Defaulting to set join date to officer note with \"g5^1\"{custom2}"] = true    -- The custom1 will be something like "g5^8" or something. It's to account for typos or error warnings.
     GRM_L["Your Guild Leader Has Set Join Dates to only be added to the {name}"] = true         -- The {name} will be the "Officer note" or "Public Note" or "Custom Note"  set, based on their settings...
     GRM_L["Warning - Global Controls:"] = true
     GRM_L["Sync Restrictions Globally Changed to {name} or Higher"] = true
@@ -1033,5 +1033,10 @@ GRML.English = function()
     GRM_L["Date found in multiple locations, including correct, but not yet imported"] = true
     GRM_L["Date found in correct note location, but not yet imported"] = true
 
+    -- More misc.
+    GRM_L["The \"{name}\" and \"{name2}\" tags have globally been set to be added to join date note entries."] = true
+    GRM_L["The \"{name}\" and \"{name2}\" tags have globally been disabled from adding to join date note entries."] = true
+    GRM_L["'g5^X+' -Use the +/- sign at the end to enable the use of the tag headers"] = true
+    GRM_L["Your rank has changed. Re-evaluating sync permissions."] = true
 
 end

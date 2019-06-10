@@ -1,6 +1,6 @@
 -- For Sync controls!
 -- Author: Arkaan... aka "TheGenomeWhisperer"
--- Version 8.1.5R1.55
+-- Version 8.1.5R1.56
 -- To hold all Sync Methods/Functions
 GRMsync = {};
 
@@ -294,7 +294,7 @@ GRMsync.TriggerFullReset = function()
 end
 
 -- Useful indexing enum
-allClassesEnum = { ["DEATHKNIGHT"] = 1 , ["DEMONHUNTER"] = 2 , ["DRUID"] = 3 , ["HUNTER"] = 4 , ["MAGE"] = 5 , ["MONK"] = 6 , ["PALADIN"] = 7 , ["PRIEST"] = 8 , ["ROGUE"] = 9 ,["SHAMAN"] = 10 , ["WARLOCK"] = 11 , ["WARRIOR"] = 12 }
+local allClassesEnum = { ["DEATHKNIGHT"] = 1 , ["DEMONHUNTER"] = 2 , ["DRUID"] = 3 , ["HUNTER"] = 4 , ["MAGE"] = 5 , ["MONK"] = 6 , ["PALADIN"] = 7 , ["PRIEST"] = 8 , ["ROGUE"] = 9 ,["SHAMAN"] = 10 , ["WARLOCK"] = 11 , ["WARRIOR"] = 12 }
 
 --------------------------
 ----- FUNCTIONS ----------
@@ -1507,52 +1507,24 @@ GRMsync.CheckBanListChange = function ( msg , sender )
     end
 
     -- Add ban info to the log.
-    local logEntry = "";
     local classCode = GRM.GetClassColorRGB ( class , true );
+    local bannedName = classCode .. GRM.SlimName ( name ) .. "|r";
+    local banningName = GRM.GetClassifiedName ( sender , true );
+
+    local banAllAlts = false;
     if banAlts == "true" then
-        if not isAnEdit then
-            logEntry = ( GRM.L ( "{name} has BANNED {name2} and all linked alts from the guild!" , GRM.GetClassifiedName ( sender , true ) , classCode .. GRM.SlimName ( name ) .. "|r" ) );
-        else
-            logEntry = ( GRM.L ( "{name} has Updated {name2}'s BAN and also BANNED all linked alts from the guild!" , GRM.GetClassifiedName ( sender , true ) , classCode .. GRM.SlimName ( name ) .. "|r" ) );
-        end
-    else
-        if not isAnEdit then
-            logEntry = ( GRM.L ( "{name} has BANNED {name2} from the guild!" , GRM.GetClassifiedName ( sender , true ) , classCode .. GRM.SlimName ( name ) .. "|r" ) );
-        else
-            logEntry = ( GRM.L ( "{name}'s Ban has been Updated by {name2}!" , classCode .. GRM.SlimName ( name ) .. "|r" , GRM.GetClassifiedName ( sender , true ) ) );
-        end
+        banAllAlts = true;
     end
-    
-    if reason ~= "" then
-        logEntry = ( logEntry .. "\n|CFFFFFFFF" .. GRM.L ( "Reason Banned:" ) .. " " .. reason );
-    end
-    GRM.AddLog ( 17 , GRM.FormatTimeStamp ( GRM.GetTimestamp() , true ) .. " : " .. logEntry );
+    local logEntryWithTime , logEntry = GRM.GetBanLogUpdateAndEditString ( banAllAlts , isAnEdit , banningName , bannedName , reason , select ( 2 , GRM.GetTimestamp() ) );
+    GRM.AddLog ( { 20 , logEntryWithTime , banAllAlts , isAnEdit , banningName , bannedName , reason , select ( 2 , GRM.GetTimestamp() ) } );
 
     -- Report the change to chat window...
     if GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][16] and GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][13][13] then
-        if banAlts == "true" then
-            if not isAnEdit then
-                logEntry = ( GRM.L ( "{name} has BANNED {name2} and all linked alts from the guild!" , GRM.GetClassifiedName ( sender , true ) , classCode .. GRM.SlimName ( name ) .. "|r" ) );
-            else
-                logEntry = ( GRM.L ( "{name} has Updated {name2}'s BAN and also BANNED all linked alts from the guild!" , GRM.GetClassifiedName ( sender , true ) , classCode .. GRM.SlimName ( name ) .. "|r" ) );
-            end            
-        else
-            if not isAnEdit then
-                logEntry = ( GRM.L ( "{name} has BANNED {name2} from the guild!" , GRM.GetClassifiedName ( sender , true ) , classCode .. GRM.SlimName ( name ) .. "|r" ) );
-            else
-                logEntry = ( GRM.L ( "{name}'s Ban has been Updated by {name2}!" , classCode .. GRM.SlimName ( name ) .. "|r" , GRM.GetClassifiedName ( sender , true ) ) );
-            end
-        end
-        if reason == "" then
-            logEntry = logEntry .. "\n|CFFFFFFFF" .. GRM.L ( "Reason Banned:" ) .. " " ..  "< None Stated > ";
-        else
-            logEntry = logEntry .. "\n|CFFFFFFFF" .. GRM.L ( "Reason Banned:" ) .. " " ..  reason;
-        end
         chat:AddMessage ( logEntry , 1.0 , 0 , 0 , 1 );
     end
 
     if GRM_UI.GRM_RosterChangeLogFrame.GRM_LogFrame:IsVisible() then
-        GRM.BuildLogComplete( true );
+        GRM.BuildLogComplete( true , true );
     end
 
     -- Refresh Frames!
@@ -1585,15 +1557,16 @@ GRMsync.CheckUnbanListChangeLive = function ( msg , sender )
             name = GRM.GetStringClassColorByName ( name ) .. GRM.SlimName ( name ) .. "|r"
         end
 
-        local finalMessage = GRM.L ( "{name} has Removed {name2} from the Ban List." , GRM.GetClassifiedName ( sender , true ) , name );
-        GRM.AddLog ( 17 , ( GRM.FormatTimeStamp ( GRM.GetTimestamp() , true ) .. " : " .. finalMessage ) );
+        local logReportWithTime , logReport = GRM.GetUnBanString ( GRM.GetClassifiedName ( sender , true ) , name , select ( 2 , GRM.GetTimestamp() ) );
+
+        GRM.AddLog ( { 21 , logReportWithTime , GRM.GetClassifiedName ( sender , true ) , name , select ( 2 , GRM.GetTimestamp() ) } );
 
         if GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][16] and GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][13][13] then
-            chat:AddMessage ( finalMessage , 1.0 , 0 , 0 , 1 );
+            chat:AddMessage ( logReport , 1.0 , 0 , 0 , 1 );
         end
 
         if GRM_UI.GRM_RosterChangeLogFrame.GRM_LogFrame:IsVisible() then
-            GRM.BuildLogComplete( true );
+            GRM.BuildLogComplete( true , true );
         end
     end
 end
@@ -1619,7 +1592,6 @@ GRMsync.BanManagementPlayersThatLeft = function ( msg , prefix , sender )
     local abortBanChange = false;
 
     local banner = "";
-    local finalLogMsg = "";
     banner = personWhoBanned;
 
     if personWhoBanned == "X" then
@@ -1635,14 +1607,14 @@ GRMsync.BanManagementPlayersThatLeft = function ( msg , prefix , sender )
     end
 
     local isFound = false;
+    local isAnEdit = false;
     for j = 2 , #leftGuildData do
         if leftGuildData[j][1] == name then
             isFound = true;
             if ( banStatus == "ban" and ( not leftGuildData[j][17][1] or ( leftGuildData[j][17][1] and timeStampEpoch > leftGuildData[j][17][2] ) ) ) or ( banStatus == "unban" and leftGuildData[j][17][1] ) then
                 -- Ok, let's see if it is a ban or an unban!
                 if banStatus == "ban" then
-                    local isAnEdit = false;
-                    local banEditMsg = "";
+                    isAnEdit = false;
                     if ( banStatus == "ban" and ( not leftGuildData[j][17][1] or ( leftGuildData[j][17][1] and timeStampEpoch > leftGuildData[j][17][2] ) ) ) then
                         isAnEdit = true;
                     end
@@ -1677,20 +1649,11 @@ GRMsync.BanManagementPlayersThatLeft = function ( msg , prefix , sender )
                 if not abortBanChange then
                     
                     local colorCode = GRM.GetClassColorRGB ( leftGuildData[j][9] , true );
-                    if banStatus == "ban" then
-                        if isAnEdit then
-                            banEditMsg = GRM.L ( "{name}'s Ban has been Updated by {name2}!" , colorCode .. GRM.SlimName ( name ) .. "|r" , GRM.GetClassifiedName ( personWhoBanned , true ) );                           
-                        else
-                            banEditMsg = GRM.L ( "{name} has been BANNED from the guild!" , colorCode .. GRM.SlimName ( name ) .. "|r" );
-                        end
-                        if reason ~= "" then
-                            banEditMsg = ( banEditMsg .. "\n|CFFFFFFFF" .. GRM.L ( "Reason:" ) .. " " .. reason );
-                        end
-                    else
-                        banEditMsg = GRM.L ( "{name} has been UN-BANNED from the guild!" , colorCode .. GRM.SlimName ( name ) .. "|r" );
-                    end
+                    local tempName = colorCode .. GRM.SlimName ( name ) .. "|r";
+
+                    local banEditMsgWithTime , banEditMsg = GRM.GetBanStatusSyncString ( banStatus , isAnEdit , tempName , GRM.GetClassifiedName ( personWhoBanned , true ) , reason , select ( 2 , GRM.GetTimestamp() ) );
                     
-                    GRM.AddLog ( 17 , ( GRM.FormatTimeStamp ( GRM.GetTimestamp() , true ) .. " : " .. banEditMsg ) );
+                    GRM.AddLog ( { 21 , banEditMsgWithTime , banStatus , isAnEdit , tempName , GRM.GetClassifiedName ( personWhoBanned , true ) , reason , select ( 2 , GRM.GetTimestamp() ) } );
 
                     -- Send update to chat window!
                     if GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][16] and not isSyncUpdate and GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][13][13] then
@@ -1707,8 +1670,7 @@ GRMsync.BanManagementPlayersThatLeft = function ( msg , prefix , sender )
         for j = 2 , #guildData do
             if guildData[j][1] == name then
                 if ( banStatus == "ban" and ( not guildData[j][17][1] or ( guildData[j][17][1] and timeStampEpoch > guildData[j][17][2] ) ) ) or ( banStatus == "unban" and guildData[j][17][1] ) then
-                    local isAnEdit = false;
-                    local banEditMsg = "";
+                    isAnEdit = false;
                     if ( banStatus == "ban" and ( not guildData[j][17][1] or ( guildData[j][17][1] and timeStampEpoch > guildData[j][17][2] ) ) ) then
                         isAnEdit = true;
                     end
@@ -1744,33 +1706,11 @@ GRMsync.BanManagementPlayersThatLeft = function ( msg , prefix , sender )
                     -- Report the updates!
                     if not abortBanChange then
                         local colorCode = GRM.GetClassColorRGB ( guildData[j][9] , true );
-                        local tempName = "";
-                        if banStatus == "ban" then
-                            if isAnEdit then
-                                tempName = GRM.GetClassifiedName ( personWhoBanned , true );
-                                if tempName == "" then
-                                    tempName = personWhoBanned;
-                                end
-                                banEditMsg = GRM.L ( "{name}'s Ban has been Updated by {name2}!" , colorCode .. GRM.SlimName ( name ) .. "|r" , tempName );
-                            else
-                                banEditMsg = GRM.L ( "{name} has been BANNED from the guild!" , colorCode .. GRM.SlimName ( name ) .. "|r" );
-                            end
-                            if reason ~= "" then
-                                banEditMsg = ( banEditMsg .. "\n|CFFFFFFFF" .. GRM.L ( "Reason:" ) .. " " .. reason );
-                            end
-                        else
-                            if banner ~= "" then
-                                tempName = GRM.GetClassifiedName ( personWhoBanned , true );
-                                if tempName == "" then
-                                    tempName = personWhoBanned;
-                                end
-                                banEditMsg = GRM.L ( "{name} has Removed {name2} from the Ban List." , tempName , name );
-                            else
-                                banEditMsg = GRM.L ( "{name} has been UN-BANNED from the guild!" , colorCode .. GRM.SlimName ( name ) .. "|r" );
-                            end
-                        end
+                        local tempName = colorCode .. GRM.SlimName ( name ) .. "|r";
                         
-                        GRM.AddLog ( 17 , ( GRM.FormatTimeStamp ( GRM.GetTimestamp() , true ) .. " : " .. banEditMsg ) );
+                        local banEditMsgWithTime , banEditMsg = GRM.GetBanStatusSyncString ( banStatus , isAnEdit , tempName , GRM.GetClassifiedName ( personWhoBanned , true ) , reason , select ( 2 , GRM.GetTimestamp() ) );
+                        
+                        GRM.AddLog ( { 21 , banEditMsgWithTime , banStatus , isAnEdit , tempName , GRM.GetClassifiedName ( personWhoBanned , true ) , reason , select ( 2 , GRM.GetTimestamp() ) } );
 
                         -- Send update to chat window!
                         if GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][16] and not isSyncUpdate and GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][13][13] then
@@ -1856,10 +1796,8 @@ GRMsync.GetCustomPseudoHash = function()
     local jd2 , pd2 , alt2 , main2 , ban2 , cust2 , bday2 = {} , {} , {} , {} , {} , {} , {};
 
     local date = "";
-    local name = "";
     local guidVal = 0;
     local byteVal = 0;
-    local num = GRM.GetNumGuildies();
 
     local day = 0;
     local month = 0;
@@ -2086,9 +2024,7 @@ end
 -- What it Does:    It initializes the database markers for knowing where to send the data, and returns true if sync is necessary
 -- Purpose:         Kick start refined sync algorithm for improved speed.
 GRMsync.SyncIsNecessary = function()
-    local result = false;
     GRMsyncGlobals.DatabaseMarkers = GRMsync.CompareDatabaseMarkers();
-
     return GRMsync.SyncProgressInitialize();
 end
 
@@ -2123,21 +2059,21 @@ GRMsync.NextSyncStep = function( nextStep )
         if GRMsyncGlobals.SyncProgress[i] then
             if GRM_G.DebugEnabled then
                 if i == 1 then
-                    print("Sending JD")
+                    GRM.Report ("Sending JD")
                 elseif i == 2 then
-                    print("Sending PD")
+                    GRM.Report ("Sending PD")
                 elseif i == 3 then
-                    print("Sending Alt")
+                    GRM.Report ("Sending Alt")
                 elseif i == 4 then
-                    print("Sending Main")
+                    GRM.Report ("Sending Main")
                 elseif i == 5 then
-                    print("Sending Ban")
+                    GRM.Report ("Sending Ban")
                 elseif i == 6 then
-                    print("Sending Cust")
+                    GRM.Report ("Sending Cust")
                 elseif i == 7 then
-                    print("Sending bday")
+                    GRM.Report ("Sending bday")
                 else
-                    print("Done Sending")
+                    GRM.Report ("Done Sending")
                 end
             end
 
@@ -2310,7 +2246,7 @@ GRMsync.SendPDPackets = function()
             messageReady = false;
             if GRMsyncGlobals.SyncOK then
 
-                if guildData[GRMsyncGlobals.DatabaseExactIndexes[2][i]][36][2] ~= 0 then
+                if guildData[GRMsyncGlobals.DatabaseExactIndexes[2][i]][36][2] ~= nil and guildData[GRMsyncGlobals.DatabaseExactIndexes[2][i]][36][2] ~= 0 then
                     hasAtLeastOne = true;
                     -- Expand the string more... Fill up the full 255 characters for efficiency.
                     if #tempMessage + GRMsyncGlobals.sizeModifier < 255 then
@@ -2348,7 +2284,7 @@ GRMsync.SendPDPackets = function()
                     GRMsyncGlobals.SyncCount = 0; 
                     C_Timer.After ( GRMsyncGlobals.ThrottleDelay , GRMsync.SendPDPackets );       -- Add a delay on packet sending.
                     return;
-                    end
+                end
             end
         end
         
@@ -3056,7 +2992,6 @@ GRMsync.SendBDayPackets = function( listOfRemainingToons )
         local messageReady;
         local guildData = GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ];
         local list = listOfRemainingToons or GRM.GetAllGuildiesInOrder ( true , true );     -- No need to cycle through them all, just go by alt grouping...
-        local hasAtLeastOne = false;
         
         for i = GRMsyncGlobals.SyncCountBday , #GRMsyncGlobals.DatabaseExactIndexes[7] do
             for j = #list , 1 , -1 do
@@ -3067,7 +3002,6 @@ GRMsync.SendBDayPackets = function( listOfRemainingToons )
                         -- Expand the string more... Fill up the full 255 characters for efficiency.
                         if #tempMessage + GRMsyncGlobals.sizeModifier < 255 then
                             if guildData[GRMsyncGlobals.DatabaseExactIndexes[7][i]][22][2][4] ~= 0 then
-                                hasAtLeastOne = true;
                                 tempMessage = syncMessage .. "?" .. guildData[GRMsyncGlobals.DatabaseExactIndexes[7][i]][1] .. "?" .. tostring ( guildData[GRMsyncGlobals.DatabaseExactIndexes[7][i]][22][2][1][1] ) .. "?" .. tostring ( guildData[GRMsyncGlobals.DatabaseExactIndexes[7][i]][22][2][1][2] ) .. "?" .. guildData[GRMsyncGlobals.DatabaseExactIndexes[7][i]][22][2][3] .. "?" .. tostring ( guildData[GRMsyncGlobals.DatabaseExactIndexes[7][i]][22][2][4] );
                                 -- let's cleanup the alt grouping then shall we!
                                 list = GRMsync.RemoveAltGroupingFromList ( guildData[GRMsyncGlobals.DatabaseExactIndexes[7][i]][1] , guildData[GRMsyncGlobals.DatabaseExactIndexes[7][i]][11] , list );
@@ -3389,7 +3323,7 @@ GRMsync.InitiateDataSync = function ()
                     end
                     if GRM_UI.GRM_RosterChangeLogFrame.GRM_LogFrame:IsVisible() then
                         GRM_G.LogNumbersColorUpdate = true;
-                        GRM.BuildLogComplete( true );
+                        GRM.BuildLogComplete( true , true );
                     end
                 end
             end
@@ -5279,7 +5213,7 @@ GRMsync.ReportSyncCompletion = function ( currentSyncer , finalAnnounce )
         end
         if GRM_UI.GRM_RosterChangeLogFrame.GRM_LogFrame:IsVisible() then
             GRM_G.LogNumbersColorUpdate = true;
-            GRM.BuildLogComplete( true );
+            GRM.BuildLogComplete( true , true );
         end
 
         local playerCount = GRMsyncGlobals.AddLeftPlayerCount;
