@@ -1,3 +1,88 @@
+
+**VERSION 8.1.5R1.56 DATE: June 7th, 2019**
+
+*Long time between patches. Lots involved with this one behind the scenes. RL was a bit busy as well. Enjoy!*
+
+***NEW FEATURES***
+
+**Advanced Join Date Audit Tool**
+
+![JD Audit Tool](https://i.imgur.com/nn1ZyXN.jpg)
+
+**Note:** This particular feature developed somewhat spontaneously and was not entirely planned. I had noticed some issues due to incorrect date reporting to the player notes with the auto-tagging, and the resulting sync info being inconsistent. Let me give you an example. If a player joins the guild while you are not online, the event is logged server side in the Blizzard built-in guild event log. This log only contains the last 100 events. Well, in a large guild the log reach > 100 events in less than a day. Thus, the addon has no idea the **REAL** date the player say, joined the guild. As such, the way the addon compensates for this is it sets the join date as the day you logged on. However, on the back end, the addon does not store that date for sync purposes because it is what I would call untrustworthy sync data. What can happen is maybe you had another officer that did get the accurate information and they were logged on and determined the true join date, and thus when you next sync with them, you sync the proper date. However, previously, the addon was still adding the join date to the default not location you had chosen (typically officer). Thus, if the player who has the accurate sync information logged the event, but did not have the setting enabled to add the join date note, but you did, you now added the incorrect date to the note, whilst you ended up syncing the proper date. You now have mismatched dates, often by only a single day.
+
+The goal of this tool was to be able to easily guild-wide rectify this. However, I built it in a way to go over it more carefully, with the ability to modify a single player, multiple players with the Shift-key selection, or the entire guild. I ended up adding some additional features as well that can be useful tools for people that wish to import their join dates from the notes as well. Of note, THIS WAS NOT SIMPLE work. Just this tool was > 2000 lines of code, not that the number really matters, just as a representation of the effort put into such a niche tool makes little sense beyond my own amusement. Believe me, building in parsing compatibility for 18 different note formats was a bit of a pain, but really, I tried to build this with the easiest and simplest user experience that could be had. I also got distracted and used this as my template to build my first custom hybrid scroll frame. You'll notice how smooth it is in scrolling
+
+**JD AUDIT TOOL FEATURES**
+
+* Automatically mass fix GRM save dates by using parsed notes. It will fully scan the public, officer, and custom notes and you have the option to either import those dates to GRM, or the other way around, export the GRM saved dates and fix the notes.
+
+* This maintenance on the join dates can be done guild wide or it can be done with a custom selection of names. Just click the names you wish to modify and it will highlight them. Shift-click to select all names between 2. I recommend being careful with this and doing a sample selection first before feeling more comfortable with the tool.
+
+* Cleanup all notes so that the join date is ONLY in the default settings location. This tool will inform you not only about date mismatches, but if you have the join date listed in multiple notes and it will give you the ability to purge the date from the other notes automatically whilst setting/keeping the join date only in the proper default note location
+
+* Ability to mass export all the join dates to the default note as well.
+
+* Ability to import all join dates from the note into GRM. This supports 18 different note formats (including all 15 optional formats in GRM), as well as the Joined or Rejoined headers.
+
+* Be aware, to save on the complexity of the addon and the bloat, this will only successfully parse the dates if they are listed at the beginning of a note. Exameple "Joined: 05 Aug '18" or "05 Aug '18" will be detected, but "John's friend - "05 Aug '18" will not be parsed properly. While this one example is easy to support, the fact that I decided to build parsing support for, so far, 18 different date formats was a lot of tedious work and to then scan for the start point has so much variability to all of them that I decided to save myself the hassle and just make it so the addon will only detect dates if at beginning of note. This can easily be modified by juse changing the position of your note.
+
+* If there is a date format you wish me to include support for I am willing to consider it. I have considered possibly supporting "custom" headers, like "Joined" or "Rejoined" and "CustomTag" but I did not build that yet.
+
+* Tooltip helpers are added for this tool to help you find entries in the log, bring up their player window and so on.
+
+* The link to it is found on on the audit page, at the bottom of the join date column.
+
+*Final Note on the Advanced JD Audit Tool - Use with caution. It mass modifies player notes. That cannot be undone since they store server side.*
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+
+* QOL1: HYBRID SCROLL FRAMES!!! As a lot of people know, this is the superior way to truly do scroll frames. I suppose I never had imagined scrolling frames getting so absurdly large, not thinking long term, but when 
+@Xulu#1278 (discord) got on my case about them and when @Nightdragon#2207 (discord) mentioned how he has like 30,000 logged event entries in a single guild, of a 17 guild community, and with Xulu expressing his passion for it I finally relented. I basically didn't want to bother with it for various reasons, but one is I wanted to build a template system to make it more reusable. I ended up doing just that with the new JD Audit tool and I was able to reuse the template, for the most part, for the core log. This is not entirely true as the core log is a bit more complex due to the variety of different string heigts due to wrapping and multi-lines so I had to modify it slightly.
+
+* QOL2: MORE SLASH COMMANDS! They are now expanded to support all GRM window tabs. Example */grm users* or */grm events* or /grm options (or opt) are all supported and will bring them up with a simple slash command. If it sounds right, it probably works. Please feel free to recommend additional slash commands. They are quite simple to implement and I am a believer of the command line.
+
+* QoL3: Addon no longer auto-adds join dates if it is not found in the event log, to improve accuracy.
+
+* QoL4: The addon will now attempt to add the join date to the note properly, if enabled, even if something is already there. Before it just ignored adding the note. Now, it will ensure it's not already there, then merge the existing note with the date, and if it fits, it will join them and add it.
+
+* QoL5: NEW GLOBAL SETTING! Players can now add a +/- sign to the end of g5^X to force global use of the "Joined:" and "Rejoined:" headers. Example "g5^1+" means that the default join date will be added to the officer note like "Joined: 06 Jun '19" or "g5^1-" will just be "06 Jun '19" - forcing consistency among all officers.
+
+* QoL6: Lots of code cleanup on the backend in some places I hadn't touched since the first days of coding lol.
+
+* QoL7: GRM Core window is now draggable no matter where you click, on all tabs (it didn't work on the log and the audit window, you had to click near top bar previously)
+
+* QoL8: A more clear notification is given if the player's own rank changes, thus triggering a sync check, if permissions open up to sync with someone else new data. The triggered sync should only occur when the addon user's own rank has moved up. The addon will inform you *why* it is triggering this. Before it just did it.
+
+* QoL9: The "(main)" on the side alt grouping details window is now properly *below* the main, not above, keeping position consistent with the alt listings.
+
+* QoL10: Player should no longer erroneously get "(NG)" tag on the "(player) has logged in" system message in chat after shortly logging in. This would occur due to the GRM database not being fully loaded yet, but the System message listener already being initialized. Now it waits to modify the incoming system messages in the chat window with the tags until GRM is fully loaded and ready in the background.
+
+* QoL11: The FrameStrate of the core GRM frame is now set to MEDIUM, to reflect most frames in WOW so you can click other flames and have them come to the front without it permanently being set on top. 
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* BUG1: Fixed an issue that seems to affect a small % of the community on previous large update preventing them from fully updating properly.
+
+* BUG2: Fixed an issue with tooltip scaling carrying over to non-addon tooltips. If GRM didn't auto-show on logon, and you selected the roster, typed /GRM the tooltip size would shrink small. Fixed!
+
+* BUG3: Fixed an issue that could cause sync to fail (line 2313 error a few had reported).
+
+* BUG4: Fixed an issue that could cause some reporting to never occor to the log in regars to a player rejoining the guild
+
+* BUG5: Fixed an issue where class coloring was not being implemented properly on the promotion announcement entries of someone who just joined the guild and were promoted since before your last login.
+
+* BUG6: Fixed some other minor misc. bugs, both cosmetic and on the back end I won't bore evryone with as they were likely not too noticeable.
+
+* BUG7: Fixed an issue that could cause a clubID error if it never loaded properly when someone joins the guild.
+
+* BUG8: Fixed an issue where leap year dates on non-leap years (Feb 29th) would be instead listed at Feb 1st, when they should have been listed at March 1st.
+
+
 **VERSION 8.1.5R1.55 DATE: April 19th, 2019**
 
 **--------------**

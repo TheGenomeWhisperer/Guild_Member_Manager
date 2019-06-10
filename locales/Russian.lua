@@ -887,7 +887,7 @@ GRML.Russian = function()
     GRM_L["No player was found to have that birthday."] = true
 
     -- R1.35
-    GRM_L["\"{custom1}\" setting is not valid. Value must be between 1 and 3. Defaulting to set join date to officer note with \"g5^1\""] = true    -- The custom1 will be something like "g5^8" or something. It's to account for typos or error warnings.
+    GRM_L["\"{custom1}\" setting is not valid. Value must be between 1 and 3. Defaulting to set join date to officer note with \"g5^1\"{custom2}"] = true    -- The custom1 will be something like "g5^8" or something. It's to account for typos or error warnings.
     GRM_L["Your Guild Leader Has Set Join Dates to only be added to the {name}"] = true         -- The {name} will be the "Officer note" or "Public Note" or "Custom Note"  set, based on their settings...
     GRM_L["Warning - Global Controls:"] = true
     GRM_L["Sync Restrictions Globally Changed to {name} or Higher"] = true
@@ -964,6 +964,86 @@ GRML.Russian = function()
 
     -- 1.52
     GRM_L["Times in Guild: {num}"] = true
+    
+    -- 1.56
+    -- More slash commands
+    GRM_L["recruits"] = true 
+    GRM_L["kick"] = true
+    GRM_L["ban"] = true
+    GRM_L["audit"] = true
+    GRM_L["log" ] = true
+    GRM_L["event"] = true
+    GRM_L["events"] = true
+    GRM_L["users"] = true
+    GRM_L["syncusers"] = true
+    GRM_L["opt"] = true
+    GRM_L["option"] = true
+    GRM_L["options"] = true
+
+    GRM_L["GRM Date"] = true
+    GRM_L["Note Date"] = true
+    GRM_L["Status"] = true
+    GRM_L["Refresh"] = true
+    GRM_L["Clear Selection"] = true
+    GRM_L["Fix all mismatched note dates with GRM saved date"] = true
+    GRM_L["Fix selected mismatched note dates with GRM saved date"] = true
+    GRM_L["Fix all mismatched GRM dates with the note date"] = true
+    GRM_L["Fix selected mismatched GRM dates with the note date"] = true
+    GRM_L["Import all missing join dates from the note date"] = true;
+    GRM_L["Import selected missing join dates from the note date"] = true
+    GRM_L["Add all missing saved dates to the {name}"] = true;
+    GRM_L["Add selected missing saved dates to {name}"] = true
+    GRM_L["Clear all join dates from incorrect note locations"] = true
+    GRM_L["Clear selected join dates from incorrect note locations"] = true
+    GRM_L["Not Found"] = true
+    GRM_L["Not Set"] = true
+    GRM_L["Complete"] = true
+    GRM_L["Multiple"] = true
+    GRM_L["Location"] = true
+
+    -- JD tool button actions and tooltips
+    GRM_L["|CFFE6CC7FShift-Click|r Second Button to Select All In-Between"] = true
+    GRM_L["|CFFE6CC7FClick|r to select player"] = true
+    GRM_L["|CFFE6CC7FCtrl-Click|r to open Player Window"] = true
+    GRM_L["Please manually select your guild in the Community Window for this feature to work"] = true
+    GRM_L["Only Show Players With Incomplete Status"] = true
+    GRM_L["{num} Join Dates Need Attention"] = true             -- In other words, "155 join dates need attention" as an example
+    GRM_L["Do you really want to remove the join dates from notes other than the {name}?"] = true
+    GRM_L["Do you really want to fix mismatched dates using the note?"] = true
+    GRM_L["Do you really want to fix note dates using the saved GRM dates?"] = true
+    GRM_L["Do you really want to import all dates from the notes?"] = true
+    GRM_L["Do you really want to add the missing join dates to the {name}?"] = true                     -- add the missing join dates to the default note name - like "... to the Officer Note?"
+    GRM_L["Auto-adding join dates to the {name} is disabled. Do you still wish to continue?"] = true    -- Just as above
+    GRM_L["There are currently {num} mismatched dates to fix"] = true
+    GRM_L["There are currently no mismatched dates that need to be fixed."] = true
+    GRM_L["There are currently no dates that need to be imported."] = true
+    GRM_L["There are currently {num} dates that can be imported"] = true
+    GRM_L["There are currently {num} dates that can be added to the default note"] = true
+    GRM_L["There are currently no dates that can be added to the default note."] = true
+    GRM_L["There are currently no dates that need to be removed from incorrect notes"] = true
+    GRM_L["There are currently {num} players who have join dates listed in the incorrect note"] = true
+    GRM_L["Warning! Your function is extremely limited without officer permissions"] = true
+    GRM_L["Advanced Join Date Tool" ] = true
+
+    -- JD tool reasons
+    GRM_L["Mismatched dates"] = true
+    GRM_L["Matching date found in wrong note location"] = true
+    GRM_L["Date not added to note"] = true
+    GRM_L["Mismatched dates and found in wrong note location"] = true
+    GRM_L["Mismatched date found in multiple locations, including correct"] = true
+    GRM_L["Mismatched date found in multiple incorrect note locations"] = true
+    GRM_L["Matching date found in multiple incorrect note locations"] = true
+    GRM_L["Matching date found in multiple locations, including correct"] = true
+    GRM_L["Date found in incorrect note, but not yet imported"] = true
+    GRM_L["Date found in multiple incorrect notes, but not yet imported"] = true
+    GRM_L["Date found in multiple locations, including correct, but not yet imported"] = true
+    GRM_L["Date found in correct note location, but not yet imported"] = true
+
+    -- More misc.
+    GRM_L["The \"{name}\" and \"{name2}\" tags have globally been set to be added to join date note entries."] = true
+    GRM_L["The \"{name}\" and \"{name2}\" tags have globally been disabled from adding to join date note entries."] = true
+    GRM_L["'g5^X+' -Use the +/- sign at the end to enable the use of the tag headers"] = true
+    GRM_L["Your rank has changed. Re-evaluating sync permissions."] = true
     
 end
 
