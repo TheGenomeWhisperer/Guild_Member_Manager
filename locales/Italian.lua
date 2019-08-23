@@ -17,6 +17,10 @@
 
     -- GRM_L["{name}'s Anniversary!"] = "Aniversario de {name}"
 
+-- WARNING!!! 
+-- DO NOT UPDATE GRM IF YOU HAVE NOT BACKED UP YOUR TRANSLATION WORK!!! Twitch and other services will overwrite your work without warning when they update!!!
+-- WARNING!!!
+
     ---------------------------------
     -- BEGIN TRANSLATION WORK HERE --
     ---------------------------------
@@ -307,8 +311,8 @@
 			GRM_L["Main or Alt?"] = "Main o Alt?"
 			GRM_L["Alt"] = "Alt"
 			GRM_L["Total Incomplete: {num} / {custom1}"] = "Totale Incompleti: {num} / {custom1}"                 -- Context: Total Incomeplete: 50 / 100    (50 out of 100)
-			GRM_L["Mains: {num}"] = "Main: {num}"                                        -- Context: Number of "main" toons
-			GRM_L["Unique Accounts: {num}"] = "Account Unici: {num}"
+			GRM_L["Mains:\n{num}"] = "Main:\n{num}"                                        -- Context: Number of "main" toons
+			GRM_L["Unique Accounts:\n{num}"] = "Account Unici:\n{num}"
 			GRM_L["All Complete"] = "Tutto Completo"                                        -- Context: All dates have been added and are known, thus it states it is "All Complete"
 			GRM_L["Set Incomplete to Unknown"] = "Imposta data come Sconosciuta"                          -- Context: Implied to set ALL incomplete to unknown
 			GRM_L["Clear All Unknown"] = "Cancella tutti gli Sconosciuta"
@@ -720,7 +724,7 @@
 	
 		-- R1.1500
 		GRM_L["It's almost time to celebrate {name}'s Birthday!"] = " A breve sarà il Compleanno di {name}!"          -- Custom1 is the actual date.  Like "1 Mar '18"
-		GRM_L["Unique accounts pull from the server is known to faulty"] = "L'importazione degli account dai server ha dei problemi,"
+		GRM_L["Unique accounts pull from the server is known to be faulty"] = "L'importazione degli account dai server ha dei problemi,"
 		GRM_L["Use only as an estimate. Hopefully Blizz fixes this soon"] = "utilizzala solo come stima. Si spera che la Blizzard risolva presto"
 		GRM_L["{name}'s Anniversary!"] = "Anniversario di {name}!"
 		GRM_L["{name}'s Birthday!"] = "Compleanno di {name}!"
@@ -761,7 +765,7 @@
 		GRM_L["|CFFE6CC7FHold Shift|r to view more alt details."] = "|CFFE6CC7FTieni premuto Shift|r per vedere più dettagli sull'alt."                -- "Hold Shift to view more alt details" is the phrase, but the |CFF|r is the text coloring hex code. Please keep it in there on the keyboard command coloring
 		GRM_L["|CFFE6CC7FClick|r to view more alt details."] = "|CFFE6CC7FClicca|r per vedere più dettagli sull'alt."
 		GRM_L["|CFFE6CC7FShift-Click|r to keep alt details open."] = "|CFFE6CC7FShift-Click|r per tenere la finestra dei dettagli aperta."               -- The same can be said here. ^^
-		GRM_L["|CFFE6CC7FClick|r to flip player name ordering"] = "|CFFE6CC7FClicca|r per ribaltare l'ordine dei nomi" --WIP                 -- and the reset...
+		GRM_L["|CFFE6CC7FClick|r to flip player name ordering"] = "|CFFE6CC7FClicca|r per capovolgere l'ordine dei nomi" --WIP                 -- and the reset...
 		GRM_L["|CFFE6CC7FClick|r to sort Join Dates by Newest"] = "|CFFE6CC7FClicca|r per ordinare le date di entrata dalla più recente"
 		GRM_L["|CFFE6CC7FClick|r to sort Join Dates by Oldest"] = "|CFFE6CC7FClicca|r per ordinare le date di entrata dalla più vecchia"
 		GRM_L["|CFFE6CC7FClick|r to sort Promotion Dates by Newest"] = "|CFFE6CC7FClicca|r per ordinare le date di promozione dalla più recente"
@@ -823,7 +827,7 @@
 		GRM_L["Unable to Change Rank. Guild Leader has set restriction level."] = "Impossibile cambiare il Grado. Il Capo Gilda ha impostato delle restrizioni"
 		GRM_L["Unify Control Settings for all guildies with 'g#^X' commands"] = "Unifica le impostazioni per tutti i gildani con i comandi \"g#^X\""
 		GRM_L["CONTROL TAGS:"] = "TAG DI CONTROLLO"
-		GRM_L["Force Settings with Guild Info Tags"] = "Frozare impostazioni tramite Tag nelle info di Gilda"
+		GRM_L["Force Settings with Guild Info Tags"] = "Tag per forzare le impostazioni dalle info di Gilda"
 		GRM_L["X = index of minimum rank. Example: 0 = {name} and {num} = {name2}"] = "X = indice del rank minimo. Esempio: 0 = {name} e {num} = {name2}"
 		GRM_L["'g2^X' - Establish minimum sync rank restriction for player details"] = "\"g2^X\" - Stabilisci il grado minimo per la sincronizzazione dei dettagli dei giocatori"
 		GRM_L["'g3^X' - Establish minimum sync rank restriction for BAN info"] = "\"g3^X\" - Stabilisci il grado minimo per la sincronizzazione dei BAN"
@@ -907,7 +911,7 @@
 		GRM_L["CUSTOM NOTE Sync Restrictions Globally Changed to {name} or Higher"] = "Tutte le restrizioni della sincronizzazione delle NOTE PERSONALIZZATE cambiate a {name} o più"
 		GRM_L["Join Dates Globally Changed to only be added to the {name}"] = "Le date di entrata verranno salvate solo nelle {name}"
 		GRM_L["Unable to Modify. Global setting is set to the {name}"] = "Impossibile modificare. La data può essere aggiunta solo nelle {name}"                           -- The {name} will be the "Officer note" or "Public Note" or "Custom Note"  set, based on their settings...
-		GRM_L["'g5^X' - Designate Join Date note destination. g5^1 = Officer, 2 = public, 3 = custom"] = "\"g5^X\" - Imposta dove verrà salvata la data di entrata. g5^1 = Ufficiali, 2 = Pubblica, 3 = Personalizzata"
+		GRM_L["'g5^X' - Designate Join Date note destination. g5^1 = Officer, 2 = public, 3 = custom"] = "\"g5^X\" - Imposta dove verrà salvata la data di entrata.\n                g5^1 = Ufficiali, 2 = Pubblica, 3 = Personalizzata"
 	
 		-- R1.37
 		GRM_L["No Action Configured"] = "Nessuna azione impostata"
@@ -957,108 +961,158 @@
 		GRM_L["No Matches Found. Add a Custom New Player or Match"] = "Nessun riscontro trovato." --WIP      -- as in, autocomplete typing matching
 		
 		--1.50
-		GRM_L["{name}'s alt grouping has had their Birthday removed by: {name2}"] = true
-		GRM_L["{name}'s Birthday has been removed by: {name2}"] = true
-		GRM_L["Click to Sort"] = true
-		GRM_L["No Updates"] = true
-		GRM_L["Timestamp Formatting has been Globally Set to: < {name} >"] = true
-		GRM_L["Your Guild Leader Has Globally Set the Timestamp Formatting to: < {name} >"] = true
-		GRM_L["Unable to Modify. Global setting is set to :   {name}"] = true
-		GRM_L["'g1^X' - Establish a universal timestamp format based on dropdown selection position"] = true
+		GRM_L["{name}'s alt grouping has had their Birthday removed by: {name2}"] = "Il compleanno del gruppo di alt di {name} è stato rimosso da {name2}"
+		GRM_L["{name}'s Birthday has been removed by: {name2}"] = "Il compleanno di {name} è stato rimosso da {name2}"
+		GRM_L["Click to Sort"] = "Clicca per riordinare"
+		GRM_L["No Updates"] = "Nessun aggiornamento"
+		GRM_L["Timestamp Formatting has been Globally Set to: < {name} >"] = "Il formato di data e ora è stato impostato globalmente come: < {name} >"
+		GRM_L["Your Guild Leader Has Globally Set the Timestamp Formatting to: < {name} >"] = "Il tuo capogilda ha impostato globalmente il formato di data e ora come: < {name} >"
+		GRM_L["Unable to Modify. Global setting is set to :   {name}"] = "Impossibile modificare. Le impostazioni globali sono: < {name} >"
+		GRM_L["'g1^X' - Establish a universal timestamp format based on dropdown selection position"] = "\"g1^X\" - Imposta un formato universale data e ora, basato sulla posizione del menu"
 	
 		-- If ppossible, try to maintain the allignment of the numbers, but only if it makes sense.
-		GRM_L["{num}{custom1}: Join Dates"] = true
-		GRM_L["{num}{custom1}: Promo Dates"] = true
-		GRM_L["{num}{custom1}: Alts"] = true
-		GRM_L["{num}{custom1}: Main Tags"] = true
-		GRM_L["{num}{custom1}: Custom Notes"] = true
-		GRM_L["{num}{custom1}: Birthdays"] = true
+		GRM_L["{num}{custom1}: Join Dates"] = "{num}{custom1}: Date di entrata"
+		GRM_L["{num}{custom1}: Promo Dates"] = "{num}{custom1}: Date di promozione"
+		GRM_L["{num}{custom1}: Alts"] = "{num}{custom1}: Alt"
+		GRM_L["{num}{custom1}: Main Tags"] = "{num}{custom1}: Main"
+		GRM_L["{num}{custom1}: Custom Notes"] = "{num}{custom1}: Note Personalizzate"
+		GRM_L["{num}{custom1}: Birthdays"] = "{num}{custom1}: Compleanni"
 		
 		-- 1.52
-		GRM_L["Times in Guild: {num}"] = true
+		GRM_L["Times in Guild: {num}"] = "In Gilda da: {num}"
 		
 		-- 1.56
     -- More slash commands
-    GRM_L["recruits"] = true 
-    GRM_L["kick"] = true
-    GRM_L["ban"] = true
-    GRM_L["audit"] = true
-    GRM_L["log" ] = true
-    GRM_L["event"] = true
-    GRM_L["events"] = true
-    GRM_L["users"] = true
-    GRM_L["syncusers"] = true
-    GRM_L["opt"] = true
-    GRM_L["option"] = true
-    GRM_L["options"] = true
+    GRM_L["recruits"] = "recluta" 
+    GRM_L["kick"] = "rimuovi"
+    GRM_L["ban"] = "ban"
+    GRM_L["audit"] = "verifica"
+    GRM_L["log" ] = "registro"
+    GRM_L["event"] = "evento"
+    GRM_L["events"] = "eventi"
+    GRM_L["users"] = "utenti"
+    GRM_L["syncusers"] = "sincro"
+    GRM_L["opt"] = "opz"
+    GRM_L["option"] = "opzione"
+    GRM_L["options"] = "opzioni"
 
-    GRM_L["GRM Date"] = true
-    GRM_L["Note Date"] = true
-    GRM_L["Status"] = true
-    GRM_L["Refresh"] = true
-    GRM_L["Clear Selection"] = true
-    GRM_L["Fix all mismatched note dates with GRM saved date"] = true
-    GRM_L["Fix selected mismatched note dates with GRM saved date"] = true
-    GRM_L["Fix all mismatched GRM dates with the note date"] = true
-    GRM_L["Fix selected mismatched GRM dates with the note date"] = true
-    GRM_L["Import all missing join dates from the note date"] = true;
-    GRM_L["Import selected missing join dates from the note date"] = true
-    GRM_L["Add all missing saved dates to the {name}"] = true;
-    GRM_L["Add selected missing saved dates to {name}"] = true
-    GRM_L["Clear all join dates from incorrect note locations"] = true
-    GRM_L["Clear selected join dates from incorrect note locations"] = true
-    GRM_L["Not Found"] = true
-    GRM_L["Not Set"] = true
-    GRM_L["Complete"] = true
-    GRM_L["Multiple"] = true
-    GRM_L["Location"] = true
+    GRM_L["GRM Date"] = "Data GRM"
+    GRM_L["Note Date"] = "Data Nota"
+    GRM_L["Status"] = "Status"
+    GRM_L["Refresh"] = "Aggiorna"
+    GRM_L["Clear Selection"] = "Annulla selezione"  --WIP
+    GRM_L["Fix all mismatched note dates with GRM saved date"] = "Sostituisci tutte le date delle note non corrispondenti con le date salvate da GRM"
+    GRM_L["Fix selected mismatched note dates with GRM saved date"] = "Sostituisci le date delle note non corrispondenti selezionate con le date di GRM"
+    GRM_L["Fix all mismatched GRM dates with the note date"] = "Sostituisci tutte le date salvate da GRM non corrispondenti con le date delle note"
+    GRM_L["Fix selected mismatched GRM dates with the note date"] = "Sostituisci le date di GRM non corrispondenti selezionate con le date delle note"
+    GRM_L["Import all missing join dates from the note date"] = "Importa tutte le date di entrata mancanti dalle note"
+    GRM_L["Import selected missing join dates from the note date"] = "Importa le date di entrata mancanti selezionate dalle note"
+    GRM_L["Add all missing saved dates to the {name}"] = "Aggiungi tutte le date salvate mancanti alle {name}"
+    GRM_L["Add selected missing saved dates to {name}"] = "Aggiungi le date salvate mancanti selezionate alle {name}"
+    GRM_L["Clear all join dates from incorrect note locations"] = "Cancella tutte le date di entrata dal tipo di nota sbagliata"
+    GRM_L["Clear selected join dates from incorrect note locations"] = "Cancella le date di entrata selezionate dal tipo di nota sbagliata"
+    GRM_L["Not Found"] = "Non trovato"
+    GRM_L["Not Set"] = "Non impostato"
+    GRM_L["Complete"] = "Completo"
+    GRM_L["Multiple"] = "Multiplo"
+    GRM_L["Location"] = "Posizione"
 
     -- JD tool button actions and tooltips
-    GRM_L["|CFFE6CC7FShift-Click|r Second Button to Select All In-Between"] = true
-    GRM_L["|CFFE6CC7FClick|r to select player"] = true
-    GRM_L["|CFFE6CC7FCtrl-Click|r to open Player Window"] = true
-    GRM_L["Please manually select your guild in the Community Window for this feature to work"] = true
-    GRM_L["Only Show Players With Incomplete Status"] = true
-    GRM_L["{num} Join Dates Need Attention"] = true             -- In other words, "155 join dates need attention" as an example
-    GRM_L["Do you really want to remove the join dates from notes other than the {name}?"] = true
-    GRM_L["Do you really want to fix mismatched dates using the note?"] = true
-    GRM_L["Do you really want to fix note dates using the saved GRM dates?"] = true
-    GRM_L["Do you really want to import all dates from the notes?"] = true
-    GRM_L["Do you really want to add the missing join dates to the {name}?"] = true                     -- add the missing join dates to the default note name - like "... to the Officer Note?"
-    GRM_L["Auto-adding join dates to the {name} is disabled. Do you still wish to continue?"] = true    -- Just as above
-    GRM_L["There are currently {num} mismatched dates to fix"] = true
-    GRM_L["There are currently no mismatched dates that need to be fixed."] = true
-    GRM_L["There are currently no dates that need to be imported."] = true
-    GRM_L["There are currently {num} dates that can be imported"] = true
-    GRM_L["There are currently {num} dates that can be added to the default note"] = true
-    GRM_L["There are currently no dates that can be added to the default note."] = true
-    GRM_L["There are currently no dates that need to be removed from incorrect notes"] = true
-    GRM_L["There are currently {num} players who have join dates listed in the incorrect note"] = true
-    GRM_L["Warning! Your function is extremely limited without officer permissions"] = true
-    GRM_L["Advanced Join Date Tool" ] = true
+    GRM_L["|CFFE6CC7FShift-Click|r Second Button to Select All In-Between"] = "|CFFE6CC7FShift-Click|r un secondo giocatore per selezionare anche quelli in mezzo"
+    GRM_L["|CFFE6CC7FClick|r to select player"] = "|CFFE6CC7FClicca|r per selezionare un giocatore"
+    GRM_L["|CFFE6CC7FCtrl-Click|r to open Player Window"] = "|CFFE6CC7FCtrl-Click|r per aprire la finestra del giocatore"
+    GRM_L["Please manually select your guild in the Community Window for this feature to work"] = "Seleziona manualmente la gilda nella Finestra delle Comunità per abilitare questa funzione"
+    GRM_L["Only Show Players With Incomplete Status"] = "Mostra solo i giocatori con status incompleto"
+    GRM_L["{num} Join Dates Need Attention"] = "{num} date di entrata necessitano attenzione "             -- In other words, "155 join dates need attention" as an example
+    GRM_L["Do you really want to remove the join dates from notes other than the {name}?"] = "Vuoi davvero rimuovere le date di entrata da tutte le note tranne le {name}?"
+    GRM_L["Do you really want to fix mismatched dates using the note?"] = "Vuoi davvero sostituire le date non corrispondenti utilizzando le note?"
+    GRM_L["Do you really want to fix note dates using the saved GRM dates?"] = "Vuoi davvero sostituire le date non corrispondenti utilizzando le date di GRM?"
+    GRM_L["Do you really want to import all dates from the notes?"] = "Vuoi davvero importare tutte le date dalle note?"
+    GRM_L["Do you really want to add the missing join dates to the {name}?"] = "Vuoi davvero aggiungere le date di entrata mancanti alle {name}?"  -- add the missing join dates to the default note name - like "... to the Officer Note?"
+    GRM_L["Auto-adding join dates to the {name} is disabled. Do you still wish to continue?"] = "L'aggiunta automatica di date alle {name} è disabilitata. Vuoi continuare comunque?"    -- Just as above
+    GRM_L["There are currently {num} mismatched dates to fix"] = "Ci sono {num} date non corrispondenti da sistemare"
+    GRM_L["There are currently no mismatched dates that need to be fixed."] = "Non ci sono date non corrispondenti da sistemare" --WIP
+    GRM_L["There are currently no dates that need to be imported."] = "Non ci sono date da importare"
+    GRM_L["There are currently {num} dates that can be imported"] = "Ci sono {num} date da importare"
+    GRM_L["There are currently {num} dates that can be added to the default note"] = "Ci sono {num} date da aggiungere alle note predefinite"
+    GRM_L["There are currently no dates that can be added to the default note."] = "Non ci sono date da aggiungere alle note predefinite"
+    GRM_L["There are currently no dates that need to be removed from incorrect notes"] = "Non ci sono date da rimuovere dal tipo di nota sbagliato"
+    GRM_L["There are currently {num} players who have join dates listed in the incorrect note"] = "Ci sono {num} giocatori con la data di entrata nella nota sbagliata"
+    GRM_L["Warning! Your function is extremely limited without officer permissions"] = "Attenzione! Le funzionalità sono estramamente limitate senza i permessi da ufficiale"
+    GRM_L["Advanced Join Date Tool" ] = "Strumento avanzato per le date di entrata"
 
     -- JD tool reasons
-    GRM_L["Mismatched dates"] = true
-    GRM_L["Matching date found in wrong note location"] = true
-    GRM_L["Date not added to note"] = true
-    GRM_L["Mismatched dates and found in wrong note location"] = true
-    GRM_L["Mismatched date found in multiple locations, including correct"] = true
-    GRM_L["Mismatched date found in multiple incorrect note locations"] = true
-    GRM_L["Matching date found in multiple incorrect note locations"] = true
-    GRM_L["Matching date found in multiple locations, including correct"] = true
-    GRM_L["Date found in incorrect note, but not yet imported"] = true
-    GRM_L["Date found in multiple incorrect notes, but not yet imported"] = true
-    GRM_L["Date found in multiple locations, including correct, but not yet imported"] = true
-    GRM_L["Date found in correct note location, but not yet imported"] = true
+    GRM_L["Mismatched dates"] = "Date non corrispondenti"
+    GRM_L["Matching date found in wrong note location"] = "Data corrispondente trovata nel tipo di nota sbagliato"
+    GRM_L["Date not added to note"] = "Data non aggiunta alla nota"
+    GRM_L["Mismatched dates and found in wrong note location"] = "Data non corrispondente trovata nel tipo sbagliato di nota"
+    GRM_L["Mismatched date found in multiple locations, including correct"] = "Data non corrispondente trovata in più note, compresa quella corretta" --WIP
+    GRM_L["Mismatched date found in multiple incorrect note locations"] = "Data non corrispondente trovata in più tipi di nota sbagliati"
+    GRM_L["Matching date found in multiple incorrect note locations"] = "Data corrispondente trovata in più tipi di nota sbagliati"
+    GRM_L["Matching date found in multiple locations, including correct"] = "Data non corrispondente trovata in più note, compresa quella corretta"  --WIP
+    GRM_L["Date found in incorrect note, but not yet imported"] = "Data trovata nel tipo di nota sbagliata, ma non ancora importata"
+    GRM_L["Date found in multiple incorrect notes, but not yet imported"] = "Data trovata in più tipi di nota sbagliati, ma non ancora importata"
+    GRM_L["Date found in multiple locations, including correct, but not yet imported"] = "Data trovata in più note, compresa quella corretta, ma non ancora importata"
+    GRM_L["Date found in correct note location, but not yet imported"] = "Data trovata nel tipo di nota corretto, ma non ancora importata"
 
     -- More misc.
-    GRM_L["The \"{name}\" and \"{name2}\" tags have globally been set to be added to join date note entries."] = true
-    GRM_L["The \"{name}\" and \"{name2}\" tags have globally been disabled from adding to join date note entries."] = true
-    GRM_L["'g5^X+' -Use the +/- sign at the end to enable the use of the tag headers"] = true
-	GRM_L["Your rank has changed. Re-evaluating sync permissions."] = true
+    GRM_L["The \"{name}\" and \"{name2}\" tags have globally been set to be added to join date note entries."] = "I tag \"{name}\" e \"{name2}\ sono stati impostati per essere aggiunti alle note"
+    GRM_L["The \"{name}\" and \"{name2}\" tags have globally been disabled from adding to join date note entries."] = "I tag \"{name}\" e \"{name2}\ sono stati impostati per NON essere aggiunti alle note"
+    GRM_L["'g5^X+' -Use the +/- sign at the end to enable the use of the tag headers"] = "\"g5^X+\" - utilizza + o - alla fine per abilitare o disabilitare la tag \"Entrato il:\" per tutti"
+	GRM_L["Your rank has changed. Re-evaluating sync permissions."] = "Il tuo grado è cambiato. Rivalutando i permessi di sincronizzazione"
 	
+	-- 1.57
+    GRM_L["Full Log Message:"] = "Messaggio completo:"
+    GRM_L["Public Notes"] = "Note Pubbliche"
+    GRM_L["Officer Notes"] = "Note Ufficiali"
+    GRM_L["Custom Notes"] = "Note Personalizzate"
+    GRM_L["Log Entry Tooltip"] = "Tooltip voci registro"
+    GRM_L["1 entry has been removed from the log"] = "1 voce è stata rimossa dal registro"
+	GRM_L["{num} entries have been removed from the log"] = "{num} voci sono state rimosse dal registro"
 	
-	end
+	-- 1.58
+    GRM_L["|CFFE6CC7FCtrl-Click|r to open the Old Guild Roster Window"] = "|CFFE6CC7FCtrl-Clicca|r per utilizzare la vecchia versione dell'elenco di gilda"
+	GRM_L["Using the Old Guild Roster Interface instead"] = "Utilizza la vecchia versione dell'elenco di gilda"
+	
+	-- 1.59
+	GRM_L["Adding the Join Date cannot be disabled due to the global setting"] = "È impossibile disabilitare l'inserimento della data di entrata a causa delle impostazioni globali"
+	GRM_L["Due to your current rank, you will be unable to add Join Date Timestamps"] = "A causa del tuo grado attuale non potrai aggiungere le date di Entrata"
+	GRM_L["Warning! Due to your rank you will be unable to add Join Date timestamps to the {name}"] = "Attenzione! A causa del tuo grado attuale non potrai aggiungere le date di Entrata alle {name}"
+	GRM_L["Unable to Modify Format:  {name}"] = "Impossibile modificare il formato: {name}"
+	GRM_L["Show Mouseover"] = "Mostra al passaggio del mouse"
+	GRM_L["Unable to create GRM hotkey macro. You currently are at the cap of {num} macros."] = "Impossibile creare la macro per la scorciatoia di GRM. Hai raggiunto il cap di {num} macro."
+	
+	-- 1.60
+	GRM_L["Really remove {name} Backup Point?"] = "Stai rimuovendo il Backup della gilda \"[name]\". Sei sicuro?"     -- The {name} is the guildName
+
+	-- 1.63
+    GRM_L["Disabled"] = "Disabilitato"
+    GRM_L["|CFFE6CC7FClick|r to sort Birthdays January to December"] = "|CFFE6CC7FClicca|r per ordinare i Compleanni da Gennaio a Dicembre"
+    GRM_L["|CFFE6CC7FClick|r to sort Birthdays December to January"] = "|CFFE6CC7FClicca|r per ordinare i Compleanni da Dicembre a Gennaio"
+	
+	-- 1.64
+    GRM_L["Chat Window for All GRM Messages:"] = true
+    GRM_L["\"{name}\" Chat Window\nDo you wish to create it?" ] = true              -- the \n indicates a line break.
+    GRM_L["GRM will automatically send messages to the \"{name}\" window if you close this one."] = true
+	GRM_L["Channel Settings Are Character Specific and Will Not Be Sync'd"] = true
+	
+	-- 1.66
+    GRM_L["Custom Join Tag:"] = true
+    GRM_L["Custom Rejoin Tag:"] = true
+    GRM_L["'g6^Text^^Text^^' - Custom tags for note join dates - \"g6^Joined:^^Rejoined:^^\""] = true
+        -- Join Tag
+    GRM_L["Custom Join Date Tag \"{name}\" cannot be set as it is {num} characters. The max is {custom1}."] = true
+    GRM_L["Custom Join Tag has been changed from \"{name}\" to \"{name2}\""] = true
+    GRM_L["Custom Join Tag has been set to \"{name}\""] = true
+    GRM_L["Your Guild Leader has changed the Custom Join Tag from \"{name}\" to \"{name2}\""] = true
+    GRM_L["Your Guild Leader has set the Custom Join Tag to \"{name}\""] = true
+        -- Rejoin Tag
+    GRM_L["Custom Rejoin Date Tag \"{name}\" cannot be set as it is {num} characters. The max is {custom1}."] = true
+    GRM_L["Custom Rejoin Tag has been changed from \"{name}\" to \"{name2}\""] = true
+    GRM_L["Custom Rejoin Tag has been set to \"{name}\""] = true
+    GRM_L["Your Guild Leader has changed the Custom Rejoin Tag from \"{name}\" to \"{name2}\""] = true
+	GRM_L["Your Guild Leader has set the Custom Rejoin Tag to \"{name}\""] = true
+	
+end
 	
 	-- The options panel might need some handcrafted care for allignment.
-	

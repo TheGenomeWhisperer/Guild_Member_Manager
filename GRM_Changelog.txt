@@ -1,3 +1,242 @@
+**VERSION 8.2R1.66 DATE: July 23rd, 2019**
+
+*Needed to rush this out due to a potential bug that could affect only new users, but not all. Sort of an edge case that would prvent some from loading the first time, though it would load properly on their 2nd attempt after relog or reload. Now is should configure properly for all.*
+
+***NEW FEATURES***
+
+*Custom Note Tags for auto added join dates (for join and rejoin)*
+
+* Change the "Joined: XXXX" or "Rejoined: XXXX" date tags to your own custom ones! This is found in the Officer Options tab.
+
+* Global control of these custom tags has also been included using the key "g6^"
+
+* Example: "g6^Joined:^^Rejoined:^^"  (though using your own custom tags)
+
+*   - You MUST include the "^^" to verify the stop. Max number of characters is 16 per tag.
+
+*   - "g6^Joined:^^"      - No need to force both, you can force just the Joined.
+
+*   - "g6^^^Rejoined:^^"  - You can also just force the Rejoined, and ignore the joined (notice there still is the double ^^, but the joined is empty, no text).
+
+*   - "g6^Capt'sLog:^^Re-Recruited:^^"  - Pure custom, so if a player joins, or rejoins, they date auto added to the officer note will be like "Capt's Log: 23 Jul '19'"
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+  
+* QoL1: Dutch compatibility has been built-in. While it is not yet localized into Dutch, it can now be selected as a language option as we patiently await the translation work (as of now roughly 900 lines to do all. So much work!)
+
+* QoL2: Cleaned up a littl ebit of unnecessary processing in the background that could be optimized a little bit.
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* BUG1: Fixed another bug that could cause new addon users or new alts to trigger on load - it goes away after a reload - this is sort of an edge case and won't affect everyone.
+
+
+**VERSION 8.2R1.65 DATE: July 22nd, 2019**
+
+*Minor bug fix - addon would not load for NEW alts or new users of the addon as the LoadSettings was triggering a check on the new channel destination which had not yet been configured to default as of yet. This is now resolved.*
+
+
+**VERSION 8.2R1.64 DATE: July 22nd, 2019**
+
+***NEW FEATURES***
+
+*Nothing too major. Some large stuff in the pipeline, so this is a minor cleanup patch with a couple Quality of Life improvements, and some added customization.*
+
+* New1: Players now have the ability to choose which channel to send GRM messages to, in the General Options - 
+
+*   - If you wish, GRM will create the channel for you when you type in a custom name, and if it doesn't exist, it will prompt you for permission to create it.
+
+*   - If you end up removing the custom channel GRM will automatically report to the defauly general chat channel again.
+
+*   - This chat window setting will not be sync'd between alts and will be character specific.
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+
+* QoL1: Italian is fully translated once again! TY @Nihal6#8125 (Discord)
+
+* QoL2: Someone had pointed out that when clicking some custom values, the editbox disappears, though you can still type. This has been around forever and I decided a long time ago I was only ever going to fix it if someone reported it lol. Well, the time has finally come!!! So now, they are properly displaying :D
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* Bug1: Fixed an issue that caused a Lua error on trying to export the player join dates to the designated note location if they were not there.
+
+* Bug2: When manually clearing a range of lines from the log, the addon will now properly tell you the number of lines cleared, not falsely report only 1 line was cleared.
+
+* Bug3: The font should now properly resize and change on the main log, the audit window, the backup window, and the Advanced Join Date Audit tool - before it would only refresh the size settings on a reload. It should now happen instantly on changing the setting.
+
+* Bug4: There's actually a couple of other bugs I resolved and now, for the life of me, I don't even remember exactly what they were because I was too lazy to document it that night lol.
+
+
+**VERSION 8.2R1.63 DATE: July 12th, 2019**
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+
+* QOL1: Audit Window has been rebuilt and now scrolls as a hybridscroll frame
+
+*   - In addition, birthdays have been added to the audit window, as well as the ability to set birthdays as "unknown" if you prefer, both in the audit and the player mouseover window.
+
+*   - It should be noted that in the GRM Options > UI tab, you can completely disable the birthday info if you choose not to track it in your guild, and the audit window will show that info as disabled and be considered "complete"
+
+* QOL2: GRM window should now properly save its position. This is due to some changes in 8.2 that essentially made "SetUserPlaced" where Warcraft automatically stored the position you dragged the window between sessions. Now, I have to manually store the points as saved data and load it.
+
+* QOL3: Fixed a couple misc. typos I noticed.
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* BUG1: Fixed and issue with the built-in backup/restore not working properly as it was not loading the guild names properly to match to the database.
+
+* BUG2: Tooltip should no longer permanently resize in some cases, like when opening the audit log.
+
+* BUG3: Fixed a self-resolving sync bug, so that it doesn't happen at all.
+
+* BUG4: Fixed an issue on removing a range of log entries where it would not remove index position 1
+
+* BUG5: Title of the events was wrapping the text and messing allignment in some cases. Fixed
+
+* BUG6: The Communities window will now properly open when in combat when using the MicroToolbarButton, not the hotkey.
+
+* BUG7: Advanced Join Date Audit tool should now always stay properly anchored in place.
+
+
+**VERSION 8.2R1.62 DATE: June 28th, 2019**
+
+*Further smoothing out the 8.2 transition*
+
+
+**VERSION 8.2R1.61 DATE: June 26th, 2019**
+
+*Unanticipated bug that only affects some people on the 8.2 update changes of patch R.160 release)
+
+
+**VERSION 8.2R1.60 DATE: June 26th, 2019**
+
+*UPDATED FOR 8.2 COMPATIBILITY!!! Sorry for the delay. Forgot 8.2 was around the corner.*
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+
+* QoL1: Cleaned up the in-game backups a bit... they were just too bloated to offer 4 points with 2 auto. The amount of memory being used on just backups was huge, especially since it has limited usability and is not really a true file backup, just a restore point for your guild.
+
+* QoL2: Backups have been cleaned up and are now a hybrid scrollframe
+
+* QoL3: The positioning of the text has been shifted down ever so slightly on the old /guildroster to enable mouseover buttons
+
+*Note - there are a few things I am working on that I did not have time to get to as getting 8.2 compatibility out there was priority, but I know the tooltip scaling is an issue when opening the audit window, and I actually am rectifying this, but don't expect me to have that til probably this weekend as I am rebuilding the Audi window differently and it is a bit of work. This issue does not resolve the problem @Nightdragon#2207 is facing either, which has proven to be far more complex of an issue than I initially realized. This is an issue that won't affect most people, but with his 17 guilds, 1000 members each, and 30,000+ log lines on each of the guilds, it is a massive amount of data and kind of an extreme edge case I am trying to resolve as Lua is reaching some internal limits on how the saved data is stored and how Blizz reimports it (funn enough, Lua 5.2 resolves this automatically, but it is not what Blizz uses, so I kind of have to come up with a "hacky" solution. Eventually...*
+
+
+
+**VERSION 8.1.5R1.59 DATE: June 19th, 2019**
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+
+* QoL1: Italian translation is once again nearly 100% completed, I just added a few extra lines, but it is amazing how much work is done here. Thank you again @Nihal6#8125 (discord) for all your hard work on this Italian transaltion!
+
+* QoL2: Cleaned up the tooltips and blocked actions for more obvious controls on global settings for the join date formatting and adding.
+
+* QoL3: Changing the guildInfo g5^ global settings should now inform you without needing to reload.
+
+* QoL4: Player can disable the GRM mouseover window on the old roster with a checkbox. I will likely include the same feature for the community frame soon, but for now the old roster mouseover can be disabled.
+
+![Mouseover Frame Can Be enabled or disabled on old roster](https://i.imgur.com/NtmKkao.jpg)
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* BUG1: Players should now be able to load the addon without issue. Before it was errneously creating a macro but would crash out if at 18 cap on personal.
+
+* BUG2: The CTRL-CLICK on the event log and the audit window should now properly bring up the player window or the search
+
+* BUG3: Some other misc. things I won't bother reporting since I am out of time and trying to get this update out before I am busy the remainder of the day lol
+
+* GRM keybind Macro will now be properly placed in the general, not the character specific
+
+
+**VERSION 8.1.5R1.58 DATE: June 17th, 2019**
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+
+* QoL1: Player Roster mouseover window now works again on the old Roster accessible with /guildroster or /groster
+
+* QoL2: I have implemented an automatic hot-key macro to access the old roster. Just hit **CTRL-J** on your keyboard to bring it up. Of note, that "J" corresponds to the hotkey to bring up the communities interface, so if you have it set to a different key it will be "CTRL-YOURKEY"
+
+* QoL3: The interface button to click on the bottom right of the default interface to bring up the community frame, you can now hold the CTRL key when clicking it to bring up the old guild roster interface instead.
+
+* QoL4: The new BFA tooltip on the communities roster is now visible on the old guild roster as well.
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* BUG1: Fixed a bug in relation to loading the guild recuitment addon frames .
+
+
+**VERSION 8.1.5R1.57 DATE: June 14th, 2019**
+
+*Nothing really **new**, just a cleanup of the previous release with a few QoL improvements. Of note, the main audit window is going to be revamped next, but I wanted to get this release out for the bugs*
+
+**--------------**
+**QUALITY OF LIFE**
+**--------------**
+
+* QoL1: Improved Scrolling controls on both the core log as well as the advanced Join date audit tool
+
+*	- Holding CTRL while scrolling = 3x speed
+
+*	- Holding CTRL-SHFT while scrolling = 12x speed (this is the core new thing, but many didn't seem to know you can do the others)
+
+*	- Holding SHFT will jump you instantly to top or bottom
+
+* QoL2: Tooltip added to the core log over them, rather than wrapping the lines, you now have a tooltip to show the whole thing. **This tooltip can be disabled by using the log tools button on bottom left of log.**
+
+* QoL3: Click to drag anywhere is now less janky on the advanced Join Date audit tool, the event tab, and the banned tab
+
+* QoL4: You need to CTRL-Click the users names on the main audit window now, rather than click. I found myself accidentally opening the player windows when trying to drag the window. No more!
+
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* BUG1: Log search should work properly again!
+
+* BUG2: Main log should now scroll properly in all cases, as well as maintain proper sorting and positioning whilst filtering.
+
+* BUG3: Lua error resolved when trying to mousewheel scroll on the Join Date audit tool and the main log's windows when they did not have a full page of items to display.
+
+* BUG4: Main log should no longer go crazy and rebuild copies of all fontstrings if you change the language or font size in the options.
+
+* BUG5: New Changes/Old Log brackets when logging in to changes should be consistent now.
+
+* BUG6: The Log tool to clear lines within a selected range is once again working properly, and even more clean in its implementation, I might add.
+
+* BUG7: Fixed a Lua error where the scan for changes was not working properly on new players - this was reported by many people on discord.
+
+* BUG8: Addon should no longer merge 2 join dates erroneously to designated note. Oops!
+
+* BUG9: Namechange should properly state their former name now, not their class. Another Oops!
+
+* BUG10: Fixed a bug where string name coloring was not properly getting removed on the calendar adds for bdays or anniversaries. This also caused some calendar checks to thinkn it had not been added.
+
+* BUG11: Recruitment window should now trigger their frames properly
+
 
 **VERSION 8.1.5R1.56 DATE: June 7th, 2019**
 

@@ -17,6 +17,10 @@
 
     -- GRM_L["{name}'s Anniversary!"] = "Aniversario de {name}"
 
+-- WARNING!!! 
+-- DO NOT UPDATE GRM IF YOU HAVE NOT BACKED UP YOUR TRANSLATION WORK!!! Twitch and other services will overwrite your work without warning when they update!!!
+-- WARNING!!!
+
     ---------------------------------
     -- BEGIN TRANSLATION WORK HERE --
     ---------------------------------
@@ -299,8 +303,8 @@ GRML.SpanishEU = function()
     GRM_L["Main or Alt?"] = true
     GRM_L["Alt"] = true
     GRM_L["Total Incomplete: {num} / {custom1}"] = true                 -- Context: Total Incomeplete: 50 / 100    (50 out of 100)
-    GRM_L["Mains: {num}"] = true                                        -- Context: Number of "main" toons
-    GRM_L["Unique Accounts: {num}"] = true
+    GRM_L["Mains:\n{num}"] = true                                        -- Context: Number of "main" toons
+    GRM_L["Unique Accounts:\n{num}"] = true
     GRM_L["All Complete"] = true                                        -- Context: All dates have been added and are known, thus it states it is "All Complete"
     GRM_L["Set Incomplete to Unknown"] = true                           -- Context: Implied to set ALL incomplete to unknown
     GRM_L["Clear All Unknown"] = true
@@ -706,7 +710,7 @@ GRML.SpanishEU = function()
 
     -- R1.1500
     GRM_L["It's almost time to celebrate {name}'s Birthday!"] = true          -- Custom1 is the actual date.  Like "1 Mar '18"
-    GRM_L["Unique accounts pull from the server is known to faulty"] = true
+    GRM_L["Unique accounts pull from the server is known to be faulty"] = true
     GRM_L["Use only as an estimate. Hopefully Blizz fixes this soon"] = true
     GRM_L["{name}'s Anniversary!"] = true
     GRM_L["{name}'s Birthday!"] = true
@@ -1041,6 +1045,58 @@ GRML.SpanishEU = function()
     GRM_L["The \"{name}\" and \"{name2}\" tags have globally been disabled from adding to join date note entries."] = true
     GRM_L["'g5^X+' -Use the +/- sign at the end to enable the use of the tag headers"] = true
     GRM_L["Your rank has changed. Re-evaluating sync permissions."] = true
+    
+    -- 1.57
+    GRM_L["Full Log Message:"] = true
+    GRM_L["Public Notes"] = true
+    GRM_L["Officer Notes"] = true
+    GRM_L["Custom Notes"] = true
+    GRM_L["Log Entry Tooltip"] = true
+    GRM_L["1 entry has been removed from the log"] = true
+    GRM_L["{num} entries have been removed from the log"] = true
+    
+    -- 1.58
+    GRM_L["|CFFE6CC7FCtrl-Click|r to open the Old Guild Roster Window"] = true
+    GRM_L["Using the Old Guild Roster Interface instead"] = true
+    
+    -- 1.59
+    GRM_L["Adding the Join Date cannot be disabled due to the global setting"] = true
+    GRM_L["Due to your current rank, you will be unable to add Join Date Timestamps"] = true
+    GRM_L["Warning! Due to your rank you will be unable to add Join Date timestamps to the {name}"] = true
+    GRM_L["Unable to Modify Format:  {name}"] = true
+    GRM_L["Show Mouseover"] = true
+    GRM_L["Unable to create GRM hotkey macro. You currently are at the cap of {num} macros."] = true
+    
+    -- 1.60
+    GRM_L["Really remove {name} Backup Point?"] = true      -- The {name} is the guildName
+    
+    -- 1.63
+    GRM_L["Disabled"] = true
+    GRM_L["|CFFE6CC7FClick|r to sort Birthdays January to December"] = true
+    GRM_L["|CFFE6CC7FClick|r to sort Birthdays December to January"] = true
+    
+    -- 1.64
+    GRM_L["Chat Window for All GRM Messages:"] = true
+    GRM_L["\"{name}\" Chat Window\nDo you wish to create it?" ] = true              -- the \n indicates a line break.
+    GRM_L["GRM will automatically send messages to the \"{name}\" window if you close this one."] = true
+    GRM_L["Channel Settings Are Character Specific and Will Not Be Sync'd"] = true
+    
+    -- 1.66
+    GRM_L["Custom Join Tag:"] = true
+    GRM_L["Custom Rejoin Tag:"] = true
+    GRM_L["'g6^Text^^Text^^' - Custom tags for note join dates - \"g6^Joined:^^Rejoined:^^\""] = true
+        -- Join Tag
+    GRM_L["Custom Join Date Tag \"{name}\" cannot be set as it is {num} characters. The max is {custom1}."] = true
+    GRM_L["Custom Join Tag has been changed from \"{name}\" to \"{name2}\""] = true
+    GRM_L["Custom Join Tag has been set to \"{name}\""] = true
+    GRM_L["Your Guild Leader has changed the Custom Join Tag from \"{name}\" to \"{name2}\""] = true
+    GRM_L["Your Guild Leader has set the Custom Join Tag to \"{name}\""] = true
+        -- Rejoin Tag
+    GRM_L["Custom Rejoin Date Tag \"{name}\" cannot be set as it is {num} characters. The max is {custom1}."] = true
+    GRM_L["Custom Rejoin Tag has been changed from \"{name}\" to \"{name2}\""] = true
+    GRM_L["Custom Rejoin Tag has been set to \"{name}\""] = true
+    GRM_L["Your Guild Leader has changed the Custom Rejoin Tag from \"{name}\" to \"{name2}\""] = true
+    GRM_L["Your Guild Leader has set the Custom Rejoin Tag to \"{name}\""] = true
     
 end
 

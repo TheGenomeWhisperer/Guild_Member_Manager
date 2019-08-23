@@ -333,6 +333,43 @@ GRM_Patch.SettingsCheck = function ( numericV )
         GRM_Patch.ExpandOptionsType ( 2 , 1 , 68 );                 -- Add boolean for checkbox for JD Audit tool
         GRM_Patch.ModifyNewDefaultSetting ( 69 , false ); 
     end
+
+    if numericV < 1.57 then
+        GRM_Patch.ExpandOptionsType ( 2 , 1 , 69 );                 -- Add boolean for checkbox for the log tooltip enablement
+    end
+
+    if numericV < 1.59 then
+        DeleteMacro("GRM_Roster")                                   -- Deleting the macro to rebuild it in general.
+        GRM_Patch.ExpandOptionsType ( 2 , 1 , 70 );                 -- Add boolean to enable or disable the GRM window on the old roster.
+        GRM_Patch.ModifyNewDefaultSetting ( 71 , false );
+    end
+
+    if numericV < 1.61 then
+        GRM_Patch.RemoveOneAutoAndOneManualBackup();
+    end
+
+    if numericV < 1.63 then
+        GRM_Patch.ExpandOptionsType ( 3 , 1 , 71 );                             -- for keeping the setpoints of GRM window...
+        GRM_Patch.ModifyNewDefaultSetting ( 72 , { "" , "" , 0 , 0 } );         -- Center position default
+        GRM_Patch.AddPlayerMetaDataSlot ( 43 , false );                         -- Adding the position to have an "unknown" option in regards to bdays
+    end
+
+    if numericV < 1.64 then
+        GRM_Patch.ExpandOptionsType ( 4 , 1 , 72 );
+    end
+
+    if numericV < 1.66 then
+        GRM_Patch.ModifyNewDefaultSetting ( 48 , { "" , "" } );
+    end
+
+    if numericV < 1.67 then
+        GRM_Patch.ExpandOptionsType ( 3 , 1 , 73 );                             -- for keeping the setpoints of GRM window...
+        GRM_Patch.ModifyNewDefaultSetting ( 74 , { "" , "" , 0 , 0 } );         -- Center position default
+        GRM_Patch.ExpandOptionsType ( 3 , 1 , 74 );                             -- Adding slots 75 for storing the names and rules for kick/promote/demote tool
+        GRM_Patch.AddPlayerMetaDataSlot ( 44 , false );                         -- Rule if player rules should be ignored.
+        GRM_Patch.ConvertRecommendedKickDateToRule ( 75 );                      -- Converts the old month date to the new featuer
+    end
+
 end
 
         -------------------------------
@@ -2423,7 +2460,7 @@ GRM_Patch.SortGuildRosterDeepArray = function()
 end
 
 -- 1.50
--- Method:          GRM_Patch.PlayerMetaDataDatabaseWideEdit ( function , bool , bool )
+-- Method:          GRM_Patch.PlayerMetaDataDatabaseWideEdit ( function , bool , bool , bool )
 -- What it Does:    Implements the function logic argument on all metadata profiles of all character profiles database wide: in-guild, previously in-guild, and all backup data indexes
 -- Purpose:         Patch code bloat getting large. Streamline the process of writing patches a bit and allow me to condense previous changes as well without risk of inconsistent
 GRM_Patch.PlayerMetaDataDatabaseWideEdit = function ( databaseChangeFunction , editCurrentPlayers , editLeftPlayers , includeAllGuildData )
@@ -2858,6 +2895,80 @@ GRM_Patch.GuildDataDatabaseWideEdit = function ( databaseChangeFunction )
     end
 end
 
+-- Method:          GRM_Patch.RemoveOneAutoAndOneManualBackup)_
+-- What it Does:    Removes 1 of the auto-backup positions and one of the manual
+-- Purpose:         Free up resources, prevent overflow issues that can occur on load by having too deep of these nested backups
+GRM_Patch.RemoveOneAutoAndOneManualBackup = function()
+    for i = 1 , #GRM_GuildDataBackup_Save do                         -- Horde and Alliance
+        for j = 2 , #GRM_GuildDataBackup_Save[i] do                  -- The guilds in each faction
+            if #GRM_GuildDataBackup_Save[i][j] > 1 then
+
+                if #GRM_GuildDataBackup_Save[i][j] > 2 and ( #GRM_GuildDataBackup_Save[i][j][3] == 0 or string.find ( GRM_GuildDataBackup_Save[i][j][3][1] , "AUTO_" , 1 , true ) ~= nil ) then
+                    table.remove ( GRM_GuildDataBackup_Save[i][j] , 3 );     -- Remove the 2nd auto-added backup.
+                end
+
+                -- Now we remove any extra manual backups.
+                while #GRM_GuildDataBackup_Save[i][j] > 3 do
+                    table.remove ( GRM_GuildDataBackup_Save[i][j] , #GRM_GuildDataBackup_Save[i][j] );
+                end
+            end
+        end
+    end
+end
+
+-- Method:          GRM_Patch.PlayerSettingsIntegrityCheck()
+-- What it Does:    Checks for broken player addon settings in relation to some previous errors that could be introduced. Returns a boolean to determine if the player settings need to be rebuilt for that current player
+-- Purpose:         To fix any issues in regards to previous bug.
+GRM_Patch.PlayerSettingsIntegrityCheck = function()
+    local g = GRM_AddonSettings_Save;
+    local needsToKeep = true;
+    
+    for i = 1 , #g do
+        for j = #g[i] , 2 , -1 do
+            if g[i][j][2] == nil then 
+                if needsToKeep and g[i][j][1] == GRM_G.addonPlayerName then
+                    needsToKeep = false;
+                end
+                table.remove ( g[i] , j );
+            end
+        end
+    end
+    return needsToKeep;
+end
+
+-- Method:          GRM_Patch.ConvertRecommendedKickDateToRule ( int )
+-- What it Does:    It converts the old setting to the new format.
+-- Purpose:         Integration into the GRM tool.
+GRM_Patch.ConvertRecommendedKickDateToRule = function( index )
+    for i = 1 , #GRM_AddonSettings_Save do
+        for j = #GRM_AddonSettings_Save[i] , 2 , -1 do
+            if GRM_AddonSettings_Save[i][j][2] ~= nil and GRM_AddonSettings_Save[i][j][2][index] ~= nil then
+
+                GRM_AddonSettings_Save[i][j][2][index] = { { 1 , 1 , 1 , GRM_AddonSettings_Save[i][j][2][9] , GRM_AddonSettings_Save[i][j][2][10] } };
+
+            else
+                table.remove ( GRM_AddonSettings_Save[i] , j );
+
+                -- Double check if it is current player still is found
+                local isFound = false;
+                for k = 2 , #GRM_AddonSettings_Save[GRM_G.FID] do
+                    if GRM_AddonSettings_Save[GRM_G.FID][k][1] == GRM_G.addonPlayerName then
+                        isFound = true;
+                        break;
+                    end
+                end
+                if not isFound then -- Edge case scenario of addon settings being lost thus are replaced with defaults.
+                    table.insert ( GRM_AddonSettings_Save[GRM_G.FID] , { GRM_G.addonPlayerName } );
+                    GRM_G.setPID = #GRM_AddonSettings_Save[GRM_G.FID];
+                    table.insert ( GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID] , GRM.GetDefaultAddonSettings() );
+                    GRM_G.IsNewToon = true;
+                    -- Forcing core log window/options frame to load on the first load ever as well
+                    GRM_G.ChangesFoundOnLoad = true;
+                end
+            end
+        end
+    end
+end
 
 -- /run local c=GRM_PlayersThatLeftHistory_Save;for i=1,#c do print(c[i][1]);for k = 2, #c[i] do print("Guild: "..c[i][k][1][1]);for j=2,#c[i][k] do if c[i][k][j][23][6] == nil then print(j);end;end;end;end
 -- /run local c=GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ];GRM_Patch.CleanupBirthdayRepeats(c,c[3]);

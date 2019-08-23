@@ -25,18 +25,18 @@
     -- BEGIN TRANSLATION WORK HERE --
     ---------------------------------
 
-GRML.MandarinCN = function()
+GRML.Dutch = function()
 
     GRM_L["Guild"] = true
 
     -- PLAYER MAIN ROSTER DETAILS WINDOW
-    GRM_L["Level: "] = "等级"
-    GRM_L["Level"] = "等级"
-    GRM_L["Note:"] = "备注："
-    GRM_L["Note"] = "备注"
-    GRM_L["Officer's Note:"] = "官员备注:"
-    GRM_L["Officer's Note"] = "官员备注"
-    GRM_L["Zone:"] = "地区："
+    GRM_L["Level: "] = true
+    GRM_L["Level"] = true
+    GRM_L["Note:"] = true
+    GRM_L["Note"] = true
+    GRM_L["Officer's Note:"] = true
+    GRM_L["Officer's Note"] = true
+    GRM_L["Zone:"] = true
     GRM_L["(main)"] = true
     GRM_L["( Main )"] = true                                -- Context: This one is used on player data window, the other is smaller used in the alts list...
     GRM_L["Set as Main"] = true
@@ -119,7 +119,7 @@ GRML.MandarinCN = function()
     GRM_L["{name} has been PROMOTED from {custom1} to {custom2}"] = true
     GRM_L["{name} DEMOTED {name2} from {custom1} to {custom2}"] = true
     GRM_L["{name} has been DEMOTED from {custom1} to {custom2}"] = true
-    GRM_L["(+ {num} More)"] = true                                          -- Context: Referencing num of alts if player leaves guild, that are stil in it. Example "ALTS IN GUILD: Christ, Matt, Sarah (and 4 more)"
+    GRM_L["(+ {num} More)"] = true                                          -- Context: Referencing num of alts if player leaves guild, that are stil in it. Example "ALTS IN GUILD: Christ, Matt, Sarah (+ 4 more)"
     GRM_L["{name} has Been in the Guild {num} Times Before"] = true
     GRM_L["{name} is Returning for the First Time."] = true
     GRM_L["None Given"] = true                                              -- Context: No reason given for player ban. This is displayed when a player was banned, but the addon users did not input a reason why.
@@ -174,7 +174,6 @@ GRML.MandarinCN = function()
     GRM_L["No Player Event Has Been Selected"] = true
     GRM_L["Event Added to Calendar: {custom1}"] = true              -- Custom1 = the title of the event, like "Arkaan's Anniversary"
     GRM_L["Please Select Event to Add to Calendar"] = true
-    GRM_L["No Calendar Events to Add"] = true
     GRM_L["{name}'s event has already been added to the calendar!"] = true
     GRM_L["Please wait {num} more seconds to Add Event to the Calendar!"] = true
     GRM_L["{name}'s Event Removed From the Que!"] = true
@@ -187,7 +186,7 @@ GRML.MandarinCN = function()
     GRM_L["Select a Player"] = true
     GRM_L["Player Selected"] = true
     GRM_L["{name}(Still in Guild)"] = true
-    GRM_L["(Still in Guild)"] = true
+    GRM_L["(Still in Guild)"] = true                                -- same as previous, just formatting simplicity...
     GRM_L["No Ban Reason Given"] = true
     GRM_L["Reason:"] = true                                         -- Context: As in, "Reason Banned"
     GRM_L["Total Banned:"] = true
@@ -436,7 +435,7 @@ GRML.MandarinCN = function()
     GRM_L["Msg:"] = true                                                -- Context: Msg is short for Message
     GRM_L["Unable to register prefix > 16 characters: {name}"] = true   -- Context: The {name} is the string code for the prefix. This is for debugging.
 
-
+    
     --SLASH COMMANDS
     -- These are generally written in general shorthand. The original commands will ALWAYS work, but if there is one that makes more sense in your language, please feel free to modify
     GRM_L["clearall"] = true                        -- Context: In regards, "Clear All" saved data account wide 
@@ -451,47 +450,47 @@ GRML.MandarinCN = function()
     GRM_L["recruit"] = true                         -- Context: Open the roster "recruit" window where people request to join guild
 
     -- CLASSES
-    GRM_L["Deathknight"] = "死亡骑士"
-    GRM_L["Demonhunter"] = "恶魔猎手"
-    GRM_L["Druid"] = "德鲁伊"
-    GRM_L["Hunter"] = "猎人"
-    GRM_L["Mage"] = "法师"
-    GRM_L["Monk"] = "武僧"
-    GRM_L["Paladin"] = "圣骑士"
-    GRM_L["Priest"] = "牧师"
-    GRM_L["Rogue"] = "潜行者"
-    GRM_L["Shaman"] = "萨满祭司"
-    GRM_L["Warlock"] = "术士"
-    GRM_L["Warrior"] = "战士"
+    GRM_L["Deathknight"] = true
+    GRM_L["Demonhunter"] = true
+    GRM_L["Druid"] = true
+    GRM_L["Hunter"] = true
+    GRM_L["Mage"] = true
+    GRM_L["Monk"] = true
+    GRM_L["Paladin"] = true
+    GRM_L["Priest"] = true
+    GRM_L["Rogue"] = true
+    GRM_L["Shaman"] = true
+    GRM_L["Warlock"] = true
+    GRM_L["Warrior"] = true
 
     -- TIME AND DATES
-    GRM_L["1 Mar"] = "3月1日"                           -- This date is used in a specific circumstance. If someone's anniversary/bday landed on a leap year (Feb 29th), it defaults to the 1st of March on non-leap year
+    GRM_L["1 Mar"] = true                           -- This date is used in a specific circumstance. If someone's anniversary/bday landed on a leap year (Feb 29th), it defaults to the 1st of March on non-leap year
     -- Full Month Name
-    GRM_L["January"] = "一 月"
-    GRM_L["February"] = "二 月"
-    GRM_L["March"] = "三 月"
-    GRM_L["April"] = "四 月"
-    GRM_L["May"] = "五 月"
-    GRM_L["June"] = "六 月"
-    GRM_L["July"] = "七 月"
-    GRM_L["August"] = "八 月"
-    GRM_L["September"] = "九 月"
-    GRM_L["October"] = "十 月"
-    GRM_L["November"] = "十一 月"
-    GRM_L["December"] = "十二 月"
+    GRM_L["January"] = true
+    GRM_L["February"] = true
+    GRM_L["March"] = true
+    GRM_L["April"] = true
+    GRM_L["May"] = true
+    GRM_L["June"] = true
+    GRM_L["July"] = true
+    GRM_L["August"] = true
+    GRM_L["September"] = true
+    GRM_L["October"] = true
+    GRM_L["November"] = true
+    GRM_L["December"] = true
     -- Shorthand Month
-    GRM_L["Jan"] = "一 月"
-    GRM_L["Feb"] = "二 月"
-    GRM_L["Mar"] = "三 月"
-    GRM_L["Apr"] = "四 月"
-    GRM_L["May"] = "五 月"
-    GRM_L["Jun"] = "六 月"
-    GRM_L["Jul"] = "七 月"
-    GRM_L["Aug"] = "八 月"
-    GRM_L["Sep"] = "九 月"
-    GRM_L["Oct"] = "十 月"
-    GRM_L["Nov"] = "十一 月"
-    GRM_L["Dec"] = "十二 月"
+    GRM_L["Jan"] = true
+    GRM_L["Feb"] = true
+    GRM_L["Mar"] = true
+    GRM_L["Apr"] = true
+    GRM_L["May"] = true
+    GRM_L["Jun"] = true
+    GRM_L["Jul"] = true
+    GRM_L["Aug"] = true
+    GRM_L["Sep"] = true
+    GRM_L["Oct"] = true
+    GRM_L["Nov"] = true
+    GRM_L["Dec"] = true
     -- Time Notifcation
     GRM_L["Seconds"] = true
     GRM_L["Second"] = true
@@ -712,8 +711,6 @@ GRML.MandarinCN = function()
     GRM_L["It's almost time to celebrate {name}'s Birthday!"] = true          -- Custom1 is the actual date.  Like "1 Mar '18"
     GRM_L["Unique accounts pull from the server is known to be faulty"] = true
     GRM_L["Use only as an estimate. Hopefully Blizz fixes this soon"] = true
-    GRM_L["{name}'s Anniversary!"] = true
-    GRM_L["{name}'s Birthday!"] = true
     GRM_L["Guild member for over {num} year"] = true
     GRM_L["Guild member for over {num} years"] = true   -- the plural version!
     GRM_L["Add Upcoming Events to the Calendar"] = true
@@ -920,9 +917,9 @@ GRML.MandarinCN = function()
     GRM_L["One moment, GRM is still being configured."] = true
     GRM_L["Press ENTER to complete"] = true
     GRM_L["Player Was Banned By: {name}"] = true
-    GRM_L["|cffff0000WARNING!!!|r {num} BANNED players are currently in the guild."] = true     -- plural
-    GRM_L["|cffff0000WARNING!!!|r {num} BANNED player is currently in the guild."] = true        -- Singular  -- please keep the color coding... this keeps the Warning in red
-    
+    GRM_L["|cffff0000WARNING!!!|r {num} BANNED players are currently in the guild."] = true         -- plural
+    GRM_L["|cffff0000WARNING!!!|r {num} BANNED player is currently in the guild."] = true           -- Singular  -- please keep the color coding... this keeps the Warning in red
+
     -- R1.41
     GRM_L["{num} metadata profiles are being built for people previously in the guild. The data is being requested, but this may take some time."] = true                   -- PLURAL
     GRM_L["One metadata profile is being built for a player previously in the guild. The data is being requested, but this may take some time."] = true           -- SINGULAR, same line.
@@ -944,7 +941,7 @@ GRML.MandarinCN = function()
     GRM_L["Click or Press TAB to cycle through each step."] = true
     GRM_L["Former and Current Members"] = true
     GRM_L["No Matches Found. Add a Custom New Player or Match"] = true       -- as in, autocomplete typing matching
-    
+
     --1.50
     GRM_L["{name}'s alt grouping has had their Birthday removed by: {name2}"] = true
     GRM_L["{name}'s Birthday has been removed by: {name2}"] = true
@@ -965,7 +962,7 @@ GRML.MandarinCN = function()
 
     -- 1.52
     GRM_L["Times in Guild: {num}"] = true
-    
+
     -- 1.56
     -- More slash commands
     GRM_L["recruits"] = true 
@@ -1045,7 +1042,7 @@ GRML.MandarinCN = function()
     GRM_L["The \"{name}\" and \"{name2}\" tags have globally been disabled from adding to join date note entries."] = true
     GRM_L["'g5^X+' -Use the +/- sign at the end to enable the use of the tag headers"] = true
     GRM_L["Your rank has changed. Re-evaluating sync permissions."] = true
-    
+
     -- 1.57
     GRM_L["Full Log Message:"] = true
     GRM_L["Public Notes"] = true
@@ -1058,7 +1055,7 @@ GRML.MandarinCN = function()
     -- 1.58
     GRM_L["|CFFE6CC7FCtrl-Click|r to open the Old Guild Roster Window"] = true
     GRM_L["Using the Old Guild Roster Interface instead"] = true
-    
+
     -- 1.59
     GRM_L["Adding the Join Date cannot be disabled due to the global setting"] = true
     GRM_L["Due to your current rank, you will be unable to add Join Date Timestamps"] = true
@@ -1066,7 +1063,7 @@ GRML.MandarinCN = function()
     GRM_L["Unable to Modify Format:  {name}"] = true
     GRM_L["Show Mouseover"] = true
     GRM_L["Unable to create GRM hotkey macro. You currently are at the cap of {num} macros."] = true
-    
+
     -- 1.60
     GRM_L["Really remove {name} Backup Point?"] = true      -- The {name} is the guildName
 
@@ -1074,13 +1071,13 @@ GRML.MandarinCN = function()
     GRM_L["Disabled"] = true
     GRM_L["|CFFE6CC7FClick|r to sort Birthdays January to December"] = true
     GRM_L["|CFFE6CC7FClick|r to sort Birthdays December to January"] = true
-    
+
     -- 1.64
     GRM_L["Chat Window for All GRM Messages:"] = true
     GRM_L["\"{name}\" Chat Window\nDo you wish to create it?" ] = true              -- the \n indicates a line break.
     GRM_L["GRM will automatically send messages to the \"{name}\" window if you close this one."] = true
     GRM_L["Channel Settings Are Character Specific and Will Not Be Sync'd"] = true
-    
+
     -- 1.66
     GRM_L["Custom Join Tag:"] = true
     GRM_L["Custom Rejoin Tag:"] = true
@@ -1097,7 +1094,6 @@ GRML.MandarinCN = function()
     GRM_L["Custom Rejoin Tag has been set to \"{name}\""] = true
     GRM_L["Your Guild Leader has changed the Custom Rejoin Tag from \"{name}\" to \"{name2}\""] = true
     GRM_L["Your Guild Leader has set the Custom Rejoin Tag to \"{name}\""] = true
-    
+
+
 end
--- BuildLog() - might have some extra work, conditionally based on localization as it will now have a mix of languages saved to the log, since log is not retroactively changed.
--- The options panel might need some handcrafted care for allignment.

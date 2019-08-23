@@ -14,23 +14,9 @@ GRML.TranslationStatusEnum = {
     Portuguese = false,
     Korean = false,
     MandarinCN = false,
-    MandarinTW = false  
+    MandarinTW = false,
+    Dutch = false
 }
-
--- Pending use... eventually to honor, will want to get permission from players to use name first.
--- GRML.TranslatorsToHonor = {
---     English = { "Arkaan-Zul'jin" },           -- @Me
---     German = { "" },            -- @Nehry
---     French = { "" },            -- @Enkh
---     Italian = { "" },           -- @Nihal6
---     Russian = { "" },           --
---     SpanishMX = { "" },
---     SpanishEU = { "" },
---     Portuguese = { "" },
---     Korean = { "" },
---     MandarinCN = { "" },
---     MandarinTW = { "" }
--- }
 
 GRML.Languages = {
     "English",
@@ -43,7 +29,8 @@ GRML.Languages = {
     "Portuguese" ,
     "Korean",
     "MandarinCN",
-    "MandarinTW"
+    "MandarinTW",
+    "Dutch"
 }
 
 -- Array that holds all the initialization functions to load the dictionary of each language.
@@ -58,7 +45,8 @@ GRML.LoadLanguage = {
     GRML.Portuguese,
     GRML.Korean,
     GRML.MandarinCN,
-    GRML.MandarinTW
+    GRML.MandarinTW,
+    GRML.Dutch
 }
 
 -- Method:          GRML.GetFontNameFromLocation ( string )
@@ -271,6 +259,9 @@ if GRM_G.Region == "deDE" then
     GRM_L["Revered"] = "Respektvoll"
     GRM_L["Exalted"] = "Ehrfürchtig"
 
+    -- Interface default translations
+    GRM_L["Guild & Communities"] = "Gilde & Communitys"
+
     GRML.LoadLanguage[2]();
 
 -- French Defaults
@@ -310,6 +301,9 @@ elseif GRM_G.Region == "frFR" then
     GRM_L["Honored"] = "Honoré"
     GRM_L["Revered"] = "Révéré"
     GRM_L["Exalted"] = "Exalté"
+
+    -- Interface default translations
+    GRM_L["Guild & Communities"] = "Guilde et communautés"
 
     GRML.LoadLanguage[3]();
 
@@ -351,6 +345,9 @@ elseif GRM_G.Region == "itIT" then
     GRM_L["Revered"] = "Riverito"
     GRM_L["Exalted"] = "Osannato"
 
+    -- Interface default translations
+    GRM_L["Guild & Communities"] = "Gilda e comunità"
+
     GRML.LoadLanguage[4]();
 
 -- Russian Defaults
@@ -390,6 +387,9 @@ elseif GRM_G.Region == "ruRU" then
     GRM_L["Honored"] = "Уважение"
     GRM_L["Revered"] = "Почтение"
     GRM_L["Exalted"] = "Превознесение"
+
+    -- Interface default translations
+    GRM_L["Guild & Communities"] = "Гильдия и сообщества"
 
     GRML.LoadLanguage[5]();
 
@@ -431,6 +431,9 @@ elseif GRM_G.Region == "esMX" then
     GRM_L["Revered"] = "Venerado"
     GRM_L["Exalted"] = "Exaltado"
 
+    -- Interface default translations
+    GRM_L["Guild & Communities"] = "Hermandad y comunidades"
+
     GRML.LoadLanguage[6]();
 
     -- Spanish (EU) Defaults
@@ -469,6 +472,9 @@ elseif GRM_G.Region == "esES" then
     GRM_L["Honored"] = "Honorable"
     GRM_L["Revered"] = "Venerado"
     GRM_L["Exalted"] = "Exaltado"
+
+    -- Interface default translations
+    GRM_L["Guild & Communities"] = "Hermandad y comunidades"
 
     GRML.LoadLanguage[7]();
 
@@ -510,6 +516,9 @@ elseif GRM_G.Region == "ptBR" then
     GRM_L["Revered"] = "Reverenciado"
     GRM_L["Exalted"] = "Exaltado"
 
+    -- Interface default translations
+    GRM_L["Guild & Communities"] = "Guilda e Comunidades"
+
     GRML.LoadLanguage[8]();
 
     -- Korean Defaults
@@ -549,6 +558,9 @@ elseif GRM_G.Region == "koKR" then
     GRM_L["Honored"] = "우호적"
     GRM_L["Revered"] = "매우 우호적"
     GRM_L["Exalted"] = "확고한 동맹"
+
+    -- Interface default translations
+    GRM_L["Guild & Communities"] = "길드 & 커뮤니티"
 
     GRML.LoadLanguage[9]();
 
@@ -590,6 +602,9 @@ elseif GRM_G.Region == "zhCN" then
     GRM_L["Revered"] = "崇敬"
     GRM_L["Exalted"] = "崇拜"
 
+    -- Interface default translations
+    GRM_L["Guild & Communities"] = "公會和社群"
+
     GRML.LoadLanguage[10]();
 
 -- Mandarin Chinese (TW) Defaults
@@ -629,6 +644,9 @@ elseif GRM_G.Region == "zhTW" then
     GRM_L["Honored"] = "尊敬"
     GRM_L["Revered"] = "崇敬"
     GRM_L["Exalted"] = "崇拜"
+
+    -- Interface default translations
+    GRM_L["Guild & Communities"] = "公会与社区"
 
     GRML.LoadLanguage[11]();
 
@@ -670,6 +688,9 @@ elseif GRM_G.Region == "enUS" or GRM_G.Region == "enGB" or not GRM_G.Localized t
     GRM_L["Honored"] = true
     GRM_L["Revered"] = true
     GRM_L["Exalted"] = true
+
+    -- Interface default translations
+    GRM_L["Guild & Communities"] = true
 
     GRML.LoadLanguage[1]();
 end
