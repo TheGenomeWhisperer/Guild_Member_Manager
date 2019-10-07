@@ -27,7 +27,23 @@
 
 GRML.MandarinTW = function()
 
-    GRM_L["Guild"] = true
+    -- SET YOUR OWN CUSTOM SLASH COMMAND FOR GRM
+    GRM_L["/XXXX"] = true            -- /grm will always work, now you can make your own acronym that fits your language.
+
+    GRM_L["German"] = "德語"
+	GRM_L["English"] = "英語"
+	GRM_L["French"] = "法語"
+	GRM_L["Italian"] = "義大利文"
+	GRM_L["Russian"] = "俄語"
+	GRM_L["SpanishMX"] = "西班牙文（墨西哥）"
+	GRM_L["SpanishEU"] = "西班牙文（歐洲）"
+    GRM_L["Portuguese"] = "葡萄牙文（歐洲）"
+    GRM_L["PortugueseBR"] = "葡萄牙文（巴西）"
+	GRM_L["Korean"] = "朝鮮語"
+	GRM_L["MandarinCN"] = "普通話"
+    GRM_L["MandarinTW"] = "普通話臺灣語"
+    GRM_L["Dutch"] = "荷蘭文"
+    GRM_L["Danish"] = "丹麥文"
 
     -- PLAYER MAIN ROSTER DETAILS WINDOW
     GRM_L["Level: "] = "等級"
@@ -77,6 +93,7 @@ GRML.MandarinTW = function()
     GRM_L["(Press Tab)"] = true
     GRM_L["Shift-Mouseover Name On Roster Also Works"] = true
     GRM_L["Guild Log"] = true
+    GRM_L["Guild"] = true
 
     -- TOOLTIPS
     GRM_L["Rank History"] = true 
@@ -1030,7 +1047,7 @@ GRML.MandarinTW = function()
     GRM_L["Mismatched dates"] = true
     GRM_L["Matching date found in wrong note location"] = true
     GRM_L["Date not added to note"] = true
-    GRM_L["Mismatched dates and found in wrong note location"] = true
+    GRM_L["Mismatched dates, and found in wrong note location"] = true
     GRM_L["Mismatched date found in multiple locations, including correct"] = true
     GRM_L["Mismatched date found in multiple incorrect note locations"] = true
     GRM_L["Matching date found in multiple incorrect note locations"] = true
@@ -1097,6 +1114,154 @@ GRML.MandarinTW = function()
     GRM_L["Custom Rejoin Tag has been set to \"{name}\""] = true
     GRM_L["Your Guild Leader has changed the Custom Rejoin Tag from \"{name}\" to \"{name2}\""] = true
     GRM_L["Your Guild Leader has set the Custom Rejoin Tag to \"{name}\""] = true
+    
+     -- 1.67
+    -- Note, lots of plural/singular forms here for just a superior user experience, albeit a bit of extra work
+    GRM_L["Kick"] = true
+    GRM_L["Promote"] = true
+    GRM_L["Demote"] = true
+    GRM_L["Macro:"] = true
+    GRM_L["Macro Size: {num}/255"] = true        -- "Macro Size: 242/255"
+    GRM_L["Action"] = true
+    GRM_L["Ignored Action:"] = true                 -- As in, the action being ignored, be it kick or promote or demote. 
+    GRM_L["Click to Build Macro"] = true
+    GRM_L["No Current Names to Add"] = true
+    GRM_L["No Names to Add to the Macro"] = true
+    GRM_L["Hot Key: {name}"] = true
+    GRM_L["Press the Hot-key 1 time to complete all actions"] = true
+    GRM_L["Press the Hot-key {num} times to complete all actions"] = true
+    GRM_L["Permissions"] = true
+    GRM_L["Player rank change detected, re-checking permissions and rebuilding GRM Macro Tool."] = true
+    GRM_L["Click to remove selected names from the macro"] = true           -- Plural form of statement
+    GRM_L["Click to remove selected name from the macro"] = true            -- Singular form of statement
+    GRM_L["Click to remove selected names from Ignore List"] = true         -- Plural
+    GRM_L["Click to remove selected name from Ignore List"] = true          -- Singular
+    GRM_L["No names selected to remove from macro"] = true
+    GRM_L["No names selected to remove from Ignore List"] = true
+    GRM_L["Macro is currently empty"] = true
+    GRM_L["{num} players removed from the macro"] = true                    -- plural form of the statement
+    GRM_L["{num} player was removed from the macro"] = true                 -- singular form of the statement
+    GRM_L["{num} players removed from the Ignored List"] = true
+    GRM_L["{num} player was removed from Ignore List"] = true
+    GRM_L["There are no names currently selected to be removed from the Ignore List."] = true
+    GRM_L["There are no names currently selected to be removed from the macro."] = true
+    GRM_L["The macro is not yet built. Please click the button to create the macro."] = true
+    GRM_L["Nothing to clear"] = true
+    GRM_L["There are currently no names to add"] = true
+    GRM_L["There are currently no names to remove"] = true
+    GRM_L["Rules"] = true
+    GRM_L["Please choose a day between 1 and 99"] = true
+    GRM_L["Time before recommending to kick has been set to 99 Days. For a longer time period, use the months instead."] = true
+    GRM_L["Time before recommending to kick has been set to the default period of 12 Months."] = true
+    GRM_L["Time before recommending to kick has been set to {num} Months."] = true
+    GRM_L["Time before recommending to kick has been set to {num} Days."] = true
+    GRM_L["Pressing the ESC key will also clear all lines"] = true
+    GRM_L["Player's rank does not have permission to remove others from the guild"] = true
+    GRM_L["Player's rank does not have permission to promote others in the guild"] = true
+    GRM_L["Player's rank does not have permission to demote others in the guild"] = true
+    GRM_L["Queued Actions"] = true
+    GRM_L["Current Actions"] = true
+    GRM_L["View Ignore List"] = true
+    GRM_L["No players are currently safe from recommendations"] = true
+    GRM_L["1 player is on the safe list."] = true
+    GRM_L["{num} players are on the safe list."] = true
+    GRM_L["1 action is being ignored."] = true
+    GRM_L["{num} actions are being ignored."] = true
+    GRM_L["No current actions are being ignored"] = true
+    GRM_L["Actions Ignored:"] = true
+    GRM_L["Total Queued:"] = true
+    GRM_L["Ignored Players Safe From Action"] = true
+    GRM_L["Only show players with ignored action"] = true
+    GRM_L["No players on Ignore List"] = true
+    GRM_L["No players to select. 1 player filtered"] = true                     -- Singular
+    GRM_L["No players to select. {num} players filtered"] = true                -- Plural
+    GRM_L["There are no names to select. 1 player is filtered"] = true          -- these 2 statements might seem redundant, but often the text on a button is more short hand. This gives a cleaner statement in the chat. Useful for translating in some languages that need a bit more room to be more clear.
+    GRM_L["There are no names to select. {num} players are filtered"] = true
+    GRM_L["Really remove selected player from the ignore list?"] = true
+    GRM_L["Really remove the {num} selected players from the ignore list?"] = true
+    GRM_L["Do you really wish to clear all players from the Ignore List?"] = true
+    GRM_L["There are currently no players on the Ignore List"] = true
+    GRM_L["Remove all players from Ignore List"] = true
+    GRM_L["Ignored Players: {num}"] = true
+    GRM_L["Ignore Macro Tool Filters"] = true
+    GRM_L["Type \"/grm tool\" to Bring Up Macro Tool"] = true       -- Of note, the /grm tool will ALWAYS work, regardless of the language. Feel free to create your own word to coordinate for a slash command. It will match the next line
+    GRM_L["Tool"] = true                                            -- /grm tool
+    GRM_L["Macro Tool"] = true
+    GRM_L["Macro Tool: {num}"] = true
+
+    -- CLASSIC
+    GRM_L["Social"] = true
+    GRM_L["Roster"] = true
+    GRM_L["|CFFE6CC7FCtrl-Click|r to open the Guild Roster Window"] = true
+    GRM_L["Feature is disabled in WoW Classic"] = true
+    GRM_L["Feature is disabled in TBC Classic"] = true          -- Just laying groundwork now in case Blizz ever releases it. Calendar was not added until WOTLK
+    GRM_L["There is no calendar to add events to"] = true
+    GRM_L["(Classic)"] = true       -- tooltip tag that shows only on the minimap mosueover version tooltip in Classic
+    
+    -- 1.69
+    GRM_L["Importing dates must be done in a compatible format"] = true
+    GRM_L["The date selection in OPTIONS shows all supported"] = true
+    GRM_L["Headers, like \"Joined,\" are supported"] = true
+    GRM_L["Date can only be detected if at the beginning of a note"] = true
+    GRM_L["Note: Dates are only found if at the start of a note in an addon supported format. \"Joined\" headers are ok"] = true
+    GRM_L["To confirm or edit the date, open the player window, right click the date, edit, and submit"] = true        --The "!!" tags are the {name}
+    GRM_L["To confirm or edit the date, right click the date, edit, and submit"] = true     -- Slightly shorter explanation if already on player window
+    GRM_L["The {name} tag indicates a date must be verified to sync"] = true
+
+    -- 1.70
+    GRM_L["GRM has errored due to a previous incompatible build with Classic that was enabled. Click YES to reload UI and fix the issue"] = true
+
+    -- 1.71
+    GRM_L["(Disabled in Classic)"] = true           -- For the Options... rather than removing them all
+
+    -- 1.73
+    GRM_L["{name} is no longer in the Guild!"] = true       -- There should really be 3 options. They got kicked, they left on their own, or if not found in the event log, they are just no longer in the guild
+    GRM_L["is no longer in the Guild!"] = true              -- THIS MUST MATCH THE PREVIOUS LINE with missing name.
+    GRM_L["Applying update patches... one moment."] = true
+    GRM_L["Update Complete... {num} patches applied."] = true   -- Plural
+    GRM_L["Update Complete... 1 patch applied."] = true         -- Singular version
+    GRM_L["|CFFE6CC7FCtrl-Click|r to also REMOVE all alts from the ignore list"] = true     -- Safe/ignore filters list checkButton tooltip (bottom left mouseover window)
+    GRM_L["|CFFE6CC7FCtrl-Click|r to also ADD all alts to the ignore list"] = true          -- Same
+    GRM_L["Disabling will also hide the Birthday info on the roster mouseover window"] = true       -- Enable/disable birthday chekbox on UI Options and the Audit windoppw
+    GRM_L["To avoid addon taint/blocking errors in Classic, the player must manually open the Guild Roster tab the first time."] = true          -- Classic only message for players explaining why window cannot open automatically.
+    GRM_L["Confirm Date"] = true
+    GRM_L["If the date is accurate, right click and select 'Confirm Date'"] = true
+    
+     -- 1.74
+    GRM_L["Class Colorize Names in Guild Member Alerts"] = true
+    GRM_L["All player custom notes re-enabled for sync and their checkboxes set."] = true
+    
+    -- 1.75
+    GRM_L["!note"] = true               -- !note in English will always work. This gives you the option of creating your own key to register a public note.
+    GRM_L["No officer online to set {name}'s note"] = true
+    GRM_L["No officer is currently online to update your note"] = true
+    GRM_L["Note updated by @{name}"] = true              -- As in "Note updated by @Arkaan"
+    GRM_L["Allow Guild Members to Type \"!note\" to Set Their Own Public Note"] = true
+    GRM_L["'!note' trigger has been globally enabled"] = true
+    GRM_L["Enabled"] = true         -- As in, the opposite of Disabled
+    GRM_L["'!note' trigger has been globally ENABLED"] = true
+    GRM_L["'!note' trigger has been globally DISABLED"] = true
+    GRM_L["'g7^X' - Designate '!note' use. g7^1 = Enabled, g7^2 = Disabled"] = true
+
+    -- 1.76
+    GRM_L["Same Rank"] = true                                                                   -- Macro Tool, Ignore List window - tooltip info on why no action is being done on some players who may be on it.
+    GRM_L["Higher Rank"] = true                                                                 -- Macro Tool, Ignore List window - tooltip info on why no action is being done on some players who may be on it.
+    GRM_L["Feature Disabled. There is no Calendar in Classic"] = true                           -- Events Tab top warning
+    GRM_L["This only affects settings for your current guild: {name}"] = true                   -- Tooltip for Options > General > Sync settings to all alts in same guild
+    GRM_L["GC"] = true                                                                          -- Options window, acronym for "Global Controls" and will be adjacent to all settings that have global controls
+    GRM_L["*GC = Global Control - Use Guild Info to Force Setting For All"] = true              -- Top left Options window
+    GRM_L["Export Global Controls"] = true                                                      -- Options > Officer Tab > Bottom left export button
+    GRM_L["Global Control Values Set in Guild Info"] = true                                     -- Export GuildInfo tool tooltip
+    GRM_L["Configure your settings. Click to export"] = true                                    -- Tooltip line 2- same as above
+    GRM_L["Unable to add globals controls to GuildInfo. There is not enough room."] = true      -- If export of globals is not able to complete
+    GRM_L["Global controls exported to the guild info note. Updating..."] = true                -- Success in exporting
+    GRM_L["Your rank cannot edit the Guild Info"] = true                                              -- Mouseover tooltip helper for people without MOTD edit access
+    GRM_L["All global controls are already set. You must Edit or Remove the settings manually in the guild Info."] = true;
+    GRM_L["Do you really want to wipe all GRM data and settings account-wide?"] = true
+    GRM_L["Are you sure your settings are configured and ready for global controls?"] = true
+    GRM_L["Players the same rank or higher will not be shown"] = true
+    GRM_L["Macro"] = true       -- For the slash command  /grm tool or /grm macro - same thing
+
     
 end
 

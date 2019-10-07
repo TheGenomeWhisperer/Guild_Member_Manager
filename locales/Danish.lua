@@ -25,25 +25,26 @@
     -- BEGIN TRANSLATION WORK HERE --
     ---------------------------------
 
-GRML.English = function()
+GRML.Danish = function()
 
     -- SET YOUR OWN CUSTOM SLASH COMMAND FOR GRM
     GRM_L["/XXXX"] = true            -- /grm will always work, now you can make your own acronym that fits your language.
 
-    GRM_L["German"] = true
-	GRM_L["English"] = true
-	GRM_L["French"] = true
-	GRM_L["Italian"] = true
-	GRM_L["Russian"] = true
-	GRM_L["SpanishMX"] = "Spanish (MX)"
-	GRM_L["SpanishEU"] = "Spanish (EU)"
-    GRM_L["Portuguese"] = "Portuguese (EU)"
-    GRM_L["PortugueseBR"] = "Portuguese (BR)"
-	GRM_L["Korean"] = true
+    GRM_L["German"] = "tysk"
+	GRM_L["English"] = "engelsk"
+	GRM_L["French"] = "fransk"
+	GRM_L["Italian"] = "italiensk"
+	GRM_L["Russian"] = "russisk"
+	GRM_L["SpanishMX"] = "spansk (MX)"
+	GRM_L["SpanishEU"] = "spansk (EU)"
+    GRM_L["Portuguese"] = "portugisisk (EU)"
+    GRM_L["PortugueseBR"] = "portugisisk (BR)"
+	GRM_L["Korean"] = "koreansk"
 	GRM_L["MandarinCN"] = "Mandarin (China)"
     GRM_L["MandarinTW"] = "Mandarin (Taiwan)"
-    GRM_L["Dutch"] = true
-    GRM_L["Danish"] = true
+    GRM_L["Dutch"] = "nederlandsk"
+    GRM_L["Danish"] = "dansk"
+
 
     -- PLAYER MAIN ROSTER DETAILS WINDOW
     GRM_L["Level: "] = true
@@ -124,12 +125,12 @@ GRML.English = function()
     GRM_L["{name} PROMOTED {name2}"] = true
     GRM_L["{name} KICKED {name2} from the Guild!"] = true
     GRM_L["kicked"] = true
+    GRM_L["{name} has Left the guild"] = true
     GRM_L["{name} INVITED {name2} to the guild."] = true
     GRM_L["{name} has BANNED {name2} and all linked alts from the guild!"] = true
     GRM_L["{name} has BANNED {name2} from the guild!"] = true
     GRM_L["Reason Banned:"] = true
-    GRM_L["{name} has Left the guild"] = true
-    GRM_L["has Left the guild"] = true                                      -- Context: PlayerName "has left the guild"  -- THESE MUST BE EXACT MATCH WITH PREVIOUS LINE (just without the name on this one)
+    GRM_L["has Left the guild"] = true                                      -- Context: PlayerName "has left the guild"
     GRM_L["ALTS IN GUILD:"] = true                                          -- Context: This appears If a person leaves the guild and there are still alts in the guild. It is like - "ALTS IN GUILD: Arkaan, Chris, Matt, and 4 others.""
     GRM_L["Player no longer on Server"] = true
     GRM_L["{name} PROMOTED {name2} from {custom1} to {custom2}"] = true
@@ -1221,8 +1222,8 @@ GRML.English = function()
     GRM_L["To avoid addon taint/blocking errors in Classic, the player must manually open the Guild Roster tab the first time."] = true          -- Classic only message for players explaining why window cannot open automatically.
     GRM_L["Confirm Date"] = true
     GRM_L["If the date is accurate, right click and select 'Confirm Date'"] = true
-
-    -- 1.74
+    
+     -- 1.74
     GRM_L["Class Colorize Names in Guild Member Alerts"] = true
     GRM_L["All player custom notes re-enabled for sync and their checkboxes set."] = true
     
@@ -1257,6 +1258,5 @@ GRML.English = function()
     GRM_L["Players the same rank or higher will not be shown"] = true
     GRM_L["Macro"] = true       -- For the slash command  /grm tool or /grm macro - same thing
 
-    -- 1.77
-    GRM_L["Add Custom Rule"] = true         -- Kick Macro Tool - custom rule button right side
+    
 end

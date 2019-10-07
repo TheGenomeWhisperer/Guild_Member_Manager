@@ -1,6 +1,6 @@
 -- For Sync controls!
 -- Author: Arkaan... aka "TheGenomeWhisperer"
--- Version 8.1.5R1.66
+-- Version 8.1.5R1.73
 -- To hold all Sync Methods/Functions
 GRMsync = {};
 
@@ -631,74 +631,71 @@ GRMsync.CheckJoinDateChange = function( msg , sender , prefix )
     local epochTimeOfChange = tonumber ( string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 ) );
     local noteDestination = string.sub ( msg , string.find ( msg , "?" ) + 1 );
 
-    local guildData = GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ];
-
-    for r = 2 , #guildData do
-        if playerName == guildData[r][1] then
-            -- Let's see if there was a change
-            if guildData[r][35][2] < epochTimeOfChange then
-                -- do a null check... will be same as button text
-                if guildData[r][20][ #guildData[r][20] ] ~= nil or #guildData[r][20] > 0 then
-                    table.remove ( guildData[r][20] , #guildData[r][20] );  -- Removing previous instance to replace
-                    table.remove ( guildData[r][21] , #guildData[r][21] ); 
-                end
-                table.insert( guildData[r][20] , finalTStamp );     -- oldJoinDate
-                table.insert( guildData[r][21] , finalEpochStamp ) ;   -- oldJoinDateMeta
-                guildData[r][2] = finalTStamp;
-                guildData[r][3] = finalEpochStamp;
-               
-               -- For sync
-                guildData[r][35][1] = finalTStamp;
-                guildData[r][35][2] = epochTimeOfChange;
-
-                -- Gotta update the event tracker date too!
-                local date = GRM.ConvertGenericTimestampToIntValues ( string.sub ( joinDate , 9 ) );
-                guildData[r][22][1][1][1] = date[1];
-                guildData[r][22][1][1][2] = date[2];
-                guildData[r][22][1][1][3] = date[3];
-                guildData[r][22][1][2] = false;  -- Gotta Reset the "reported already" boolean!
-                GRM.RemoveFromCalendarQue ( guildData[r][1] , 1 , nil );
-
-                -- In case of Unknown
-                guildData[r][40] = false;
-
-                -- Report the updates!
-                if GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][16] and not isSyncUpdate then
-                    
-                    GRM.Report ( GRM.L ( "{name} updated {name2}'s Join Date." , GRM.GetClassifiedName ( sender , true ) , GRM.GetClassifiedName ( playerName , true ) ) );
-                end
-
-                -- Updating count of changes
-                if isSyncUpdate then
-                    GRMsyncGlobals.updateCount = GRMsyncGlobals.updateCount + 1;
-                    GRMsyncGlobals.upatesEach[1] = GRMsyncGlobals.upatesEach[1] + 1;
-                end
-                
-                -- Live update if any frames visible so player does not need to close and reopen for updates.
-                if GRM_UI.GRM_MemberDetailMetaData ~= nil and GRM_UI.GRM_MemberDetailMetaData:IsVisible() and GRM_G.currentName == playerName then
-                    GRM_UI.GRM_MemberDetailMetaData.GRM_JoinDateText:SetText ( string.sub ( joinDate , 9 ) );
-                     if GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailJoinDateButton:IsVisible() then
-                        GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailJoinDateButton:Hide();                
-                    end
-                    GRM_UI.GRM_MemberDetailMetaData.GRM_JoinDateText:Show();
-
-                    if noteDestination == "officer" then
-                        GRM_UI.GRM_MemberDetailMetaData.GRM_noteFontString2:SetText ( joinDate );
-                        GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerOfficerNoteEditBox:SetText ( joinDate );
-                    elseif noteDestination == "public" then
-                        GRM_UI.GRM_MemberDetailMetaData.GRM_noteFontString1:SetText ( joinDate );
-                        GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerNoteEditBox:SetText ( joinDate );
-                    elseif noteDestination == "custom" then
-                        GRM_UI.GRM_MemberDetailMetaData.GRM_CustomNoteEditBoxFrame.GRM_CustomNoteEditBox:SetText ( joinDate );
-                    end
-                end
-
-                if not isSyncUpdate and GRM_UI.GRM_RosterChangeLogFrame.GRM_AuditFrame:IsVisible() then
-                    GRM.RefreshAuditFrames( GRM_G.AuditSortType );
-                end
-                
+    local r = GRM.PlayerQuery ( playerName );
+    if r ~= nil then
+        local guildData = GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ];
+        -- Let's see if there was a change
+        if guildData[r][35][2] < epochTimeOfChange then
+            -- do a null check... will be same as button text
+            if guildData[r][20][ #guildData[r][20] ] ~= nil or #guildData[r][20] > 0 then
+                table.remove ( guildData[r][20] , #guildData[r][20] );  -- Removing previous instance to replace
+                table.remove ( guildData[r][21] , #guildData[r][21] ); 
             end
-            break;
+            table.insert( guildData[r][20] , finalTStamp );     -- oldJoinDate
+            table.insert( guildData[r][21] , finalEpochStamp ) ;   -- oldJoinDateMeta
+            guildData[r][2] = finalTStamp;
+            guildData[r][3] = finalEpochStamp;
+            
+            -- For sync
+            guildData[r][35][1] = finalTStamp;
+            guildData[r][35][2] = epochTimeOfChange;
+
+            -- Gotta update the event tracker date too!
+            local date = GRM.ConvertGenericTimestampToIntValues ( string.sub ( joinDate , 9 ) );
+            guildData[r][22][1][1][1] = date[1];
+            guildData[r][22][1][1][2] = date[2];
+            guildData[r][22][1][1][3] = date[3];
+            guildData[r][22][1][2] = false;  -- Gotta Reset the "reported already" boolean!
+            GRM.RemoveFromCalendarQue ( guildData[r][1] , 1 , nil );
+
+            -- In case of Unknown
+            guildData[r][40] = false;
+
+            -- Report the updates!
+            if GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][16] and not isSyncUpdate then
+                
+                GRM.Report ( GRM.L ( "{name} updated {name2}'s Join Date." , GRM.GetClassifiedName ( sender , true ) , GRM.GetClassifiedName ( playerName , true ) ) );
+            end
+
+            -- Updating count of changes
+            if isSyncUpdate then
+                GRMsyncGlobals.updateCount = GRMsyncGlobals.updateCount + 1;
+                GRMsyncGlobals.upatesEach[1] = GRMsyncGlobals.upatesEach[1] + 1;
+            end
+            
+            -- Live update if any frames visible so player does not need to close and reopen for updates.
+            if GRM_UI.GRM_MemberDetailMetaData ~= nil and GRM_UI.GRM_MemberDetailMetaData:IsVisible() and GRM_G.currentName == playerName then
+                GRM_UI.GRM_MemberDetailMetaData.GRM_JoinDateText:SetText ( string.sub ( joinDate , 9 ) );
+                    if GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailJoinDateButton:IsVisible() then
+                    GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailJoinDateButton:Hide();                
+                end
+                GRM_UI.GRM_MemberDetailMetaData.GRM_JoinDateText:Show();
+
+                if noteDestination == "officer" then
+                    GRM_UI.GRM_MemberDetailMetaData.GRM_noteFontString2:SetText ( joinDate );
+                    GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerOfficerNoteEditBox:SetText ( joinDate );
+                elseif noteDestination == "public" then
+                    GRM_UI.GRM_MemberDetailMetaData.GRM_noteFontString1:SetText ( joinDate );
+                    GRM_UI.GRM_MemberDetailMetaData.GRM_PlayerNoteEditBox:SetText ( joinDate );
+                elseif noteDestination == "custom" then
+                    GRM_UI.GRM_MemberDetailMetaData.GRM_CustomNoteEditBoxFrame.GRM_CustomNoteEditBox:SetText ( joinDate );
+                end
+            end
+
+            if not isSyncUpdate and GRM_UI.GRM_RosterChangeLogFrame.GRM_AuditFrame:IsVisible() then
+                GRM.RefreshAuditFrames ( true , true );
+            end
+            
         end
     end
 end
@@ -719,51 +716,49 @@ GRMsync.CheckPromotionDateChange = function ( msg , sender , prefix )
     local epochTimeOfChange = tonumber ( string.sub ( msg , string.find ( msg , "?" ) + 1 ) );
     local slimDate = string.sub ( promotionDate , 11 , string.find ( promotionDate , "'" ) + 2 );       -- remove the timestamp
 
-    local guildData = GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ];
-
-    for r = 2 , #guildData do
-        if guildData[r][1] == name then
-            if guildData[r][36][2] < epochTimeOfChange then
-                guildData[r][12] = slimDate;
-                guildData[r][25][#guildData[r][25]][2] = slimDate;
-                if isSyncUpdate then
-                    guildData[r][13] = GRM.TimeStampToEpoch ( promotionDate , true );
-                else
-                    guildData[r][13] = GRM.TimeStampToEpoch ( promotionDate , false );
-                end
-
-                -- For SYNC
-                guildData[r][36][1] = slimDate;
-                guildData[r][36][2] = epochTimeOfChange;
-                guildData[r][41] = false;
-                
-                -- Report the updates!
-                if GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][16] and not isSyncUpdate then
-                    GRM.Report ( GRM.L ( "{name} updated {name2}'s Promotion Date." , GRM.GetClassifiedName ( sender , true ) , GRM.GetClassifiedName ( name , true ) ) );
-                end
-
-                -- Updating count of changes
-                if isSyncUpdate then
-                    GRMsyncGlobals.updateCount = GRMsyncGlobals.updateCount + 1;
-                    GRMsyncGlobals.upatesEach[2] = GRMsyncGlobals.upatesEach[2] + 1;
-                end
-
-                -- If the player is on the same frames, update them too!
-                if GRM_UI.GRM_MemberDetailMetaData:IsVisible() and GRM_G.currentName == name then
-                    if GRM_UI.GRM_MemberDetailMetaData.GRM_SetPromoDateButton:IsVisible() then
-                        GRM_UI.GRM_MemberDetailMetaData.GRM_SetPromoDateButton:Hide();
-                    end
-
-                    GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailRankDateTxt:SetText ( GRM.L ( "Promoted:" ) .. " " .. GRM.Trim ( string.sub ( guildData[r][12] , 1 , 10) ) );
-                    GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailRankDateTxt:Show();
-                end
-
-                if not isSyncUpdate and GRM_UI.GRM_RosterChangeLogFrame.GRM_AuditFrame:IsVisible() then
-                    GRM.RefreshAuditFrames( GRM_G.AuditSortType );
-                end
-
+    local r = GRM.PlayerQuery ( name );
+    if r ~= nil then
+        local guildData = GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ];
+        if guildData[r][36][2] < epochTimeOfChange then
+            guildData[r][12] = slimDate;
+            guildData[r][25][#guildData[r][25]][2] = slimDate;
+            guildData[r][25][#guildData[r][25]][3] = GRM.TimeStampToEpoch ( " " .. slimDate , true );
+            if isSyncUpdate then
+                guildData[r][13] = GRM.TimeStampToEpoch ( promotionDate , true );
+            else
+                guildData[r][13] = GRM.TimeStampToEpoch ( promotionDate , false );
             end
-            break;
+
+            -- For SYNC
+            guildData[r][36][1] = slimDate;
+            guildData[r][36][2] = epochTimeOfChange;
+            guildData[r][41] = false;
+            
+            -- Report the updates!
+            if GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][16] and not isSyncUpdate then
+                GRM.Report ( GRM.L ( "{name} updated {name2}'s Promotion Date." , GRM.GetClassifiedName ( sender , true ) , GRM.GetClassifiedName ( name , true ) ) );
+            end
+
+            -- Updating count of changes
+            if isSyncUpdate then
+                GRMsyncGlobals.updateCount = GRMsyncGlobals.updateCount + 1;
+                GRMsyncGlobals.upatesEach[2] = GRMsyncGlobals.upatesEach[2] + 1;
+            end
+
+            -- If the player is on the same frames, update them too!
+            if GRM_UI.GRM_MemberDetailMetaData:IsVisible() and GRM_G.currentName == name then
+                if GRM_UI.GRM_MemberDetailMetaData.GRM_SetPromoDateButton:IsVisible() then
+                    GRM_UI.GRM_MemberDetailMetaData.GRM_SetPromoDateButton:Hide();
+                end
+
+                GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailRankDateTxt:SetText ( GRM.L ( "Promoted:" ) .. " " .. GRM.Trim ( string.sub ( guildData[r][12] , 1 , 10) ) );
+                GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailRankDateTxt:Show();
+            end
+
+            if not isSyncUpdate and GRM_UI.GRM_RosterChangeLogFrame.GRM_AuditFrame:IsVisible() then
+                GRM.RefreshAuditFrames ( true , true );
+            end
+
         end
     end
 end
@@ -819,25 +814,72 @@ GRMsync.CheckAddAltChange = function ( msg , sender , prefix )
         -- Verify player is not already on someone else's list...
         local isFound = false;
         local isFound2 = false;
-        for s = 2 , #guildData do
-            if guildData[s][1] == altName then
+        local s = GRM.PlayerQuery ( altName );
+        if s ~= nil then
+            if #guildData[s][11] > 0 then
+                local listOfAlts = guildData[s][11];
+        
+                for m = 1 , #listOfAlts do                                              -- Let's quickly verify that this is not a repeat alt add.
+                    if listOfAlts[m][1] == name then                                    
+                        isFound = true;
+                        break;
+                    end
+                end
 
-                if #guildData[s][11] > 0 then
-                    local listOfAlts = guildData[s][11];
-            
-                    for m = 1 , #listOfAlts do                                              -- Let's quickly verify that this is not a repeat alt add.
-                        if listOfAlts[m][1] == name then                                    
-                            isFound = true;
+                -- Check if removed from list
+                if not isFound then
+                    for h = 1 , #guildData[s][37] do
+                        if guildData[s][37][h][1] == name then
+                            -- match found! Let's see what is more up to date!
+                            if altNameEpochTime < guildData[s][37][h][6] then
+                                -- This alt update is OLDER and more outdated... this prevents update!
+                                abortUpdate = true;
+                            end
                             break;
                         end
                     end
-
-                    -- Check if removed from list
-                    if not isFound then
-                        for h = 1 , #guildData[s][37] do
-                            if guildData[s][37][h][1] == name then
+                    if not abortUpdate then
+                        for h = 1 , #guildData[s][11] do
+                            if guildData[s][11][h][1] == name then
                                 -- match found! Let's see what is more up to date!
-                                if altNameEpochTime < guildData[s][37][h][6] then
+                                if altNameEpochTime < guildData[s][11][h][6] then
+                                    -- This alt update is OLDER and more outdated... this prevents update!
+                                    abortUpdate = true;
+                                end
+                                break;
+                            end
+                        end
+                    end
+                end
+
+            else
+                local r = GRM.PlayerQuery ( name );
+                if r ~= nil then
+                        
+                    local listOfAlts = guildData[r][11];
+                    if #listOfAlts > 0 then                                                                 -- There is more than 1 alt for new alt to be added to
+                        
+                        for i = 1 , #listOfAlts do                                                          -- Cycle through previously known alt names to add new on each, one by one.
+
+                            local j = GRM.PlayerQuery ( listOfAlts[i][1] );
+                            if j ~= nil then
+                                -- Now, make sure it is not a repeat add!
+                                for m = 1 , #listOfAlts do                                              -- Let's quickly verify that this is not a repeat alt add.
+                                    if listOfAlts[m][1] == altName then
+                                        isFound2 = true;
+                                        break;
+                                    end
+                                end
+                            end
+                            if isFound2 then
+                                break;
+                            end
+                        end
+
+                        for h = 1 , #guildData[r][37] do
+                            if guildData[r][37][h][1] == altName then
+                                -- match found! Let's see what is more up to date!
+                                if altNameEpochTime < guildData[r][37][h][6] then
                                     -- This alt update is OLDER and more outdated... this prevents update!
                                     abortUpdate = true;
                                 end
@@ -845,10 +887,10 @@ GRMsync.CheckAddAltChange = function ( msg , sender , prefix )
                             end
                         end
                         if not abortUpdate then
-                            for h = 1 , #guildData[s][11] do
-                                if guildData[s][11][h][1] == name then
+                            for h = 1 , #guildData[r][11] do
+                                if guildData[r][11][h][1] == name then
                                     -- match found! Let's see what is more up to date!
-                                    if altNameEpochTime < guildData[s][11][h][6] then
+                                    if altNameEpochTime < guildData[r][11][h][6] then
                                         -- This alt update is OLDER and more outdated... this prevents update!
                                         abortUpdate = true;
                                     end
@@ -857,61 +899,7 @@ GRMsync.CheckAddAltChange = function ( msg , sender , prefix )
                             end
                         end
                     end
-
-                else
-                    for r = 2 , #guildData do
-                        if guildData[r][1] == name then
-                            
-                            local listOfAlts = guildData[r][11];
-                            if #listOfAlts > 0 then                                                                 -- There is more than 1 alt for new alt to be added to
-                                
-                                for i = 1 , #listOfAlts do                                                          -- Cycle through previously known alt names to add new on each, one by one.
-                                    for j = 2 , #guildData do                             -- Need to now cycle through all toons in the guild to set the alt
-                                        if listOfAlts[i][1] == guildData[j][1] then       -- name on current focus altList found in the metadata!
-                                            -- Now, make sure it is not a repeat add!
-                                            
-                                            for m = 1 , #listOfAlts do                                              -- Let's quickly verify that this is not a repeat alt add.
-                                                if listOfAlts[m][1] == altName then
-                                                    isFound2 = true;
-                                                    break;
-                                                end
-                                            end
-                                            break;
-                                        end
-                                    end
-                                    if isFound2 then
-                                        break;
-                                    end
-                                end
-
-                                for h = 1 , #guildData[r][37] do
-                                    if guildData[r][37][h][1] == altName then
-                                        -- match found! Let's see what is more up to date!
-                                        if altNameEpochTime < guildData[r][37][h][6] then
-                                            -- This alt update is OLDER and more outdated... this prevents update!
-                                            abortUpdate = true;
-                                        end
-                                        break;
-                                    end
-                                end
-                                if not abortUpdate then
-                                    for h = 1 , #guildData[r][11] do
-                                        if guildData[r][11][h][1] == name then
-                                            -- match found! Let's see what is more up to date!
-                                            if altNameEpochTime < guildData[r][11][h][6] then
-                                                -- This alt update is OLDER and more outdated... this prevents update!
-                                                abortUpdate = true;
-                                            end
-                                            break;
-                                        end
-                                    end
-                                end
-                            end
-                            break;
-                        end
-                    end
                 end
-                break;
             end
         end
 
@@ -935,7 +923,7 @@ GRMsync.CheckAddAltChange = function ( msg , sender , prefix )
                 end
 
                 if not isSyncUpdate and GRM_UI.GRM_RosterChangeLogFrame.GRM_AuditFrame:IsVisible() then
-                    GRM.RefreshAuditFrames( GRM_G.AuditSortType );
+                    GRM.RefreshAuditFrames ( true , true );
                 end
             end);
         end
@@ -964,23 +952,21 @@ GRMsync.CheckRemoveAltChange = function ( msg , sender , prefix )
     local guildData = GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ];
 
     -- Checking if alt is to be removed... establishing number of alts.
-    for i = 2 , #guildData do
-        if guildData[i][1] == name then
-            count = #guildData[i][11];
-            index = i;
+    local i = GRM.PlayerQuery ( name );
+    if i ~= nil then
+        count = #guildData[i][11];
+        index = i;
 
-            -- determine if need to abort... most recent change. Since we are going through each player sequentially, this ensures the first sync info doesn't override everyone's data if 2 player's have different pieces of info.
-            if count > 0 then
-                for j = 1 , count do
-                    if guildData[i][11][j][1] == altName then
-                        if guildData[i][11][j][6] > altChangeTimeStamp then   -- If the player's current info is more recent (greater number = more recent epoch time), no need to remove. Sync will happen soon.
-                            abortUpdate = true;
-                        end
-                        break;
+        -- determine if need to abort... most recent change. Since we are going through each player sequentially, this ensures the first sync info doesn't override everyone's data if 2 player's have different pieces of info.
+        if count > 0 then
+            for j = 1 , count do
+                if guildData[i][11][j][1] == altName then
+                    if guildData[i][11][j][6] > altChangeTimeStamp then   -- If the player's current info is more recent (greater number = more recent epoch time), no need to remove. Sync will happen soon.
+                        abortUpdate = true;
                     end
+                    break;
                 end
             end
-            break;
         end
     end
     
@@ -996,11 +982,9 @@ GRMsync.CheckRemoveAltChange = function ( msg , sender , prefix )
             GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailMainText:Hide();
 
             -- Now, let's hide all the alts
-            for i = 2 , #guildData do
-                if guildData[i][1] == altName then
-                    GRM.PopulateAltFrames ( i );
-                    break;
-                end
+            local r = GRM.PlayerQuery ( altName );
+            if r ~= nil then
+                GRM.PopulateAltFrames ( r );
             end
         end
 
@@ -1009,7 +993,7 @@ GRMsync.CheckRemoveAltChange = function ( msg , sender , prefix )
         if count == 0 or count > #guildData[index][11] then
             if GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][16] and not isSyncUpdate then
                 
-                GRM.Report ( GRM.L ( "{name} removed {name2}'s from {custom1}'s list of Alts." , GRM.GetClassifiedName ( sender , true ) , GRM.GetClassifiedName ( altName , true ) , nil , GRM.GetClassifiedName ( name ) ) );
+                GRM.Report ( GRM.L ( "{name} removed {name2}'s from {custom1}'s list of Alts." , GRM.GetClassifiedName ( sender , true ) , GRM.GetClassifiedName ( altName , true ) , nil , GRM.GetClassifiedName ( name , true ) ) );
             end
 
             -- Updating count of changes
@@ -1019,7 +1003,7 @@ GRMsync.CheckRemoveAltChange = function ( msg , sender , prefix )
             end
 
             if not isSyncUpdate and GRM_UI.GRM_RosterChangeLogFrame.GRM_AuditFrame:IsVisible() then
-                GRM.RefreshAuditFrames( GRM_G.AuditSortType );
+                GRM.RefreshAuditFrames ( true , true );
             end
         end
     end
@@ -1038,11 +1022,9 @@ GRMsync.CheckAltMainChange = function ( msg , sender )
     local guildData = GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ];
 
     -- We need to add the timestamps our selves as well! In the main program, the timestamps are only triggered on manually clicking and adding/removing
-    for j = 2 , #guildData do
-        if guildData[j][1] == mainName then
-            guildData[j][39] = time();
-            break;
-        end
+    local j = GRM.PlayerQuery ( mainName );
+    if j ~= nil then
+        guildData[j][39] = time();
     end
 
     -- Need to ensure "main" tag populates correctly.
@@ -1059,7 +1041,7 @@ GRMsync.CheckAltMainChange = function ( msg , sender )
     end
 
     if GRM_UI.GRM_RosterChangeLogFrame.GRM_AuditFrame:IsVisible() then
-        GRM.RefreshAuditFrames( GRM_G.AuditSortType );
+        GRM.RefreshAuditFrames ( true , true );
     end
 end
 
@@ -1076,12 +1058,10 @@ GRMsync.CheckMainSyncChange = function ( msg )
 
     local guildData = GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ];
 
-    for j = 2 , #guildData do
-        if guildData[j][1] == mainName then
-            if guildData[j][39] > mainChangeTimestamp or tostring ( guildData[j][10] ) == mainStatus then        -- if the most-recent event is my own, I will ignore the sync message.
-                abortMainChange = true;
-            end
-            break;
+    local j = GRM.PlayerQuery ( mainName );
+    if j ~= nil then
+        if guildData[j][39] > mainChangeTimestamp or tostring ( guildData[j][10] ) == mainStatus then        -- if the most-recent event is my own, I will ignore the sync message.
+            abortMainChange = true;
         end
     end
 
@@ -1130,7 +1110,7 @@ GRMsync.CheckAltMainToAltChange = function ( msg , sender )
     end
 
     if GRM_UI.GRM_RosterChangeLogFrame.GRM_AuditFrame:IsVisible() then
-        GRM.RefreshAuditFrames( GRM_G.AuditSortType );
+        GRM.RefreshAuditFrames ( true , true );
     end
 end
 
@@ -1166,43 +1146,38 @@ GRMsync.CheckCustomNoteChange = function ( msg , sender , senderRankID )
                 customNote = string.sub ( msg , string.find ( msg , "?" ) + 1 );
             end
 
-            local guildData = GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ];
-
             -- Check for changes!
-            for i = 2 , #guildData do
-                if guildData[i][1] == playerName then
-
-                    -- No need to check if this one note has sync turned off
-                    if guildData[i][23][1] then
-                        -- Player identified... now we need to find out what sync restriction you have on them.
-                        if ( senderRankID > guildData[i][23][4] or senderControlRankRequirement < GRM_G.playerRankID ) then
-                            return;
-                        else
-                            -- Rank restrictions are good, now let's see if the note is different!
-                            if customNote ~= guildData[i][23][6] then
-                                local oldNote = guildData[i][23][6];
-                                guildData[i][23][2] = timeStamp;
-                                guildData[i][23][3] = sender;
-                                guildData[i][23][6] = customNote;
-                                
-                                -- Handle Log reporting logic here... 
-                                GRM.RecordCustomNoteChanges ( guildData[i][23][6] , oldNote , sender , guildData[i][1] , true )
+            local i = GRM.PlayerQuery ( playerName );
+            if i ~= nil then
+                local guildData = GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ];
+                -- No need to check if this one note has sync turned off
+                if guildData[i][23][1] then
+                    -- Player identified... now we need to find out what sync restriction you have on them.
+                    if ( senderRankID > guildData[i][23][4] or senderControlRankRequirement < GRM_G.playerRankID ) then
+                        return;
+                    else
+                        -- Rank restrictions are good, now let's see if the note is different!
+                        if customNote ~= guildData[i][23][6] then
+                            local oldNote = guildData[i][23][6];
+                            guildData[i][23][2] = timeStamp;
+                            guildData[i][23][3] = sender;
+                            guildData[i][23][6] = customNote;
+                            -- Handle Log reporting logic here... 
+                            GRM.RecordCustomNoteChanges ( guildData[i][23][6] , oldNote , sender , guildData[i][1] , true )
+                        end
+            
+                        -- Update the UI proper
+                        if GRM_UI.GRM_MemberDetailMetaData.GRM_CustomNoteEditBoxFrame.GRM_CustomNoteEditBox:IsVisible() and playerName == GRM_G.currentName then
+                            GRM_G.OriginalEditBoxValue = guildData[i][23][6];  -- This needs to be set to handle the OnEditFocusLost logic..
+                            if customNote == "" then
+                                GRM_UI.GRM_MemberDetailMetaData.GRM_CustomNoteEditBoxFrame.GRM_CustomNoteEditBox:SetText ( GRM.L ( "Click here to set Custom Notes" ) );
+                                GRM_G.OriginalEditBoxValue = GRM.L ( "Click here to set Custom Notes" );
+                            else
+                                GRM_UI.GRM_MemberDetailMetaData.GRM_CustomNoteEditBoxFrame.GRM_CustomNoteEditBox:SetText ( guildData[i][23][6] );
                             end
-                
-                            -- Update the UI proper
-                            if GRM_UI.GRM_MemberDetailMetaData.GRM_CustomNoteEditBoxFrame.GRM_CustomNoteEditBox:IsVisible() and playerName == GRM_G.currentName then
-                                GRM_G.OriginalEditBoxValue = guildData[i][23][6];  -- This needs to be set to handle the OnEditFocusLost logic..
-                                if customNote == "" then
-                                    GRM_UI.GRM_MemberDetailMetaData.GRM_CustomNoteEditBoxFrame.GRM_CustomNoteEditBox:SetText ( GRM.L ( "Click here to set Custom Notes" ) );
-                                    GRM_G.OriginalEditBoxValue = GRM.L ( "Click here to set Custom Notes" );
-                                else
-                                    GRM_UI.GRM_MemberDetailMetaData.GRM_CustomNoteEditBoxFrame.GRM_CustomNoteEditBox:SetText ( guildData[i][23][6] );
-                                end
-                                GRM_UI.GRM_MemberDetailMetaData.GRM_CustomNoteEditBoxFrame.GRM_CustomNoteEditBox:ClearFocus();
-                            end
+                            GRM_UI.GRM_MemberDetailMetaData.GRM_CustomNoteEditBoxFrame.GRM_CustomNoteEditBox:ClearFocus();
                         end
                     end
-                    break;
                 end
             end
         end
@@ -1242,47 +1217,43 @@ GRMsync.CheckCustomNoteSyncChange = function ( msg , senderRankID , isReceivedSy
                 customNote = string.sub ( msg , string.find ( msg , "?" ) + 1 );
             end
 
-            local guildData = GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ];
-
             -- Check for changes!
-            for i = 2 , #guildData do
-                if guildData[i][1] == playerName then
-                    -- Player identified... now we need to find out what sync restriction you have on them.
-                    if guildData[i][23][1] then
-                        if ( isReceivedSync and ( senderRankID > guildData[i][23][4] or senderControlRankRequirement < GRM_G.playerRankID ) ) then
-                            return;
-                        else
-                            if guildData[i][23][2] < timeStamp and timeStamp ~= 0 then
-                                -- Rank restrictions are good, now let's see if the note is different!
-                                if customNote ~= guildData[i][23][6] then
-                                    local oldNote = guildData[i][23][6];
-                                    guildData[i][23][2] = timeStamp;
-                                    guildData[i][23][3] = editorName;
-                                    guildData[i][23][6] = customNote;
-                                    
-                                    -- Handle Log reporting logic here... 
-                                    GRM.RecordCustomNoteChanges ( customNote , oldNote , editorName , playerName , false )
+            local i = GRM.PlayerQuery ( playerName );
+            if i ~= nil then
+                local guildData = GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ];
+                -- Player identified... now we need to find out what sync restriction you have on them.
+                if guildData[i][23][1] then
+                    if ( isReceivedSync and ( senderRankID > guildData[i][23][4] or senderControlRankRequirement < GRM_G.playerRankID ) ) then
+                        return;
+                    else
+                        if guildData[i][23][2] < timeStamp and timeStamp ~= 0 then
+                            -- Rank restrictions are good, now let's see if the note is different!
+                            if customNote ~= guildData[i][23][6] then
+                                local oldNote = guildData[i][23][6];
+                                guildData[i][23][2] = timeStamp;
+                                guildData[i][23][3] = editorName;
+                                guildData[i][23][6] = customNote;
+                                -- Handle Log reporting logic here... 
+                                GRM.RecordCustomNoteChanges ( customNote , oldNote , editorName , playerName , false )
 
-                                    -- Updating count of changes
-                                    GRMsyncGlobals.updateCount = GRMsyncGlobals.updateCount + 1;
-                                    GRMsyncGlobals.upatesEach[5] = GRMsyncGlobals.upatesEach[5] + 1;
+                                -- Updating count of changes
+                                GRMsyncGlobals.updateCount = GRMsyncGlobals.updateCount + 1;
+                                GRMsyncGlobals.upatesEach[5] = GRMsyncGlobals.upatesEach[5] + 1;
+                            end
+                
+                            -- Update the UI proper
+                            if GRM_UI.GRM_MemberDetailMetaData.GRM_CustomNoteEditBoxFrame.GRM_CustomNoteEditBox:IsVisible() and playerName == GRM_G.currentName then
+                                GRM_G.OriginalEditBoxValue = guildData[i][23][6];  -- This needs to be set to handle the OnEditFocusLost logic..
+                                if customNote == "" then
+                                    GRM_UI.GRM_MemberDetailMetaData.GRM_CustomNoteEditBoxFrame.GRM_CustomNoteEditBox:SetText ( GRM.L ( "Click here to set Custom Notes" ) );
+                                    GRM_G.OriginalEditBoxValue = GRM.L ( "Click here to set Custom Notes" );
+                                else
+                                    GRM_UI.GRM_MemberDetailMetaData.GRM_CustomNoteEditBoxFrame.GRM_CustomNoteEditBox:SetText ( guildData[i][23][6] );
                                 end
-                    
-                                -- Update the UI proper
-                                if GRM_UI.GRM_MemberDetailMetaData.GRM_CustomNoteEditBoxFrame.GRM_CustomNoteEditBox:IsVisible() and playerName == GRM_G.currentName then
-                                    GRM_G.OriginalEditBoxValue = guildData[i][23][6];  -- This needs to be set to handle the OnEditFocusLost logic..
-                                    if customNote == "" then
-                                        GRM_UI.GRM_MemberDetailMetaData.GRM_CustomNoteEditBoxFrame.GRM_CustomNoteEditBox:SetText ( GRM.L ( "Click here to set Custom Notes" ) );
-                                        GRM_G.OriginalEditBoxValue = GRM.L ( "Click here to set Custom Notes" );
-                                    else
-                                        GRM_UI.GRM_MemberDetailMetaData.GRM_CustomNoteEditBoxFrame.GRM_CustomNoteEditBox:SetText ( guildData[i][23][6] );
-                                    end
-                                    GRM_UI.GRM_MemberDetailMetaData.GRM_CustomNoteEditBoxFrame.GRM_CustomNoteEditBox:ClearFocus();
-                                end
+                                GRM_UI.GRM_MemberDetailMetaData.GRM_CustomNoteEditBoxFrame.GRM_CustomNoteEditBox:ClearFocus();
                             end
                         end
                     end
-                    break;
                 end
             end
         end
@@ -1348,119 +1319,105 @@ GRMsync.CheckBanListChange = function ( msg , sender )
     -- First things first, let's find player!
     local isFound = false;
     local banSet = false;
-    for j = 2 , #guildData do
-        if guildData[j][1] == name then
-            -- The initial ban of the player.
-            isFound = true;
-            if guildData[j][17][1] then
-                isAnEdit = true;
-            else
-                guildData[j][17][1] = true;
-            end
-            guildData[j][17][2] = timeEpoch;
-            guildData[j][17][3] = false;
-            guildData[j][17][4] = sender;
-            guildData[j][18] = reason;
+    local j = GRM.PlayerQuery ( name );
+    if j ~= nil then
+        -- The initial ban of the player.
+        isFound = true;
+        if guildData[j][17][1] then
+            isAnEdit = true;
+        else
+            guildData[j][17][1] = true;
+        end
+        guildData[j][17][2] = timeEpoch;
+        guildData[j][17][3] = false;
+        guildData[j][17][4] = sender;
+        guildData[j][18] = reason;
 
-            -- Next thing is IF alts are to be banned, this will ban them all as well!
-            if banAlts == "true" then
-                local listOfAlts = guildData[j][11];
-                if #listOfAlts > 0 then
-                    for s = 1 , #listOfAlts do
-                        banSet = false;
-                        -- Need to search data the guildData and the nonGuildData...
-                        for r = 2 , #guildData do
-                            if guildData[r][1] == listOfAlts[s][1] and guildData[r][1] ~= GRM_G.addonPlayerName then
-                                banSet = true;
-                                -- Banning the alts one by one in the for loop
-                                guildData[r][17][1] = true;
-                                guildData[r][17][2] = timeEpoch;
-                                guildData[r][17][3] = false;
-                                guildData[r][17][4] = sender;
-                                guildData[r][18] = reason;
+        -- Next thing is IF alts are to be banned, this will ban them all as well!
+        if banAlts == "true" then
+            local listOfAlts = guildData[j][11];
+            if #listOfAlts > 0 then
+                for s = 1 , #listOfAlts do
+                    banSet = false;
+                    -- Need to search data the guildData and the nonGuildData...
+                    local r = GRM.PlayerQuery ( listOfAlts[s][1] );
+                    if r ~= nil and guildData[r][1] ~= GRM_G.addonPlayerName then
+                        banSet = true;
+                        -- Banning the alts one by one in the for loop
+                        guildData[r][17][1] = true;
+                        guildData[r][17][2] = timeEpoch;
+                        guildData[r][17][3] = false;
+                        guildData[r][17][4] = sender;
+                        guildData[r][18] = reason;
+                    end
 
-                                break;
-                            end
-                        end
+                    -- if not found, then let's check the left players as well.
+                    if not banSet then
+                        local r = GRM.LeftPlayerQuery ( listOfAlts[s][1] );
+                        if r ~= nil and leftGuildData[r][1] ~= GRM_G.addonPlayerName then
 
-                        -- if not found, then let's check the left players as well.
-                        if not banSet then
-                            for r = 2 , #leftGuildData do
-                                if leftGuildData[r][1] == listOfAlts[s][1] and leftGuildData[r][1] ~= GRM_G.addonPlayerName then
-    
-                                    -- Banning the alts one by one in the for loop
-                                    leftGuildData[r][17][1] = true;
-                                    leftGuildData[r][17][2] = timeEpoch;
-                                    leftGuildData[r][17][3] = false;
-                                    leftGuildData[r][17][4] = sender;
-                                    leftGuildData[r][18] = reason;
-    
-                                    break;
-                                end
-                            end
+                            -- Banning the alts one by one in the for loop
+                            leftGuildData[r][17][1] = true;
+                            leftGuildData[r][17][2] = timeEpoch;
+                            leftGuildData[r][17][3] = false;
+                            leftGuildData[r][17][4] = sender;
+                            leftGuildData[r][18] = reason;
+
                         end
                     end
                 end
             end
-            break;
         end
     end
 
     -- let's check the left player's on live sync
     if not isFound then
-        for i = 2 , #leftGuildData do
-            if leftGuildData[i][1] == name then
-                isFound = true;
-                if leftGuildData[i][17][1] then
-                    isAnEdit = true;
-                else
-                    leftGuildData[i][17][1] = true;
-                end
-                leftGuildData[i][17][2] = timeEpoch;
-                leftGuildData[i][17][3] = false;
-                leftGuildData[i][17][4] = sender;
-                leftGuildData[i][18] = reason;
+        local i = GRM.LeftPlayerQuery ( name );
+        if i ~= nil then
+            isFound = true;
+            if leftGuildData[i][17][1] then
+                isAnEdit = true;
+            else
+                leftGuildData[i][17][1] = true;
+            end
+            leftGuildData[i][17][2] = timeEpoch;
+            leftGuildData[i][17][3] = false;
+            leftGuildData[i][17][4] = sender;
+            leftGuildData[i][18] = reason;
 
-                if banAlts == "true" then
-                    local listOfAlts = leftGuildData[i][11];
-                    if #listOfAlts > 0 then
-                        for s = 1 , #listOfAlts do
-                            banSet = false;
-                            -- Need to search data the guildData and the nonGuildData...
-                            for r = 2 , #guildData do
-                                if guildData[r][1] == listOfAlts[s][1] and guildData[r][1] ~= GRM_G.addonPlayerName then
-                                    banSet = true;
-                                    -- Banning the alts one by one in the for loop
-                                    guildData[r][17][1] = true;
-                                    guildData[r][17][2] = timeEpoch;
-                                    guildData[r][17][3] = false;
-                                    guildData[r][17][4] = sender;
-                                    guildData[r][18] = reason;
+            if banAlts == "true" then
+                local listOfAlts = leftGuildData[i][11];
+                if #listOfAlts > 0 then
+                    for s = 1 , #listOfAlts do
+                        banSet = false;
+                        -- Need to search data the guildData and the nonGuildData...
+                        local r = GRM.PlayerQuery ( listOfAlts[s][1] );
+                        if r ~= nil and guildData[r][1] ~= GRM_G.addonPlayerName then
+                            banSet = true;
+                            -- Banning the alts one by one in the for loop
+                            guildData[r][17][1] = true;
+                            guildData[r][17][2] = timeEpoch;
+                            guildData[r][17][3] = false;
+                            guildData[r][17][4] = sender;
+                            guildData[r][18] = reason;
+                        end
+
+                        -- if not found, then let's check the left players as well.
+                        if not banSet then
+                            local r = GRM.LeftPlayerQuery ( listOfAlts[s][1] );
+                            if r ~= nil and leftGuildData[r][1] ~= GRM_G.addonPlayerName then
     
-                                    break;
-                                end
-                            end
-    
-                            -- if not found, then let's check the left players as well.
-                            if not banSet then
-                                for r = 2 , #leftGuildData do
-                                    if leftGuildData[r][1] == listOfAlts[s][1] and leftGuildData[r][1] ~= GRM_G.addonPlayerName then
-        
-                                        -- Banning the alts one by one in the for loop
-                                        leftGuildData[r][17][1] = true;
-                                        leftGuildData[r][17][2] = timeEpoch;
-                                        leftGuildData[r][17][3] = false;
-                                        leftGuildData[r][17][4] = sender;
-                                        leftGuildData[r][18] = reason;
-        
-                                        break;
-                                    end
-                                end
+                                -- Banning the alts one by one in the for loop
+                                leftGuildData[r][17][1] = true;
+                                leftGuildData[r][17][2] = timeEpoch;
+                                leftGuildData[r][17][3] = false;
+                                leftGuildData[r][17][4] = sender;
+                                leftGuildData[r][18] = reason;
+                                
                             end
                         end
                     end
                 end
-                break;
             end
         end
     end
@@ -1490,15 +1447,13 @@ GRMsync.CheckBanListChange = function ( msg , sender )
         }
         GRM.AddMemberToLeftPlayers ( memberInfoToAdd , time() , time() - 5000 , sender );
         -- Now, let's implement the ban!
-        for i = 2 , #leftGuildData do
-            if leftGuildData[i][1] == name then
-                leftGuildData[i][17][1] = true;
-                leftGuildData[i][17][2] = timeEpoch;
-                leftGuildData[i][17][3] = false;
-                leftGuildData[i][17][4] = sender;
-                leftGuildData[i][18] = reason;
-                break;
-            end
+        local i = GRM.LeftPlayerQuery ( name );
+        if i ~= nil then
+            leftGuildData[i][17][1] = true;
+            leftGuildData[i][17][2] = timeEpoch;
+            leftGuildData[i][17][3] = false;
+            leftGuildData[i][17][4] = sender;
+            leftGuildData[i][18] = reason;
         end
 
     end
@@ -1542,11 +1497,9 @@ GRMsync.CheckUnbanListChangeLive = function ( msg , sender )
 
     -- Message
     if GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][16] then
-        for i = 2 , #GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ] do
-            if GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][i][1] == name then
-                isInGuild = true;
-                break;
-            end
+        local i = GRM.PlayerQuery ( name );
+        if i ~= nil then
+            isInGuild = true;
         end
         if not isInGuild then
             name = GRM.GetClassifiedName ( name , true )
@@ -1605,49 +1558,104 @@ GRMsync.BanManagementPlayersThatLeft = function ( msg , prefix , sender )
 
     local isFound = false;
     local isAnEdit = false;
-    for j = 2 , #leftGuildData do
-        if leftGuildData[j][1] == name then
-            isFound = true;
-            if ( banStatus == "ban" and ( not leftGuildData[j][17][1] or ( leftGuildData[j][17][1] and timeStampEpoch > leftGuildData[j][17][2] ) ) ) or ( banStatus == "unban" and leftGuildData[j][17][1] ) then
+    local j = GRM.LeftPlayerQuery ( name );
+    if j ~= nil then
+        isFound = true;
+        if ( banStatus == "ban" and ( not leftGuildData[j][17][1] or ( leftGuildData[j][17][1] and timeStampEpoch > leftGuildData[j][17][2] ) ) ) or ( banStatus == "unban" and leftGuildData[j][17][1] ) then
+            -- Ok, let's see if it is a ban or an unban!
+            if banStatus == "ban" then
+                isAnEdit = false;
+                if ( banStatus == "ban" and ( not leftGuildData[j][17][1] or ( leftGuildData[j][17][1] and timeStampEpoch > leftGuildData[j][17][2] ) ) ) then
+                    isAnEdit = true;
+                end
+                -- if player has been unbanned, let's check timestamps to see which is more recent.
+                if leftGuildData[j][17][3] and leftGuildData[j][17][2] > timeStampEpoch then
+                    abortBanChange = true;
+                else
+                    leftGuildData[j][17][1] = true;
+                    leftGuildData[j][17][2] = timeStampEpoch;
+                    leftGuildData[j][17][3] = false;
+                    leftGuildData[j][17][4] = banner;
+                    leftGuildData[j][18] = reason;
+                end
+            else
+                -- Cool, player is being unbanned! "unban"
+
+                if leftGuildData[j][17][1] and leftGuildData[j][17][2] > timeStampEpoch then
+                    abortBanChange = true;
+                else    
+                    if leftGuildData[j][17][1] then
+                        leftGuildData[j][17][3] = true;
+                    end
+                    leftGuildData[j][17][1] = false;
+                    leftGuildData[j][17][2] = timeStampEpoch;
+                    leftGuildData[j][17][4] = banner;
+                    leftGuildData[j][18] = "";
+                end
+            end
+
+            -- Add ban info to the log.
+            -- Report the updates!
+            if not abortBanChange then
+                
+                local colorCode = GRM.GetClassColorRGB ( leftGuildData[j][9] , true );
+                local tempName = colorCode .. GRM.SlimName ( name ) .. "|r";
+
+                local banEditMsgWithTime , banEditMsg = GRM.GetBanStatusSyncString ( banStatus , isAnEdit , tempName , GRM.GetClassifiedName ( personWhoBanned , true ) , reason , select ( 2 , GRM.GetTimestamp() ) );
+                
+                GRM.AddLog ( { 21 , banEditMsgWithTime , banStatus , isAnEdit , tempName , GRM.GetClassifiedName ( personWhoBanned , true ) , reason , select ( 2 , GRM.GetTimestamp() ) } );
+
+                -- Send update to chat window!
+                if GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][16] and not isSyncUpdate and GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][13][13] then
+                    GRM.Report ( banEditMsg );
+                end
+            end
+        end
+    end
+
+    -- Player was not found, let's check current in-guild players!
+    if not isFound then
+        local j = GRM.PlayerQuery ( name );
+        if j ~= nil then
+            if ( banStatus == "ban" and ( not guildData[j][17][1] or ( guildData[j][17][1] and timeStampEpoch > guildData[j][17][2] ) ) ) or ( banStatus == "unban" and guildData[j][17][1] ) then
+                isAnEdit = false;
+                if ( banStatus == "ban" and ( not guildData[j][17][1] or ( guildData[j][17][1] and timeStampEpoch > guildData[j][17][2] ) ) ) then
+                    isAnEdit = true;
+                end
                 -- Ok, let's see if it is a ban or an unban!
                 if banStatus == "ban" then
-                    isAnEdit = false;
-                    if ( banStatus == "ban" and ( not leftGuildData[j][17][1] or ( leftGuildData[j][17][1] and timeStampEpoch > leftGuildData[j][17][2] ) ) ) then
-                        isAnEdit = true;
-                    end
                     -- if player has been unbanned, let's check timestamps to see which is more recent.
-                    if leftGuildData[j][17][3] and leftGuildData[j][17][2] > timeStampEpoch then
+                    if guildData[j][17][3] and guildData[j][17][2] > timeStampEpoch then
                         abortBanChange = true;
                     else
-                        leftGuildData[j][17][1] = true;
-                        leftGuildData[j][17][2] = timeStampEpoch;
-                        leftGuildData[j][17][3] = false;
-                        leftGuildData[j][17][4] = banner;
-                        leftGuildData[j][18] = reason;
+                        guildData[j][17][1] = true;
+                        guildData[j][17][2] = timeStampEpoch;
+                        guildData[j][17][3] = false;
+                        guildData[j][17][4] = banner;
+                        guildData[j][18] = reason;
                     end
                 else
                     -- Cool, player is being unbanned! "unban"
 
-                    if leftGuildData[j][17][1] and leftGuildData[j][17][2] > timeStampEpoch then
+                    if guildData[j][17][1] and guildData[j][17][2] > timeStampEpoch then
                         abortBanChange = true;
                     else    
-                        if leftGuildData[j][17][1] then
-                            leftGuildData[j][17][3] = true;
+                        if guildData[j][17][1] then
+                            guildData[j][17][3] = true;
                         end
-                        leftGuildData[j][17][1] = false;
-                        leftGuildData[j][17][2] = timeStampEpoch;
-                        leftGuildData[j][17][4] = banner;
-                        leftGuildData[j][18] = "";
+                        guildData[j][17][1] = false;
+                        guildData[j][17][2] = timeStampEpoch;
+                        guildData[j][17][4] = banner;
+                        guildData[j][18] = "";
                     end
                 end
 
                 -- Add ban info to the log.
                 -- Report the updates!
                 if not abortBanChange then
-                    
-                    local colorCode = GRM.GetClassColorRGB ( leftGuildData[j][9] , true );
+                    local colorCode = GRM.GetClassColorRGB ( guildData[j][9] , true );
                     local tempName = colorCode .. GRM.SlimName ( name ) .. "|r";
-
+                    
                     local banEditMsgWithTime , banEditMsg = GRM.GetBanStatusSyncString ( banStatus , isAnEdit , tempName , GRM.GetClassifiedName ( personWhoBanned , true ) , reason , select ( 2 , GRM.GetTimestamp() ) );
                     
                     GRM.AddLog ( { 21 , banEditMsgWithTime , banStatus , isAnEdit , tempName , GRM.GetClassifiedName ( personWhoBanned , true ) , reason , select ( 2 , GRM.GetTimestamp() ) } );
@@ -1657,65 +1665,6 @@ GRMsync.BanManagementPlayersThatLeft = function ( msg , prefix , sender )
                         GRM.Report ( banEditMsg );
                     end
                 end
-            end
-            break;
-        end
-    end
-
-    -- Player was not found, let's check current in-guild players!
-    if not isFound then
-        for j = 2 , #guildData do
-            if guildData[j][1] == name then
-                if ( banStatus == "ban" and ( not guildData[j][17][1] or ( guildData[j][17][1] and timeStampEpoch > guildData[j][17][2] ) ) ) or ( banStatus == "unban" and guildData[j][17][1] ) then
-                    isAnEdit = false;
-                    if ( banStatus == "ban" and ( not guildData[j][17][1] or ( guildData[j][17][1] and timeStampEpoch > guildData[j][17][2] ) ) ) then
-                        isAnEdit = true;
-                    end
-                    -- Ok, let's see if it is a ban or an unban!
-                    if banStatus == "ban" then
-                        -- if player has been unbanned, let's check timestamps to see which is more recent.
-                        if guildData[j][17][3] and guildData[j][17][2] > timeStampEpoch then
-                            abortBanChange = true;
-                        else
-                            guildData[j][17][1] = true;
-                            guildData[j][17][2] = timeStampEpoch;
-                            guildData[j][17][3] = false;
-                            guildData[j][17][4] = banner;
-                            guildData[j][18] = reason;
-                        end
-                    else
-                        -- Cool, player is being unbanned! "unban"
-
-                        if guildData[j][17][1] and guildData[j][17][2] > timeStampEpoch then
-                            abortBanChange = true;
-                        else    
-                            if guildData[j][17][1] then
-                                guildData[j][17][3] = true;
-                            end
-                            guildData[j][17][1] = false;
-                            guildData[j][17][2] = timeStampEpoch;
-                            guildData[j][17][4] = banner;
-                            guildData[j][18] = "";
-                        end
-                    end
-
-                    -- Add ban info to the log.
-                    -- Report the updates!
-                    if not abortBanChange then
-                        local colorCode = GRM.GetClassColorRGB ( guildData[j][9] , true );
-                        local tempName = colorCode .. GRM.SlimName ( name ) .. "|r";
-                        
-                        local banEditMsgWithTime , banEditMsg = GRM.GetBanStatusSyncString ( banStatus , isAnEdit , tempName , GRM.GetClassifiedName ( personWhoBanned , true ) , reason , select ( 2 , GRM.GetTimestamp() ) );
-                        
-                        GRM.AddLog ( { 21 , banEditMsgWithTime , banStatus , isAnEdit , tempName , GRM.GetClassifiedName ( personWhoBanned , true ) , reason , select ( 2 , GRM.GetTimestamp() ) } );
-
-                        -- Send update to chat window!
-                        if GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][16] and not isSyncUpdate and GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][13][13] then
-                            GRM.Report ( banEditMsg );
-                        end
-                    end
-                end
-                break;
             end
         end
     end
@@ -2095,19 +2044,24 @@ end
 -- Purpose:         Efficiently sync data
 GRMsync.BuildDatabaseCheckArray = function ( index )
     local result = {};
-    for i = 1 , #GRMsyncGlobals.DatabaseMarkers[index] do
-        if not GRMsyncGlobals.DatabaseMarkers[index][i] then
-            -- database needs to be sync'd
-            for j = ( i * GRMsyncGlobals.Refinement ) - ( GRMsyncGlobals.Refinement - 1 ) , i * GRMsyncGlobals.Refinement do
-                if j > 1 then
-                    table.insert ( result , j );
-                end
 
-                if j == #GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ] then -- Stop at member cap.
-                    break;  
+    if GRMsyncGlobals.DatabaseMarkers[index] ~= nil and #GRMsyncGlobals.DatabaseMarkers[index] ~= nil then
+        for i = 1 , #GRMsyncGlobals.DatabaseMarkers[index] do
+            if not GRMsyncGlobals.DatabaseMarkers[index][i] then
+                -- database needs to be sync'd
+                for j = ( i * GRMsyncGlobals.Refinement ) - ( GRMsyncGlobals.Refinement - 1 ) , i * GRMsyncGlobals.Refinement do
+                    if j > 1 then
+                        table.insert ( result , j );
+                    end
+
+                    if j == #GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ] then -- Stop at member cap.
+                        break;  
+                    end
                 end
             end
         end
+    -- else
+    --     GRM.Report ( "Please report this error to GRM Creator. In-Combat error, unable to pull some data from server during sync." );
     end
     return result;
 end
@@ -2300,11 +2254,9 @@ end
 -- Purpose:         Massive efficiency. Imagine if a player has 15 alts. Rather than send the alt data for all 15, you only send the alt data for 1 person, and it builds for all those others in the grouping.
 GRMsync.OptimizeAltForSync = function ( altList )
     for i = 1 , #altList do
-        for j = 2 , #GRMsyncGlobals.TempRoster do
-            if GRMsyncGlobals.TempRoster[j][1] == altList[i][1] then
-                table.remove ( GRMsyncGlobals.TempRoster , j );
-                break;
-            end
+        local j = GRM.GenericPlayerQuery ( GRMsyncGlobals.TempRoster , altList[i][1] );
+        if j ~= nil then
+            table.remove ( GRMsyncGlobals.TempRoster , j );
         end
     end
 end
@@ -3316,7 +3268,7 @@ GRMsync.InitiateDataSync = function ()
                         GRMsyncGlobals.timeOfLastSyncCompletion = time();
                     end
                     if GRM_UI.GRM_RosterChangeLogFrame.GRM_AuditFrame:IsVisible() then
-                        GRM.RefreshAuditFrames( GRM_G.AuditSortType );
+                        GRM.RefreshAuditFrames ( true , true );
                     end
                     if GRM_UI.GRM_RosterChangeLogFrame.GRM_LogFrame:IsVisible() then
                         GRM_G.LogNumbersColorUpdate = true;
@@ -3623,11 +3575,9 @@ GRMsync.UpdateLeftPlayerInfo = function ( msg )
     local AllClasses = { "Deathknight" , "Demonhunter" , "Druid" , "Hunter" , "Mage" , "Monk" , "Paladin" , "Priest" , "Rogue" , "Shaman" , "Warlock" , "Warrior" };
     -- Ok, let's check if this player is already known...
     local isFound = false;
-    for i = 2 , #leftGuildData do
-        if leftGuildData[i][1] == name then
-            isFound = true;
-            break;
-        end
+    local i = GRM.LeftPlayerQuery ( name );
+    if i ~= nil then
+        isFound = true;
     end
 
     if not isFound then
@@ -4348,11 +4298,10 @@ GRMsync.CheckingBANChanges = function ( currentTime , syncRankFilter )
                 else
                     personWhoBanned = leftGuildData[i][17][4];
                 end
-                for j = 1 , #GRMsyncGlobals.BanReceivedTemp do
-                    if leftGuildData[i][1] == GRMsyncGlobals.BanReceivedTemp[j][1] then
-                        isFound = true;
-                        break;
-                    end
+
+                local j = GRM.LeftPlayerQuery ( leftGuildData[i][1] );
+                if j ~= nil then
+                    isFound = true;
                 end
 
                 if not isFound then
@@ -4466,18 +4415,71 @@ GRMsync.CheckingBANChanges = function ( currentTime , syncRankFilter )
         -- Ok, now the BanReceivedTemp list is complete, and player properly added to LeftPlayer's list if necessary.
         for i = 1 , #GRMsyncGlobals.BanReceivedTemp do
             isFound = false;
-            for j = 2 , #leftGuildData do
-                if leftGuildData[j][1] == GRMsyncGlobals.BanReceivedTemp[i][1] then
+            local j = GRM.LeftPlayerQuery ( GRMsyncGlobals.BanReceivedTemp[i][1] );
+            if j ~= nil then
+                isFound = true;
+                -- Let's first check if they have diff. info.
+                if GRMsyncGlobals.BanReceivedTemp[i][3] ~= "noban" or ( GRMsyncGlobals.BanReceivedTemp[i][3] == "noban" and ( leftGuildData[j][17][1] or leftGuildData[j][17][3] ) ) then
+                    local banStatus = false;
+                    if GRMsyncGlobals.BanReceivedTemp[i][3] == "ban" then
+                        banStatus = true;
+                    end
+                    if banStatus ~= leftGuildData[j][17][1] or GRMsyncGlobals.BanReceivedTemp[i][4] ~= leftGuildData[j][18] or GRMsyncGlobals.BanReceivedTemp[i][5] == GRM_G.addonPlayerName then
+                        local addReceived = false;      -- AM I going to add received data, or my own. One or the other needs to be added for sync
+                        if leftGuildData[j][17][2] < GRMsyncGlobals.BanReceivedTemp[i][2] then
+                            -- Received Data happened more recently! Need to update change!
+                            addReceived = true;         -- In other words, don't add my own data, add the received data.
+                        end
+
+                        local changeData;
+                        -- Adding Received from other playerZ--[[z]]
+                        if addReceived then
+                            changeData = GRMsyncGlobals.BanReceivedTemp[i];
+                        -- Adding my own data, as it is more current
+                        else
+                            local msgTag = "ban";
+                            if leftGuildData[j][17][3] then
+                                msgTag = "unban"
+                            end
+                            changeData = { leftGuildData[j][1] , leftGuildData[j][17][2] , msgTag , leftGuildData[j][18] , GRMsyncGlobals.DesignatedLeader , syncRankFilter , leftGuildData[j][17][4] };
+                        end
+                        -- Let's see if already indexed by another player!
+                        local needToAdd = true;
+                        for r = #GRMsyncGlobals.BanChanges , 1 , -1 do
+                            if changeData[1] == GRMsyncGlobals.BanChanges[r][1] then
+                                -- If bans are going to be the same, no need to change!
+                                if changeData[3] == GRMsyncGlobals.BanChanges[r][3] or ( currentTime - changeData[2] ) > ( currentTime - GRMsyncGlobals.BanChanges[2] ) then -- If difference found, but the other change was more recent, no need to add.
+                                    needToAdd = false;
+                                end
+
+                                -- If needToAdd is still true, then we need to remove the old index.
+                                if needToAdd then
+                                    table.remove ( GRMsyncGlobals.BanChanges , r );
+                                end
+                            end
+                        end
+                        if needToAdd then
+                            table.insert ( GRMsyncGlobals.BanChanges , changeData );
+                        end
+                    end
+                end
+            end
+
+            -- if not IsFound then...
+            if not isFound then
+                local j = GRM.PlayerQuery ( GRMsyncGlobals.BanReceivedTemp[i][1] );
+                if j ~= nil then
                     isFound = true;
                     -- Let's first check if they have diff. info.
-                    if GRMsyncGlobals.BanReceivedTemp[i][3] ~= "noban" or ( GRMsyncGlobals.BanReceivedTemp[i][3] == "noban" and ( leftGuildData[j][17][1] or leftGuildData[j][17][3] ) ) then
+                    if GRMsyncGlobals.BanReceivedTemp[i][3] ~= "noban" or ( GRMsyncGlobals.BanReceivedTemp[i][3] == "noban" and ( guildData[j][17][1] or guildData[j][17][3] ) ) then
                         local banStatus = false;
                         if GRMsyncGlobals.BanReceivedTemp[i][3] == "ban" then
                             banStatus = true;
                         end
-                        if banStatus ~= leftGuildData[j][17][1] or GRMsyncGlobals.BanReceivedTemp[i][4] ~= leftGuildData[j][18] or GRMsyncGlobals.BanReceivedTemp[i][5] == GRM_G.addonPlayerName then
+
+                        if banStatus ~= guildData[j][17][1] then
                             local addReceived = false;      -- AM I going to add received data, or my own. One or the other needs to be added for sync
-                            if leftGuildData[j][17][2] < GRMsyncGlobals.BanReceivedTemp[i][2] then
+                            if ( currentTime - guildData[j][17][2] ) > ( currentTime - GRMsyncGlobals.BanReceivedTemp[i][2] ) then
                                 -- Received Data happened more recently! Need to update change!
                                 addReceived = true;         -- In other words, don't add my own data, add the received data.
                             end
@@ -4486,13 +4488,14 @@ GRMsync.CheckingBANChanges = function ( currentTime , syncRankFilter )
                             -- Adding Received from other playerZ--[[z]]
                             if addReceived then
                                 changeData = GRMsyncGlobals.BanReceivedTemp[i];
+                            
                             -- Adding my own data, as it is more current
                             else
                                 local msgTag = "ban";
-                                if leftGuildData[j][17][3] then
+                                if guildData[j][17][3] then
                                     msgTag = "unban"
                                 end
-                                changeData = { leftGuildData[j][1] , leftGuildData[j][17][2] , msgTag , leftGuildData[j][18] , GRMsyncGlobals.DesignatedLeader , syncRankFilter , leftGuildData[j][17][4] };
+                                changeData = { guildData[j][1] , guildData[j][17][2] , msgTag , guildData[j][18] , GRMsyncGlobals.DesignatedLeader , syncRankFilter , guildData[j][17][4] };
                             end
                             -- Let's see if already indexed by another player!
                             local needToAdd = true;
@@ -4509,70 +4512,12 @@ GRMsync.CheckingBANChanges = function ( currentTime , syncRankFilter )
                                     end
                                 end
                             end
+
+                            -- If needToAdd is still true, then we need to remove the old index.
                             if needToAdd then
                                 table.insert ( GRMsyncGlobals.BanChanges , changeData );
                             end
                         end
-                    end
-                    break;
-                end
-            end
-
-            -- if not IsFound then...
-            if not isFound then
-                for j = 2 , #guildData do
-                    if guildData[j][1] == GRMsyncGlobals.BanReceivedTemp[i][1] then
-                        isFound = true;
-                        -- Let's first check if they have diff. info.
-                        if GRMsyncGlobals.BanReceivedTemp[i][3] ~= "noban" or ( GRMsyncGlobals.BanReceivedTemp[i][3] == "noban" and ( guildData[j][17][1] or guildData[j][17][3] ) ) then
-                            local banStatus = false;
-                            if GRMsyncGlobals.BanReceivedTemp[i][3] == "ban" then
-                                banStatus = true;
-                            end
-
-                            if banStatus ~= guildData[j][17][1] then
-                                local addReceived = false;      -- AM I going to add received data, or my own. One or the other needs to be added for sync
-                                if ( currentTime - guildData[j][17][2] ) > ( currentTime - GRMsyncGlobals.BanReceivedTemp[i][2] ) then
-                                    -- Received Data happened more recently! Need to update change!
-                                    addReceived = true;         -- In other words, don't add my own data, add the received data.
-                                end
-
-                                local changeData;
-                                -- Adding Received from other playerZ--[[z]]
-                                if addReceived then
-                                    changeData = GRMsyncGlobals.BanReceivedTemp[i];
-                                
-                                -- Adding my own data, as it is more current
-                                else
-                                    local msgTag = "ban";
-                                    if guildData[j][17][3] then
-                                        msgTag = "unban"
-                                    end
-                                    changeData = { guildData[j][1] , guildData[j][17][2] , msgTag , guildData[j][18] , GRMsyncGlobals.DesignatedLeader , syncRankFilter , guildData[j][17][4] };
-                                end
-                                -- Let's see if already indexed by another player!
-                                local needToAdd = true;
-                                for r = #GRMsyncGlobals.BanChanges , 1 , -1 do
-                                    if changeData[1] == GRMsyncGlobals.BanChanges[r][1] then
-                                        -- If bans are going to be the same, no need to change!
-                                        if changeData[3] == GRMsyncGlobals.BanChanges[r][3] or ( currentTime - changeData[2] ) > ( currentTime - GRMsyncGlobals.BanChanges[2] ) then -- If difference found, but the other change was more recent, no need to add.
-                                            needToAdd = false;
-                                        end
-
-                                        -- If needToAdd is still true, then we need to remove the old index.
-                                        if needToAdd then
-                                            table.remove ( GRMsyncGlobals.BanChanges , r );
-                                        end
-                                    end
-                                end
-
-                                -- If needToAdd is still true, then we need to remove the old index.
-                                if needToAdd then
-                                    table.insert ( GRMsyncGlobals.BanChanges , changeData );
-                                end
-                            end
-                        end
-                        break;
                     end
                 end
             end
@@ -4675,21 +4620,18 @@ GRMsync.CheckingMAINChanges = function ( currentTime , syncRankFilter )
 
     for i = 1 , #GRMsyncGlobals.AltMainChanges do                                                                                                                                       -- Cycle through all results.
         if GRMsyncGlobals.AltMainChanges[i][2] then                -- Only need to cycle through the alts where they are set to be listed as main, not demoted.
-            for j = 2 , #guildData do                                                                             -- Let's cycle through the metadata!
-                if guildData[j][1] == GRMsyncGlobals.AltMainChanges[i][1] then                                    -- player found!
-                    local altList = guildData[j][11];
-                    -- Now that I have the altList, I should see if any of them match this main
-                    for r = 1 , #altList do
-                        for s = 1 , #GRMsyncGlobals.AltMainChanges do
-                            if altList[r][1] == GRMsyncGlobals.AltMainChanges[s][1] then
-                                table.insert ( listToRemove , altList[r][1] );
+            local j = GRM.PlayerQuery ( GRMsyncGlobals.AltMainChanges[i][1] );
+            if j ~= nil then
+                local altList = guildData[j][11];
+                -- Now that I have the altList, I should see if any of them match this main
+                for r = 1 , #altList do
+                    for s = 1 , #GRMsyncGlobals.AltMainChanges do
+                        if altList[r][1] == GRMsyncGlobals.AltMainChanges[s][1] then
+                            table.insert ( listToRemove , altList[r][1] );
 
-                                break;
-                            end
+                            break;
                         end
                     end
-                    
-                    break;
                 end
             end
         end
@@ -4785,9 +4727,9 @@ GRMsync.CheckingBdayChanges = function ( syncRankFilter )
     -- No need to check my data if I am not going to share it. I must just accept their data and pass it along. I just wont' absorb it and then people will rely on their filters.
     if GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][68] then
         -- Just checking my own data first...
-        for j = 2 , #GRMsyncGlobals.DatabaseExactIndexes[7] do
+        for j = 1 , #GRMsyncGlobals.DatabaseExactIndexes[7] do
             for i = #list , 1 , -1 do
-                if guildData[GRMsyncGlobals.DatabaseExactIndexes[7][j]][1] == list[i] then
+                if guildData[GRMsyncGlobals.DatabaseExactIndexes[7][j]][1] == list[i][1] then
                     if guildData[GRMsyncGlobals.DatabaseExactIndexes[7][j]][22][2][4] ~= 0 then       -- Birthday set!
                         -- Cleanup the list to save on additional parses
                         list = GRMsync.RemoveAltGroupingFromList ( guildData[GRMsyncGlobals.DatabaseExactIndexes[7][j]][1] , guildData[GRMsyncGlobals.DatabaseExactIndexes[7][j]][11] , list );
@@ -5212,11 +5154,15 @@ GRMsync.ReportSyncCompletion = function ( currentSyncer , finalAnnounce )
         end
 
         if GRM_UI.GRM_RosterChangeLogFrame.GRM_AuditFrame:IsVisible() then
-            GRM.RefreshAuditFrames( GRM_G.AuditSortType );
+            GRM.RefreshAuditFrames ( true , true );
         end
         if GRM_UI.GRM_RosterChangeLogFrame.GRM_LogFrame:IsVisible() then
             GRM_G.LogNumbersColorUpdate = true;
             GRM.BuildLogComplete( true , true );
+        end
+
+        if GRM_UI.GRM_ToolCoreFrame:IsVisible() then
+            GRM_UI.RefreshManagementTool();
         end
 
         local playerCount = GRMsyncGlobals.AddLeftPlayerCount;

@@ -1,3 +1,51 @@
+**VERSION 8.2R1.68 DATE: August 28th, 2019**
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* BUG1: Fixed an issue in regards to people that used the original /groster - the "OnUpdate" handler of the new Tool's button was erroring out.
+
+* BUG2: Ignore recommendations unless all in the alt grouping were inactive was not filtering properly. This is now updated.
+
+* BUG3: Frames should now properly auto-update and repopulate the lists on changes to the roster, such as settings changes, or add/remove alts
+
+
+**VERSION 8.2R1.67 DATE: August 26th, 2019**
+
+*NOTE: This is NOT a compatibility update for Classic. I am planning on it. I have built a lot of backend infrastructure to help the process. But, I am pushing this out because I wanted to be done with it so I can focus on Classic!*
+
+***NEW FEATURES***
+
+**Macro Tool**
+
+*This new Macro Tool is to assist players in being able to do things far more streamlined and easier since Blizz restricted addons from kicking/promoting/demoting players. So, what the addon now does is compiles a list of names based on a set of rules configured by some filters and then it auto-creates a large macro. It crams as many names as it can into that macro. It then binds that macro to a hot-key (so you don't have to keep it on the bars). Upon pressing the macro it activates all actions, clears the macro and rebuilds a new macro from the names in the que. In theory, you should be able to spam the macro rather rapidly to complete all macro'd actions, like /gremove playerName (and kick 10-15 names at a time, depending on their name length). It should be noted that as of now only the "Kick" recommendation rules are currently implemented.
+
+![GRM Macro Tool](https://i.imgur.com/8OeTMwW.jpg)
+
+* Auto-build and rebuild the macro as needed
+
+* Ability to create a "Safe" ignore list of players you want to be immune to the recommended filters. For example, maybe you want to kick everyone offline > 6 months, but you don't want to kick a specific person ever. Or, maybe some gets deployed 9 months, etc...
+
+* Ability to ignore recommended actions as long as at least 1 toon in an alt grouping is say, active.
+
+* Ability to adjust the macro on the fly and remove names quickly with only temporarily removing them from the que. Rebuilding the macro will re-add the names
+
+* Ability to manage the "Ignore List" easily from within the tool.
+
+* New Checkbox on the mouseover window in the bottome left corner to set a person as ignore.
+
+* /grm tool or kick or promote or demote will all bring up the new Macro Tool (or just click the new button on the roster window)
+
+*I am about 3000+ lines of code into this new tool, and a bit more work to go. This is why this release took so long*
+
+**--------------**
+**BUGS AND BUGS!**
+**--------------**
+
+* BUG1: Fixed a bug that seemed to affect a few people when trying to sync whilst in combat. Unfortunately there seems to have been a slight change on the backend server where some info is restricted when in combat. This no longer errors out.
+
+
 **VERSION 8.2R1.66 DATE: July 23rd, 2019**
 
 *Needed to rush this out due to a potential bug that could affect only new users, but not all. Sort of an edge case that would prvent some from loading the first time, though it would load properly on their 2nd attempt after relog or reload. Now is should configure properly for all.*
