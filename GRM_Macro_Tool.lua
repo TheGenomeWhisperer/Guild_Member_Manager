@@ -520,6 +520,7 @@ GRM_UI.LoadToolFrames = function ( isManual )
         end);
 
         GRM_UI.GRM_ToolCoreFrame.GRM_ToolKickRules.GRM_CustomRuleAddButton:SetSize ( 200 , 25 );
+        GRM_UI.GRM_ToolCoreFrame.GRM_ToolKickRules.GRM_CustomRuleAddButton:Hide();
         GRM_UI.GRM_ToolCoreFrame.GRM_ToolKickRules.GRM_CustomRuleAddButton.GRM_CustomRuleAddButtonText:SetPoint ( "CENTER" , GRM_UI.GRM_ToolCoreFrame.GRM_ToolKickRules.GRM_CustomRuleAddButton );
         GRM_UI.GRM_ToolCoreFrame.GRM_ToolKickRules.GRM_CustomRuleAddButton:SetScript ( "OnClick" , function ( _ , button )
             if button == "LeftButton" then
@@ -1832,9 +1833,16 @@ end
 -- What it Does:    Sets the tooltip for the Macrod scrollframe in the GRM kick tool
 -- Purpose:         Make it clear the QoL controls.
 GRM.UpdateMacrodTooltip = function ( ind )
+    local playerName = GRM_UI.GRM_ToolCoreFrame.GRM_ToolMacrodScrollChildFrame.AllButtons[ind][2]:GetText();
+
     GRM_UI.SetTooltipScale();
     GameTooltip:SetOwner ( GRM_UI.GRM_ToolCoreFrame.GRM_ToolMacrodScrollChildFrame.AllButtons[ind][1] , "ANCHOR_CURSOR" );
- 
+    GameTooltip:AddLine ( playerName , GRM_UI.GRM_ToolCoreFrame.GRM_ToolMacrodScrollChildFrame.AllButtons[ind][2]:GetTextColor() );
+
+    GameTooltip:AddLine ( " " );    -- adds a small space between the lines
+    GameTooltip:AddLine ( GRM.L ( "|CFFE6CC7FClick|r to Select for Removal" ) );
+    GameTooltip:AddLine ( GRM.L ( "|CFFE6CC7FCtrl-Click|r to open Player Window" ) );
+    GameTooltip:AddLine( GRM.L ( "|CFFE6CC7FCtrl-Shift-Click|r to Search the Log for Player" ) );
     GameTooltip:Show();
 end
 
@@ -2467,6 +2475,7 @@ GRM.UpdateIgnoredToolTip = function ( ind )
     end
     
     GameTooltip:AddLine ( " " );    -- adds a small space between the lines
+    GameTooltip:AddLine ( GRM.L ( "|CFFE6CC7FClick|r to Select for Removal" ) );
     GameTooltip:AddLine ( GRM.L ( "|CFFE6CC7FCtrl-Click|r to open Player Window" ) );
     GameTooltip:AddLine( GRM.L ( "|CFFE6CC7FCtrl-Shift-Click|r to Search the Log for Player" ) );
     GameTooltip:Show();
@@ -3015,7 +3024,7 @@ end
 -- What it Does:    Builds the buttons/frames for the custom rules for kicking
 -- Purpose:         Customizable UX
 GRM.BuildKickRules = function()
-    print("Building Kick Rules")
+    -- print("Building Kick Rules")
 end
 
 -- Method:          GRM.BuildKickRules()
@@ -3085,7 +3094,7 @@ GRM.BuildCustomButtons = function( actionIndex )
 end
 
 GRM.InitializeCreateCustomRuleButton = function()
-    print("Create Button Rules!")
+    -- print("Create Button Rules!")
 
 
 end

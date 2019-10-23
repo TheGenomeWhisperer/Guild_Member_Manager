@@ -1262,8 +1262,51 @@ GRML.MandarinCN = function()
     GRM_L["Players the same rank or higher will not be shown"] = true
     GRM_L["Macro"] = true       -- For the slash command  /grm tool or /grm macro - same thing
 
+	-- 1.77
+	GRM_L["Add Custom Rule"] = true         -- Kick Macro Tool - custom rule button right side
+	GRM_L["Former Members"] = true          -- Export tool
+	GRM_L["Data Export"] = true
+	GRM_L["*Max Export is 500 Log Entries at a Time"] = true
+	GRM_L["*Max Export is 500 Members at a Time"] = true
+	GRM_L["*Max Export is 500 Former Members at a Time"] = true
+	GRM_L["Log export follows the search and display settings"] = true
+	GRM_L["*Export obeys the current log display filters"] = true
+	GRM_L["Select Line Range:"] = true
+	GRM_L["Select Member Range:"] = true
+	GRM_L["Export Selection"] = true
+	GRM_L["Export Next {num}"] = true       -- As in, "Export next 500" names or log lines
+	GRM_L["Export Prev {num}"] = true       -- As in, Export Previous name
+	GRM_L["Total Members: {num}"] = true
+	GRM_L["Total Former Members: {num}"] = true
+	GRM_L["Class"] = true                       -- As in Class Name, there is currently a "Class:" we need one with the colon
+	GRM_L["Guild Rep"] = true                   -- Guild Faction reputation (abbreviated)
+	GRM_L["Last Online (Days)"] = true
+	GRM_L["Spreadsheet Headers"] = true
+	GRM_L["Auto Include Headers"] = true        -- Auto include headers on the export frame, as in the column headers for each category on member and former mebers
+	GRM_L["These will only be included if exporting from the top of the table"] = true      -- tooltip for the auto-Included export checkbutton
+	GRM_L["Export"] = true
+	GRM_L["This will be rounded to the nearest day"] = true
+	GRM_L["Clearing Log Export. A filter setting has been changed."] = true             -- If the filter settings have been modified, the export string should be cleared and re-done
+	GRM_L["No Tag"] = true                                                              -- Main Tag
+	GRM_L["Delimiter:"] = true                                                          -- Delimiter selection for Export window
+	GRM_L["|CFFE6CC7FClick|r to view more alt details."] = true                         -- Calendar tooltip
+	GRM_L["|CFFE6CC7FRight-Click|r for additional options."] = true                     -- Also Calendar tooltip
+	GRM_L["The selected delimiter will be removed from all notes on export"] = true
+	GRM_L["Choose thoughtfully"] = true
+	GRM_L["{name}'s note has been updated!"] = true
+	GRM_L["Locked. Press ESC"] = true                                        -- Mouseover Locked text in top right.
+	GRM_L["{num} guild members have outdated GRM versions"] = true                      -- Player sync with another is outdated
+	GRM_L["|CFFE6CC7FClick|r to Select for Removal"] = true
+    GRM_L["Feel free to recommend a delimiter you wish to use to the author"] = true
+    GRM_L["Export Tool"] = true
+    GRM_L["Opens the Data Export Tool"] = true
+    GRM_L["Opens the Advanced Macro Tool"] = true
+    GRM_L["Open any GRM window: Log, Event, Ban, etc."] = true
 
-
+    -- 1.78
+    GRM_L["Hurray!"] = true                                                              -- A short cheer! Like "Yay!" except "Hurray!"
+    GRM_L["{name} has Reached the {num} Level Cap! {custom1}"] = true                  -- Arkaan has Reached the 120 Level Cap! Hurray!
+    
 end
 -- BuildLog() - might have some extra work, conditionally based on localization as it will now have a mix of languages saved to the log, since log is not retroactively changed.
 -- The options panel might need some handcrafted care for allignment.

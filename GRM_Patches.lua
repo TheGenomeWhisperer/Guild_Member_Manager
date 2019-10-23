@@ -617,8 +617,21 @@ GRM_Patch.SettingsCheck = function ( numericV , count , patch )
         end
     end
 
+    if numericV < 1.77 and baseValue < 1.77 then
+        GRM_Patch.ExpandOptionsType ( 3 , 2 , 78 );                 -- Export delimiter selection and export details
+        GRM_Patch.ModifyNewDefaultSetting ( 79 , { true , ";" } );
+        if GRM_G.BuildVersion < 40000 then
+            GRM_Patch.ModifyNewDefaultSetting ( 80 , { true , true , true , true , true , true , true , true , true , false , true , true , true , true } );     -- Export filters with Guild rep disabled
+        else
+            GRM_Patch.ModifyNewDefaultSetting ( 80 , { true , true , true , true , true , true , true , true , true , true , true , true , true , true } );     -- Export filters
+        end
+        GRM_Patch.ExpandOptionsType ( 2 , 1 , 80 );                 -- Auto include export headers
+        GRM_Patch.ModifyNewDefaultSetting ( 81 , false );           -- Don't keep it ON as default
+        if loopCheck ( 1.77 ) then
+            return;
+        end
+    end
 
-    
     GRM_Patch.FinalizeReportPatches( patchNeeded , numActions );
 end
 
@@ -767,7 +780,6 @@ GRM_Patch.IntroduceUnknown = function()
         end
     end
 end
--- /run local n=GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ];for i=2,#n do if n[i][1]=="Vulnir-LaughingSkull" then print("Vulnir Found at: " .. i );end;end
 
 -- Introduced Patch R1.125
 -- Bug fix... need to purge of repeats

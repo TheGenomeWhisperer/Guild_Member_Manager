@@ -1,6 +1,6 @@
 -- For Sync controls!
 -- Author: Arkaan... aka "TheGenomeWhisperer"
--- Version 8.1.5R1.73
+-- Version 8.1.5R1.78
 -- To hold all Sync Methods/Functions
 GRMsync = {};
 
@@ -422,7 +422,7 @@ GRMsync.ReviewElectResponses = function()
             GRM_G.TemporarySync = false;
             GRMsync.MessageTracking:UnregisterAllEvents()
             GRMsync.ResetDefaultValuesOnSyncReEnable();         -- Reset values to default, so that it resyncs if player re-enables.
-            GRM_RosterSyncCheckButton:SetChecked ( false );
+            GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame.GRM_RosterSyncCheckButton:SetChecked ( false );
             GRM.Report ( GRM.L ( "GRM:" ) .. " " .. GRM.L ( "No Players Currently Online to Sync With. Re-Disabling Sync..." ) );
         else
             -- ZERO RESPONSES! No one else online! -- No need to data sync and go further!
@@ -3571,7 +3571,6 @@ end
 GRMsync.UpdateLeftPlayerInfo = function ( msg )
     -- (name , rank, rankID, level , class , leftguilddate, leftguildEpochMeta , oldJoinDate, OldJoinDateMeta)
     local name = string.sub ( msg , 1 , string.find ( msg , "?" ) - 1 );
-    local leftGuildData = GRM_PlayersThatLeftHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ];
     local AllClasses = { "Deathknight" , "Demonhunter" , "Druid" , "Hunter" , "Mage" , "Monk" , "Paladin" , "Priest" , "Rogue" , "Shaman" , "Warlock" , "Warrior" };
     -- Ok, let's check if this player is already known...
     local isFound = false;
@@ -3657,7 +3656,7 @@ GRMsync.UpdateCurrentPlayerInfo = function ( msg )
         GRM.SyncRemoveCurrentPlayerBan ( name , timestamp , unbanner );
     end
 
-    if GRM_CoreBanListFrame:IsVisible() then
+    if GRM_UI.GRM_RosterChangeLogFrame.GRM_OptionsFrame.GRM_SyncOptionsFrame..GRM_CoreBanListFrame:IsVisible() then
         GRM.RefreshBanListFrames();
     end
 end
@@ -5285,8 +5284,15 @@ GRMsync.RegisterCommunicationProtocols = function()
                             GRMsyncGlobals.CurrentSyncPlayerRankRequirement = senderRankRequirement;
                         end
                     else
-                        -- If this is nil, you are getting spammed from player with VERY old version
-                        GRM.Report ( "|cff00c8ff" .. GRM.L ( "GRM:" ) .. " |cffffffff" .. GRM.L ( "{name} tried to Sync with you, but their addon is outdated." , GRM.GetClassifiedName ( sender , true ) ) .. "\n|cffff0044" .. GRM.L ( "Remind them to update!" ) );
+                        if not GRM_G.SyncOutdatedReport then
+                            GRM_G.SyncOutdatedReport = true
+                            -- If this is nil, you are getting spammed from player with VERY old version
+                            GRM.Report ( "|cff00c8ff" .. GRM.L ( "GRM:" ) .. " |cffffffff" .. GRM.L ( "{name} tried to Sync with you, but their addon is outdated." , GRM.GetClassifiedName ( sender , true ) ) .. "\n|cffff0044" .. GRM.L ( "Remind them to update!" ) );
+                            local count = GRM.GetNumAddonUsersOutdated();
+                            if count > 1 then
+                                GRM.Report ( GRM.L ( "{num} guild members have outdated GRM versions" , nil , nil , count ) );
+                            end
+                        end
                         return;
                     end
                     local senderRankID = GRM.GetGuildMemberRankID ( sender );
@@ -5301,8 +5307,15 @@ GRMsync.RegisterCommunicationProtocols = function()
                     
                     elseif abortSync and not isFound then
                         -- placing the abortSync notification AFTER the rank check to avoid confusion and not get the error message if someone is not proper sync rank.
-                        table.insert ( GRMsyncGlobals.IncompatibleAddonUsers , sender );
-                        GRM.Report ( "|cff00c8ff" .. GRM.L ( "GRM:" ) .. " |cffffffff" .. GRM.L ( "{name} tried to Sync with you, but their addon is outdated." , GRM.GetClassifiedName ( sender , true ) ) .. "\n|cffff0044" .. GRM.L ( "Remind them to update!" ) );
+                        if not GRM_G.SyncOutdatedReport then
+                            GRM_G.SyncOutdatedReport = true
+                            -- If this is nil, you are getting spammed from player with VERY old version
+                            GRM.Report ( "|cff00c8ff" .. GRM.L ( "GRM:" ) .. " |cffffffff" .. GRM.L ( "{name} tried to Sync with you, but their addon is outdated." , GRM.GetClassifiedName ( sender , true ) ) .. "\n|cffff0044" .. GRM.L ( "Remind them to update!" ) );
+                            local count = GRM.GetNumAddonUsersOutdated();
+                            if count > 1 then
+                                GRM.Report ( GRM.L ( "{num} guild members have outdated GRM versions" , nil , nil , count ) );
+                            end
+                        end
                         return;
                     elseif not abortSync and not isFound then
                         table.insert ( GRMsyncGlobals.CompatibleAddonUsers , sender );

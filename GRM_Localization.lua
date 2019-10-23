@@ -424,7 +424,7 @@ elseif GRM_G.Region == "esMX" then
     GRM_L["has demoted"] = "ha degradado"
     GRM_L["Professions"] = "Profesiones"
     GRM_L["Guild: "] = "Hermandad: "
-    GRM_L["Guild created "] = "Hermandad creada "
+    GRM_L["Guild created "] = "Creación de hermandad"
     GRM_L["added to friends"] = "añadido como amigo."
     GRM_L["is already your friend"] = "ya está en tu lista de amigos."
     GRM_L["Player not found."] = "No se ha encontrado al jugador."
@@ -728,8 +728,8 @@ end
 
 
 
--- UI Helper to make my localization process much easier!!!
--- Disable when not using by commenting out.,..
+-- -- UI Helper to make my localization process much easier!!!
+-- -- Disable when not using by commenting out.,..
 -- GRM_LocalizationHelper = CreateFrame ( "Frame" , "GRM_LocalizationHelper" , UIParent , "TranslucentFrameTemplate" );
 -- GRM_LocalizationHelper:SetPoint ( "CENTER" , UIParent );
 -- GRM_LocalizationHelper:SetSize ( 400 , 200 );
