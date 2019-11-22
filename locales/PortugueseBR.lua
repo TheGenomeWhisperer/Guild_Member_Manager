@@ -273,8 +273,7 @@ GRML.PortugueseBR = function()
 
     GRM_L["Reactivating SCAN for Guild Member Changes..."] = "Reativando SCAN para alterações de membros da guilda ..."
     GRM_L["Deactivating SCAN of Guild Member Changes..."] = "Desativando SCAN para alterações de membros da guilda ..."
-    GRM_L["Due to server data restrictions, a scan interval must be at least 10 seconds or more!"] = "Devido a restrições de dados do servidor, um intervalo de scan deve ser de pelo menos 10 segundos ou mais!"
-    GRM_L["Please choose an scan interval 10 seconds or higher!"] = "Por Favor escolha um intervalo de scan de 10 segundos ou mais!"
+    GRM_L["Please choose a scan interval {num} seconds or higher!"] = "Por Favor escolha um intervalo de scan de {num} segundos ou mais!"
     GRM_L["{num} is too Low!"] = "{num} é muito Baixo!"
     GRM_L["The Current Lvl Cap is {num}."] = "O Limite Atual de Nível é {num}."
     GRM_L["Kick Inactive Player Reminder at"] = "Lembrar de Banir Jogador Inativo em"        -- Context: "Kick Inactive Player Reminder at X Months" - Again, allignment will need to be adjusted for options UI, so please post
@@ -1250,9 +1249,9 @@ GRML.PortugueseBR = function()
     GRM_L["This only affects settings for your current guild: {name}"] = true                   -- Tooltip for Options > General > Sync settings to all alts in same guild
     GRM_L["GC"] = true                                                                          -- Options window, acronym for "Global Controls" and will be adjacent to all settings that have global controls
     GRM_L["*GC = Global Control - Use Guild Info to Force Setting For All"] = true              -- Top left Options window
-    GRM_L["Export Global Controls"] = true                                                      -- Options > Officer Tab > Bottom left export button
+    GRM_L["Set Global Controls"] = true                                                      -- Options > Officer Tab > Bottom left export button
     GRM_L["Global Control Values Set in Guild Info"] = true                                     -- Export GuildInfo tool tooltip
-    GRM_L["Configure your settings. Click to export"] = true                                    -- Tooltip line 2- same as above
+    GRM_L["Configure your settings. Click to set in Guild Info"] = true                                    -- Tooltip line 2- same as above
     GRM_L["Unable to add globals controls to GuildInfo. There is not enough room."] = true      -- If export of globals is not able to complete
     GRM_L["Global controls exported to the guild info note. Updating..."] = true                -- Success in exporting
     GRM_L["Your rank cannot edit the Guild Info"] = true                                              -- Mouseover tooltip helper for people without MOTD edit access
@@ -1307,6 +1306,36 @@ GRML.PortugueseBR = function()
     GRM_L["Hurray!"] = true                                                              -- A short cheer! Like "Yay!" except "Hurray!"
     GRM_L["{name} has Reached the {num} Level Cap! {custom1}"] = true                  -- Arkaan has Reached the 120 Level Cap! Hurray!
 
+    -- 1.80
+    GRM_L["Core Window:"] = true
+    GRM_L["Mouseover Player Details:"] = true
+    GRM_L["Macro Tool:"] = true
+    GRM_L["Export Tool:"] = true
+    GRM_L["Audit Join Date Tool:"] = true
+    GRM_L["GRM UI Scale"] = true
+    GRM_L["Right-Click to Reset"] = true
+    GRM_L["Open the Mouseover Window to see immediate scaling changes"] = true
+    GRM_L["Open the Macro Tool Window to see immediate scaling changes"] = true
+    GRM_L["The Export Tool is connected to the Core window scaling"] = true
+    GRM_L["This provides additional scaling controls on just this window"] = true
+    GRM_L["Open the Export Tool Window to see immediate scaling changes"] = true
+    GRM_L["WARNING: Clear the text box before re-scaling or you may lock up your system"] = true
+    GRM_L["Resets ALL settings, not just the ones on this page"] = true
+    GRM_L["Open MouseOver"] = true
+    GRM_L["Open Macro Tool"] = true
+    GRM_L["Open Export Tool"] = true
+    GRM_L["Open Join Date Tool"] = true
+    
+    -- 1.81
+    GRM_L["Race"] = true
+    GRM_L["Sex"] = true
+    GRM_L["Male"] = true
+    GRM_L["Female"] = true
+    GRM_L["{name} {name2}"] = true          -- This might seem weird, but the format is "Race Sex" In other words, "Orc Male" or "Nightborne Female" and so on. Adjust how you see fit, it appears in the mouseover tooltip on the player name
+    
+    -- 1.82
+    GRM_L["Disabled While Player is Grouped"] = true
+    GRM_L["SYNC is currently disabled while you are grouped. Due to server restricted addon to addon talk data caps, and in an effort to avoid clogging up the shared global comm space of all addons, sync will be temporarily restricted while grouped."] = true
 
     
 end

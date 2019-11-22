@@ -489,6 +489,7 @@ GRM_Patch.SettingsCheck = function ( numericV , count , patch )
             return;
         end
     end
+    
 
     if numericV < 1.53 and baseValue < 1.53 then
         GRM_Patch.GuildDataDatabaseWideEdit ( GRM_Patch.CleanupJoinDateError );
@@ -632,9 +633,81 @@ GRM_Patch.SettingsCheck = function ( numericV , count , patch )
         end
     end
 
+    if numericV < 1.80 and baseValue < 1.80 then
+        GRM_Patch.ExpandOptionsType ( 3 , 1 , 81 );
+        GRM_Patch.ModifyNewDefaultSetting ( 82 , { 1.0 , 1.33 , 1.0 , 1.0 , 1.0 } );     -- Adding Scaler controls to the addon settings.
+        if loopCheck ( 1.80 ) then
+            return;
+        end
+    end
+
+    if numericV < 1.801 and baseValue < 1.801 then
+        GRM_Patch.AddPlayerMetaDataSlot ( 45 , "" );                         -- Adding the position to have an "unknown" option in regards to bdays
+        GRM_Patch.AddPlayerMetaDataSlot ( 46 , 1 );
+        if loopCheck ( 1.801 ) then
+            return;
+        end
+    end
+
+    if numericV < 1.81 and baseValue < 1.81 then
+        GRM_Patch.FixOptionsSetting ( 82 , { 1.0 , 1.33 , 1.0 , 1.0 , 1.0 } , GRM_Patch.FixScalingOption );
+        if loopCheck ( 1.81 ) then
+            return;
+        end
+    end
+
+    if numericV < 1.812 and baseValue < 1.812 then
+        if GRM_G.BuildVersion < 40000 then
+            GRM_Patch.FixOptionsSetting ( 80 , { true , true , true , true , true , true , true , true , true , false , true , true , true , true , true , true } , GRM_Patch.ExpandExportFilters );
+        else
+            GRM_Patch.FixOptionsSetting ( 80 , { true , true , true , true , true , true , true , true , true , true , true , true , true , true , true , true } , GRM_Patch.ExpandExportFilters );
+        end
+        
+        if loopCheck ( 1.812 ) then
+            return;
+        end
+    end
+
+    if numericV < 1.82 and baseValue < 1.82 then
+        GRM_Patch.FixOptionsSetting ( 6 , 20 , GRM_Patch.UpdateMinimumScanTime );       -- New default setting to max 20 seconds
+        if loopCheck ( 1.82 ) then
+            return;
+        end
+    end
+    
+    if numericV < 1.831 and baseValue < 1.831 then
+        GRM_Patch.FixDoubleCopiesInCurrentGuilds(); -- Due to an error reported... this was likely due to a bug that existed for a couple of hours before I noticed, but a couple hundred people had downloaded it... it was still somewhat edge case but it opened the door. Well, someone won the lottery!
+        GRM_Patch.FixDoubleCopiesInLeftPLayers();   -- Prob not necessary, but need to cover all my bases here on this one...
+        GRM_Patch.FixDoubleCopiesInBackup();        -- Same as above.
+        GRM_Patch.RealignDatabaseDueToMisSort();    -- Due to a faulty insert that I created in 1.82 /sigh
+        
+        if GRM_G.BuildVersion < 80000 then
+            GRM_Patch.ModifyNewDefaultSetting ( 71 , true );        -- needs to fix mouseover In Classic. Might have been forced disabled on accident.
+        end
+        
+        if loopCheck ( 1.831 ) then
+            return;
+        end
+    end
+
+    if numericV < 1.84 and baseValue < 1.84 then
+        if GRM_Patch.IsAnySettingsTooLow() then
+            for i = 1 , #GRM_AddonSettings_Save do
+                for j = 2 , #GRM_AddonSettings_Save[i] do
+                    GRM_AddonSettings_Save[i][j][2][1] = "8.2.5R1.76";  -- Trigger the setting to reload for all.
+                end
+            end;
+
+            numericV = 1.76;
+            loopCheck ( 1.76 );
+            return;
+        end
+    end
+
     GRM_Patch.FinalizeReportPatches( patchNeeded , numActions );
 end
 
+-- Final report is good to go!
 GRM_Patch.FinalizeReportPatches = function ( patchNeeded , numActions )
     if patchNeeded then
         if numActions > 1 then
@@ -656,6 +729,68 @@ GRM_Patch.FinalizeReportPatches = function ( patchNeeded , numActions )
 
     GRM.FinalSettingsConfigurations();
 end
+
+
+
+-- -- Major Database Overhaul ( Future Plans )
+
+-- GRM_Patch.ConvertAddonSettings = function()
+--     local tempUI = GRM.DeepCopyArray ( GRM_AddonSettings_Save );
+--     local newUI = {};
+
+--     newUI["H"] = {};
+--     newUI["A"] = {};
+    
+
+
+--     for i = 1 , 2 do
+--         for j = 2 , #tempUI[i] do
+--             if i == 1 then
+--                 newUI["H"][ tempUI[i][j][1] ] = tempUI[i][j][2];
+--             else
+--                 newUI["A"][ tempUI[i][j][1] ] = tempUI[i][j][2];
+--             end
+--         end
+--     end
+
+--     GRM_AddonSettings_Save = newUI;
+-- end
+
+-- GRM_Patch.ConvertListOfAddonAlts = function()
+    
+--     -- Structure
+--     -- GRM_PlayerListOfAlts_Save[ faction ][ guildName ][ playerName ] = { playerDetails }
+
+--     local tempUI = GRM.DeepCopyArray ( GRM_PlayerListOfAlts_Save );
+--     local newUI = {};
+
+--     newUI["H"] = {};
+--     newUI["A"] = {};
+    
+
+--     local f = "";
+--     for i = 1 , 2 do
+
+--         if i == 1 then
+--             f = "H";
+--         elseif i == 2 then
+--             f = "A";
+--         end
+
+--         for j = 2 , #tempUI[i] do                                   -- Guilds
+--             newUI[ f ][ tempUI[i][j][1][1] ] = tempUI[i][j][1];
+
+--             for s = 2 , #tempUI[i][j] do                            -- Each player in a guild
+--                 newUI[ f ][ tempUI[i][j][1][1] ][ tempUI[i][j][s][1] ] = tempUI[i][j][s];
+--             end
+--         end
+--     end
+
+--     GRM_G.V = newUI;
+
+-- end
+
+
 
 ------------------------
 --- CLASSIC ISSUES -----
@@ -686,9 +821,9 @@ GRM_Patch.RemoveMacroInClassic = function()
 
 end
 
-        -------------------------------
-        --- START PATCH LOGIC ---------
-        -------------------------------
+-------------------------------
+--- START PATCH LOGIC ---------
+-------------------------------
 
 -- Introduced Patch R1.092
 -- Alt tracking of the player - so it can auto-add the player's own alts to the guild info on use.
@@ -1182,20 +1317,24 @@ GRM_Patch.CleanupPromoDates = function()
 end
 
 -- Introduced patch R1.142
--- Method:          GRM_Patch.ExpandOptionsType(int,int,int)
+-- Method:          GRM_Patch.ExpandOptionsType(int,int,int,object)
 -- What it Does:    Expands the number of options settings, and initializes the type
 -- Purpose:         Reusuable for future flexibility on updates.
 -- 1 = number, 2=boolean, 3 = array , 4 = string
-GRM_Patch.ExpandOptionsType = function( typeToAdd , numberSlots , referenceCheck )
+GRM_Patch.ExpandOptionsType = function( typeToAdd , numberSlots , referenceCheck , saveOption )
     local expansionType;
-    if typeToAdd == 1 then          -- Int
-        expansionType = 1;
-    elseif typeToAdd == 2 then      -- Boolean
-        expansionType = true;
-    elseif typeToAdd == 3 then      -- Array/Table
-        expansionType = {};
-    elseif typeToAdd == 4 then      -- String
-        expansionType = "";
+    if saveOption then
+        expansionType = saveOption;
+    else
+        if typeToAdd == 1 then          -- Int
+            expansionType = 1;
+        elseif typeToAdd == 2 then      -- Boolean
+            expansionType = true;
+        elseif typeToAdd == 3 then      -- Array/Table
+            expansionType = {};
+        elseif typeToAdd == 4 then      -- String
+            expansionType = "";
+        end
     end
     -- Updating settings for all
     for i = 1 , #GRM_AddonSettings_Save do
@@ -1490,20 +1629,35 @@ GRM_Patch.AddPlayerMetaDataSlot = function ( previousMaxIndex , newValue )
     end
 
     -- Need backup info to be modified as well...
+    local needsToBreak = false;
     if GRM_GuildDataBackup_Save ~= nil then
         for i = 1 , #GRM_GuildDataBackup_Save do
             for j = 2 , #GRM_GuildDataBackup_Save[i] do
                 for s = 2 , #GRM_GuildDataBackup_Save[i][j] do
+
+                    needsToBreak = false;
+
                     if #GRM_GuildDataBackup_Save[i][j][s] > 0 then
                         -- 3 and 4 = history and leftHistory
                         for m = 3 , 4 do
-                            for n = 2 , #GRM_GuildDataBackup_Save[i][j][s][m] do
-                                if #GRM_GuildDataBackup_Save[i][j][s][m][n] == previousMaxIndex then
-                                    table.insert ( GRM_GuildDataBackup_Save[i][j][s][m][n] , newValue );
+                            if GRM_GuildDataBackup_Save[i][j][s][m] ~= nil then
+                                for n = 2 , #GRM_GuildDataBackup_Save[i][j][s][m] do
+                                    if #GRM_GuildDataBackup_Save[i][j][s][m][n] == previousMaxIndex then
+                                        table.insert ( GRM_GuildDataBackup_Save[i][j][s][m][n] , newValue );
+                                    end
                                 end
+                            else
+                                -- Uh oh... backup corrupted?
+                                GRM_GuildDataBackup_Save[i][j] = { GRM_GuildDataBackup_Save[i][j][1] , {} };
+                                needsToBreak = true;
+                                break;
                             end
                         end
                     end
+                    if needsToBreak then
+                        break;
+                    end
+
                 end
             end
         end
@@ -1729,31 +1883,91 @@ GRM_Patch.FixBanListNameGrammar = function()
     end
 end
 
+-- Method:          GRM_Patch.RemoveDouble ( table )
+-- What it Does:    Iterates through the roster and finds all copies and removes them
+-- Purpose:         Fixing a coding flaw
+GRM_Patch.RemoveDouble = function ( finalStepTable )
+    local t = finalStepTable;
+    local i , c , r = 2;
+    while i <= #t do
+        c = 0;
+        local n = t[i][1];
+        for j = 2 , #t do
+            if t[j][1] == n then
+                c = c + 1;
+                if c > 1 then
+                    r = j;
+                    break;
+                end;
+            end;
+        end;
+        if c > 1 then 
+            table.remove ( t , r );
+        else
+            i = i + 1;
+        end;
+    end
+end
+
+-- Methhod:         GRM_Patch.FixDoubleCopiesOfData ( array )
+-- What it Does:    Fixes the database given to it of left or joined players
+-- Purpose:         Reusuable logic depending on the selected database of choice.
+GRM_Patch.FixDoubleCopiesOfData = function ( dataTable )
+    for j = 1 , #dataTable do
+        for s = 2 , #dataTable[j] do
+
+            GRM_Patch.RemoveDouble ( dataTable[j][s] );
+
+        end
+    end
+end
+
 -- Method:          GRM_Patch.FixDoubleCopiesInLeftPLayers()
 -- What it Does:    Cleans up the left players for double copies which could have happened with the ban list.
 -- Purpose:         Fix an error in the code from patch 1.1530 in the ban list modification updates.
 GRM_Patch.FixDoubleCopiesInLeftPLayers = function()
-    for j = 1 , #GRM_PlayersThatLeftHistory_Save do
-        for s = 2 , #GRM_PlayersThatLeftHistory_Save[j] do
-            local t = GRM_PlayersThatLeftHistory_Save[j][s];
-            local i , c , r = 2;
-            while i <= #t do
-                c = 0;
-                local n = t[i][1];
-                for j = 2 , #t do
-                    if t[j][1] == n then
-                        c = c + 1;
-                        if c > 1 then
-                            r = j;
-                            break;
-                        end;
-                    end;
-                end;
-                if c > 1 then 
-                    table.remove ( t , r );
-                else
-                    i = i + 1;
-                end;
+    GRM_Patch.FixDoubleCopiesOfData ( GRM_PlayersThatLeftHistory_Save );
+end
+
+-- Method:          GRM_Patch.FixDoubleCopiesInCurrentGuilds()
+-- What it Does:    Cleans up the current players for double copies which could have happened with a previous flaw in a recent update.
+-- Purpose:         Fix database error.
+GRM_Patch.FixDoubleCopiesInCurrentGuilds = function()
+    GRM_Patch.FixDoubleCopiesOfData ( GRM_GuildMemberHistory_Save );
+end
+
+-- Method:          GRM_Patch.FixDoubleCopiesInBackup()
+-- What it Does:    Fixes the lingering issue in the backups as well
+-- Purpose:         Fixes coding flaw that allowed a double entry
+GRM_Patch.FixDoubleCopiesInBackup = function()
+    local needsToBreak = false;
+    if GRM_GuildDataBackup_Save ~= nil then
+        for i = 1 , #GRM_GuildDataBackup_Save do
+            for j = 2 , #GRM_GuildDataBackup_Save[i] do
+                for s = 2 , #GRM_GuildDataBackup_Save[i][j] do
+
+                    needsToBreak = false;
+
+                    if #GRM_GuildDataBackup_Save[i][j][s] > 0 then
+                        -- 3 and 4 = history and leftHistory
+                        for m = 3 , 4 do
+                            if GRM_GuildDataBackup_Save[i][j][s][m] ~= nil then
+                                -- Logic to remove the doubles in a whie loop
+                                GRM_Patch.RemoveDouble ( GRM_GuildDataBackup_Save[i][j][s][m] );
+
+                            else
+                                -- Uh oh... backup corrupted?
+                                GRM_GuildDataBackup_Save[i][j] = { GRM_GuildDataBackup_Save[i][j][1] , {} };
+                                needsToBreak = true;
+                                break;
+                            end
+                        end
+                    end
+                    if needsToBreak then
+                        break;
+                    end
+
+                end
             end
         end
     end
@@ -3284,3 +3498,138 @@ GRM_Patch.ClearExtraBackups = function()
     end
 end
 
+-- 1.81
+-- Method:          GRM_Patch.FixOptionsSetting ( int , var , function )
+-- What it Does:    Determines if the setting exists. If it does not, is sets the correctSetting. If it does, then it modifies the setting based on the function logic
+-- Purpose:         It is possible in some cases when updating the addon the system crashes before a system updated takes, maybe in the middle of it. This verifies and fixes issues with the settings.
+GRM_Patch.FixOptionsSetting = function( index , correctSetting , settingsControlFunction )
+
+    for i = 1 , #GRM_AddonSettings_Save do
+        for j = #GRM_AddonSettings_Save[i] , 2 , -1 do
+            if #GRM_AddonSettings_Save[i][j] == nil then
+                table.remove ( GRM_AddonSettings_Save[i] , j );
+            else
+                if #GRM_AddonSettings_Save[i][j] == 1 then
+                    table.remove ( GRM_AddonSettings_Save[i] , j );                 -- Error protection in case bad settings profile build
+                else
+                    if GRM_AddonSettings_Save[i][j][2][index] ~= nil then
+                        GRM_AddonSettings_Save[i][j][2][index] = settingsControlFunction ( GRM_AddonSettings_Save[i][j][2][index] , correctSetting );
+                    else
+                        GRM_AddonSettings_Save[i][j][2][index] = correctSetting;
+                    end
+                end
+            end
+        end
+    end
+end
+
+-- 1.81
+-- Method:          GRM_Patch.FixScalingOption ( var , table )
+-- What it Does:    Checks if the format of the setting is correct and fixes each part of it properly to defauly correct setting, or keeps previous settings if ok.
+-- Purpose:         Integrity check of this due to a potential issue that caused crash when creating the setting.
+GRM_Patch.FixScalingOption = function ( setting , correctSetting )
+
+    if setting ~= nil and #setting == 5 then
+        for i = 1 , #setting do
+            if setting[i] == nil or type ( setting[i] ) ~= "number" then
+                setting[i] = correctSetting[i];
+            end
+        end
+    else
+        setting = correctSetting;
+    end
+
+    return setting;
+end
+
+-- 1.81
+-- Method:          GRM_Patch.ExpandExportFilters ( var , table )
+-- What it Does:    Addes 2 extra booleans to the table for export filter controls for sex/race
+-- Purpose:         So that the sex and race filters can be added to the settings.
+GRM_Patch.ExpandExportFilters = function ( setting , correctSetting )
+    if setting ~= nil and #setting == 14 then
+        setting[15] = true;
+        setting[16] = true;
+    else
+        setting = correctSetting;
+    end
+
+    return setting;
+end
+
+-- 1.82
+-- Method:          GRM_Patch.UpdateMinimumScanTime ( int , int )
+-- What it Does:    Checks if the minimum scan setting is below 20 seconds, and if it is, sets it to 20
+-- Purpose:         To set the minimum to only be at 20 seconds instead of the previous 10.
+GRM_Patch.UpdateMinimumScanTime = function ( setting , correctSetting )
+    if setting == nil or setting < 20 then
+        setting = correctSetting;
+    end
+    return setting;
+end
+
+-- 1.831
+-- Method:          GRM_Patch.RealignDatabaseDueToMisSort()
+-- What it Does:    Takes all guild saves and sorts them properly, including backups
+-- Purpose:         Fix a dump insert issue I created in 1.82
+GRM_Patch.RealignDatabaseDueToMisSort = function ()
+    for i = 1 , #GRM_GuildMemberHistory_Save do                         -- Horde and Alliance
+        for j = 2 , #GRM_GuildMemberHistory_Save[i] do                  -- The guilds in each faction
+            GRM_GuildMemberHistory_Save[i][j] =  GRM.SortDeepArrayInOrder ( GRM_GuildMemberHistory_Save[i][j] );
+        end
+    end
+
+    -- need to update the left player's database too...
+    for i = 1 , #GRM_PlayersThatLeftHistory_Save do                         -- Horde and Alliance
+        for j = 2 , #GRM_PlayersThatLeftHistory_Save[i] do                  -- The guilds in each faction
+            GRM_PlayersThatLeftHistory_Save[i][j] =  GRM.SortDeepArrayInOrder ( GRM_PlayersThatLeftHistory_Save[i][j] );
+        end
+    end
+
+    local needsToBreak = false;
+    -- Need backup info to be modified as well...
+    if GRM_GuildDataBackup_Save ~= nil then
+        for i = 1 , #GRM_GuildDataBackup_Save do
+            for j = 2 , #GRM_GuildDataBackup_Save[i] do
+                for s = 2 , #GRM_GuildDataBackup_Save[i][j] do
+
+                    needsToBreak = false;
+                    if #GRM_GuildDataBackup_Save[i][j][s] > 0 then
+                        -- 3 and 4 = history and leftHistory
+                        for m = 3 , 4 do
+                            if GRM_GuildDataBackup_Save[i][j][s][m] ~= nil then
+                                GRM_GuildDataBackup_Save[i][j][s][m] =  GRM.SortDeepArrayInOrder ( GRM_GuildDataBackup_Save[i][j][s][m] );
+                            else
+                                -- Uh oh... backup corrupted?
+                                GRM_GuildDataBackup_Save[i][j] = { GRM_GuildDataBackup_Save[i][j][1] , {} };
+                                needsToBreak = true;
+                                break;
+                            end
+                        end
+                    end
+
+                    if needsToBreak then
+                        break;
+                    end
+
+                end
+            end
+        end
+    end
+end
+
+-- 1.84
+-- Method:          GRM_Patch.IsAnySettingsTooLow()
+-- What it Does:    Returns true if the number of settings options is below 79
+-- Purpose:         Due to a previous bug some people might not have configured their setttings properly. This resolves it
+GRM_Patch.IsAnySettingsTooLow = function()
+    for i = 1 , #GRM_AddonSettings_Save do
+        for j = 2 , #GRM_AddonSettings_Save[i] do
+            if #GRM_AddonSettings_Save[i][j][2] <= 78 then  -- Trigger the setting to reload for all.
+                return true;
+            end
+        end
+    end;
+
+    return false;
+end

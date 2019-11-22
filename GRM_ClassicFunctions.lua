@@ -11,75 +11,82 @@ GRM.CreateCustomGUIDValue = function( guildName )
     return result;
 end
 
--- Method:          GRM.ClassicCheckForNewMember ( string )
--- What it Does:    First parses the system message, then quickly determines if there is a new player that just joined the guild and then builds their profile
--- Purpose:         Same function as CheckForNewPlayer, but modified for Classic Compatibility. For instant join data for the log, rather than having to wait up to 10 seconds.
-GRM.ClassicCheckForNewMember = function( text )
-    GRM_G.gClubID = GRM.CreateCustomGUIDValue( GRM_G.guildName );
-    if GRM.GetNumGuildies() == #GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ] then           -- This means it shows successfully 1 found player...
-        local name , i = GRM.GetParsedNameFromInviteAnnouncementWithoutServer ( text );
-        local memberInfo;
+-- Method:          GRM.ClassicCheckForNewMember ( name )
+-- What it Does:    Live checks when a player joins the guild and reports on it
+-- Purpose:         For specific use on Classic. In Retail there is the new, vastly more efficient, community API. Here we aree forced to be somewhat limited.
+GRM.ClassicCheckForNewMember = function ( name )
+    local rosterName , rank , rankInd , level , zone , note , oNote , online , classFile , pts , rep , guid;
+    local isFound = false;
 
-        if name ~= "" then
-            name = GRM.FormatNameWithPlayerServer ( name )
-            local rosterName , guildRank , rankOrder , level , _ , zone , note , officerNote , _ , _ , class , pts , _ , _ , _ , rep , guid = GetGuildRosterInfo ( i );
-            if rosterName == name then
+    for i = 1 , GRM.GetNumGuildies() do
+        rosterName , rank , rankInd , level , _ , zone , note , oNote , online , _ , classFile , pts , _ , _ , _ , rep , guid = GetGuildRosterInfo ( i );
+        if name == rosterName then
+            isFound = true;
+            break;
+        end
+    end
 
-                if not CanViewOfficerNote() then -- Officer Note permission to view.
-                    officerNote = nil; -- Set Officer note to nil if needed due to player not being able to view. - If it is set to "" then player will think it is changing.
-                end
-
-                memberInfo = {
-
-                rosterName,
-                guildRank,
-                rankOrder,   -- minus one as the GetGuildRosterInfo provides indexing at 0
-                level,
-                note,
-                officerNote,
-                class,
-                0,
-                zone,
-                pts,
-                false,
-                rep,              -- one area superior to communities is this includes rep
-                true,
-                0,              -- status is ZERO as in ONLINE
-                guid,
-
-                }
-
-                GRM_G.changeHappenedExitScan = true;
-                GRM.RecordJoinChanges ( memberInfo , GRM.GetClassColorRGB ( class , true ) .. GRM.SlimName ( name ) .. "|r" , true , select ( 2 , GRM.GetTimestamp() ) , true );
+    if isFound then           -- This means it shows successfully 1 found player...
+        local race , sex;
+        if guid ~= "" then
+            race , sex = select ( 4 , GetPlayerInfoByGUID ( guid ) );
+        end
+        if race == nil or sex == nil then
+            race , sex = select ( 4 , GetPlayerInfoByGUID ( guid ) );   -- Call a second time... sometimes the server is weird and the first call produces nil, but the immediate 2nd does respond.
+            if race == nil or sex == nil then
+                race = "";
+                sex = 1;
             end
         end
 
-        if memberInfo ~= nil then
-            
-            -- Printing Report, and sending report to log.
-            -- Check Main Auto tagging...
-            GRM.SetGuildInfoDetails();
-            -- -- Delay for time to check "Unique Accounts" change...
-            C_Timer.After ( 10 , function()
-                if GRM_G.DesignateMain then
-                    GRM.SetMain ( name , name , false , 0 );
-                    GRM.Report ( GRM.L ( "GRM Auto-Detect! {name} has joined the guild and will be set as Main" , GRM.GetClassifiedName ( name , true ) ) );
-                    if GRM_UI.GRM_RosterChangeLogFrame.GRM_AuditFrame:IsVisible() then
-                        GRM.RefreshAuditFrames ( true , true );
-                    end
+        local info = {
+
+        rosterName,
+        rank, 
+        rankInd,
+        level,
+        note,
+        oNote,
+        classFile,
+        0,
+        zone,
+        pts,
+        false,
+        rep,
+        true,
+        0,              -- status is ZERO as in ONLINE
+        guid,
+        race,
+        sex
+
+        }
+
+        GRM_G.changeHappenedExitScan = true;
+        GRM.RecordJoinChanges ( info , GRM.GetClassColorRGB ( classFile , true ) .. GRM.SlimName ( name ) .. "|r" , true , select ( 2 , GRM.GetTimestamp() ) , true );
+
+        -- Check Main Auto tagging...
+        GRM.SetGuildInfoDetails();
+        -- -- Delay for time to check "Unique Accounts" change...
+        C_Timer.After ( 10 , function()               
+            if GRM_G.DesignateMain then
+                GRM.SetMain ( name , name , false , 0 );
+                GRM.Report ( GRM.L ( "GRM Auto-Detect! {name} has joined the guild and will be set as Main" , GRM.GetClassifiedName ( name , true ) ) );
+                if GRM_UI.GRM_RosterChangeLogFrame.GRM_AuditFrame:IsVisible() then
+                    GRM.RefreshAuditFrames ( true , true );
                 end
-            end)
-        end
-    elseif GRM_G.RejoinControlCheck < 35 then
+            end
+        end);
+
+    elseif GRM_G.RejoinControlCheck <= 90 then
         GRM_G.RejoinControlCheck = GRM_G.RejoinControlCheck + 1;
         C_Timer.After ( 0.1 , function()
             -- Re-Check 1 time.
-            GRM.ClassicCheckForNewMember( text );
+            GRM.ClassicCheckForNewMember( name );
         end);
         return;
     end
+
     GRM_G.RejoinControlCheck = 0;
-    GuildRoster();
 end
 
 -- Method:          GRM.GetParsedNameFromInviteAnnouncementWithoutServer ( string )
