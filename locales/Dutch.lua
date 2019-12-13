@@ -576,12 +576,10 @@ GRML.Dutch = function()
     -- Update 1.130
     GRM_L["|CFFE6CC7FCtrl-Shift-Click|r to Hide this Button."] = true
     GRM_L["Invited By:"] = true
-    GRM_L["To avoid storage bloat, a maximum of 2 save points is currently possible. Please remove one before Continuing."] = true
     GRM_L["Error: Guild Not Found..."] = true
     GRM_L["Debugger Start"] = true;
 
     -- Update 1.136
-    GRM_L["To avoid storage bloat, a maximum of 2 guild save points is currently possible. Please remove one before continuing"] = true
     GRM_L["Backup Point Removed for Guild \"{name}\""] = true
     GRM_L["Backup Point Restored for Guild \"{name}\""] = true
     GRM_L["Backup Point Set for Guild \"{name}\""] = true
@@ -814,7 +812,7 @@ GRML.Dutch = function()
     GRM_L["Officer Note:"] = true
     GRM_L["Public Note"] = true
     GRM_L["Officer Note"] = true
-    GRM_L["Show Public and Officer Note of Left Player in the Log"] = true
+    GRM_L["Show Public, Officer, and Custom Notes on Log Entries of Left Players"] = true
     GRM_L["Hard Reset"] = true
     GRM_L["Hard reset of ALL GRM data, account-wide. Game will reload!"] = true
     GRM_L["Reject\nAll"] = true                     -- This is the same as "Reject All" it just forces the 2 words to be on 2 separate lines without me adjusting the text width

@@ -577,12 +577,10 @@ GRML.PortugueseBR = function()
     -- Update 1.130
     GRM_L["|CFFE6CC7FCtrl-Shift-Click|r to Hide this Button."] = "|CFFE6CC7FCtrl-Shift-Clique|r para Esconder esse Botão."
     GRM_L["Invited By:"] = "Convidado Por:"
-    GRM_L["To avoid storage bloat, a maximum of 2 save points is currently possible. Please remove one before Continuing."] = "Para evitar o inchaço do armazenamento, atualmente é possível um máximo de 2 pontos de salvamento. Remova um antes de continuar."
     GRM_L["Error: Guild Not Found..."] = "Erro: Guilda Não Encontrada..."
     GRM_L["Debugger Start"] = "Iniciar o Depurador";
 
     -- Update 1.136
-    GRM_L["To avoid storage bloat, a maximum of 2 guild save points is currently possible. Please remove one before continuing"] = "Para evitar o inchaço do armazenamento, atualmente é possível um máximo de 2 pontos de salvamento de guilda. Remova um antes de continuar."
     GRM_L["Backup Point Removed for Guild \"{name}\""] = "Ponto de Backup Removido para Guilda \"{name}\""
     GRM_L["Backup Point Restored for Guild \"{name}\""] = "Ponto de Backup Restaurado para Guilda \"{name}\""
     GRM_L["Backup Point Set for Guild \"{name}\""] = "Ponto de Backup Setado para Guilda \"{name}\""
@@ -817,7 +815,7 @@ GRML.PortugueseBR = function()
     GRM_L["Officer Note:"] = "Nota Oficial:"
     GRM_L["Public Note"] = "Nota Pública"
     GRM_L["Officer Note"] = "Nota Oficial"
-    GRM_L["Show Public and Officer Note of Left Player in the Log"] = "Mostrar Nota Pública e Oficial do Jogador Esquerdo no Registro"
+    GRM_L["Show Public, Officer, and Custom Notes on Log Entries of Left Players"] = true
     GRM_L["Hard Reset"] = "Reset Total"
     GRM_L["Hard reset of ALL GRM data, account-wide. Game will reload!"] = "Reset total de TODOS os dados do GRM. O jogo será recarregado!"
     GRM_L["Reject\nAll"] = "Rejeitar\nTodos"                     -- This is the same as "Reject All" it just forces the 2 words to be on 2 separate lines without me adjusting the text width

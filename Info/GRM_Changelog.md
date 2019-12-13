@@ -4,21 +4,6 @@ _______________________
 
 **VERSION R1.84 DATE: November 24th, 2019**
 
-***BUG FIXES***
-
-**BOTH**
-
-* Cyrillic or Asian characters were not being counted properly when counting an edit box by taking length of string and failing to account for UTF8 values. This is now resolved
-
-* The !note should now properly allow a full 31 characters regardless of language. There is an additional message announcing if the !note is > than the 31 character cap.
-
-* Fixed a major bug that plagued *SOME* users who experienced a crash in the middle of loading the addon when updating from an older version that caused the version to be saved *before* the new settings were implemented, causing an issue where it believed the version was updated but no patches were applied.
-
-
-
-**RETAIL**
-
-* Fixed a lua error that could occur when opening the old /groster - it was mostly inconsequential and didn't break anything, but bugs are a defect. This is now resolved.
 
 
 
@@ -30,9 +15,45 @@ _______________________
 * The "Show Mouseover* button should now only appear when looking at the guild community window, not any other. It was previously there even if looking at other communities.
 
 
-**BOTTH**
+**BOTH**
 
 * GRM will not automatically enable system messagess if they have been disabled. Be warned, any addon that silences system messages completely will break GRM functionality. Fast Guild Invite Classic currently has an issue, for example. See my discord channel for a "fan fix" to make FGI *not* do this and make it compatible.
+
+* The Option in the Scan tab now properly states that the "Left Player" will show the Custom note, in addition to the public and officer, on log entries
+
+* Resetting options is now significantly better! Each page the reset to Defaults will now only affect the page that they are on, with a new accompanying tooltip to explain, but also the option to still globally reset all defaults addon wide for that character by holding the CTRL key when clicking to reset defaults.
+
+* The Macro Tool position will now be saved unique to each player rather than be sync'd to all your alts, even if you have it set to sync between all alts. All other frames that are draggable, like the minimap, do this.
+
+* Backup data originally included the pending Calendar invites, which was essentially unnecessary to be included in backup data as it will scan and add/remove things dynamically.
+
+
+
+***BUG FIXES***
+
+**BOTH**
+
+* Cyrillic or Asian characters were not being counted properly when counting an edit box by taking length of string and failing to account for UTF8 values. This is now resolved
+
+* The !note should now properly allow a full 31 characters regardless of language. There is an additional message announcing if the !note is > than the 31 character cap.
+
+* Fixed a major bug that plagued *SOME* users who experienced a crash in the middle of loading the addon when updating from an older version that caused the version to be saved *before* the new settings were implemented, causing an issue where it believed the version was updated but no patches were applied.
+
+
+**BOTH**
+
+* Found a bug that could exist if you had not updated GRM in a while, created a new toon, then the first time you updated GRM was also the first time you logged on to a new toon, it could faily to load properly. This likely got missed because a reload/relog would self resolve it. But now this will prevent that from happening.
+
+* On resetting defaults, it was not resetting the UI beyond the core GRM frame. It should now be properly set, as well as 
+
+* Addressed an issue in regards to the hotkey macro being tried to be created whilst in combat, which is restricted. The addon will now delay the creation of the macro while in combat and enable it when combat ends.
+
+
+**RETAIL**
+
+* With the inclusion of the new community guild recruitment feature, the reporting on guild joins modified slightly. Before I would look for the player that INVITED the player AND the time they joined. Well, now the recruitment through the new system only shows when they joined, but not who invited them. The addon has been modified to adapt to the new system and while it will still maintain and report *who* invited a player through traditional means, it will now state "Unknown" on who invited them... until a better system can be devised, if possible.
+
+* Fixed a lua error that could occur when opening the old /groster - it was mostly inconsequential and didn't break anything, but bugs are a defect. This is now resolved.
 
 
 

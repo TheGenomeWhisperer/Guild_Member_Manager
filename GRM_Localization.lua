@@ -124,7 +124,7 @@ GRML.listOfFonts = {
 -- Purpose:         To be able to have an in-game UI option to change the player language.
 GRML.SetNewLanguage = function ( index , firstLoad )
     GRML.LoadLanguage[index]();
-    GRM_G.FontChoice = GRML.listOfFonts[GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][44]];
+    GRM_G.FontChoice = GRML.listOfFonts[GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].selectedFont];
     GRML.SetFontModifier();
     if firstLoad then
         GRM_UI.ReloadAllFrames( false );
@@ -161,7 +161,7 @@ GRML.SetFontModifier = function()
     elseif GRM_G.FontChoice == "Interface\\AddOns\\Guild_Roster_Manager\\media\\fonts\\Roboto-Regular.TTF" then
         GRM_G.FontModifier = 1;
     end
-    GRM_G.FontModifier = GRM_G.FontModifier + GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][45];
+    GRM_G.FontModifier = GRM_G.FontModifier + GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].fontModifier;
 end
 
 -- Method:          GRML.SetNewFont( int )
@@ -178,11 +178,11 @@ end
 -- Purpose:         To ensure no ???? are in place and all characters are accounted for.
 GRML.GetFontChoiceIndex = function( localizationIndex )
     local result = 1;
-    if GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][44] ~= 1 then
+    if GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].selectedFont ~= 1 then
         if ( localizationIndex < 5 or ( localizationIndex > 5 and localizationIndex < 10 ) or result > 13 ) then
             result = 2
         else
-            result = GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][44];
+            result = GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].selectedFont;
         end
         -- For Russian, need Cyrilic compatible font.
         if localizationIndex == 5 and GRM_G.Region ~= "ruRU" then

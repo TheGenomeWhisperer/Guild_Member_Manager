@@ -575,12 +575,10 @@ GRML.French = function()
     -- Update 1.130
     GRM_L["|CFFE6CC7FCtrl-Shift-Click|r to Hide this Button."] = "|CFFE6CC7FCtrl-Maj-Clic|r pour cacher ce bouton."
     GRM_L["Invited By:"] = "Invité par :"
-    GRM_L["To avoid storage bloat, a maximum of 2 save points is currently possible. Please remove one before Continuing."] = "Afin de préserver le stockage, un maximum de 2 points de sauvegarde est autorisé. Merci d'en supprimer un pour continuer."
     GRM_L["Error: Guild Not Found..."] = "Erreur : Guilde non trouvée..."
     GRM_L["Debugger Start"] = "Démarrage du débogage";
 
     -- Update 1.136
-    GRM_L["To avoid storage bloat, a maximum of 2 guild save points is currently possible. Please remove one before continuing"] = "Afin de préserver le stockage, un maximum de 2 points de sauvegarde de guilde est autorisé. Merci d'en supprimer un pour continuer."
     GRM_L["Backup Point Removed for Guild \"{name}\""] = "Point de sauvegarde de \"{name}\" supprimé"
     GRM_L["Backup Point Restored for Guild \"{name}\""] = "Point de sauvegarde de \"{name}\" restauré"
     GRM_L["Backup Point Set for Guild \"{name}\""] = "Point de sauvegarde de \"{name}\" enregistré"
@@ -813,7 +811,7 @@ GRML.French = function()
     GRM_L["Officer Note:"] = "Note d'officier"
     GRM_L["Public Note"] = "Note publique"
     GRM_L["Officer Note"] = "Note d'officier"
-    GRM_L["Show Public and Officer Note of Left Player in the Log"] = "Afficher la note d'officier et publique du joueur qui a quitté la guilde dans le journal"
+    GRM_L["Show Public, Officer, and Custom Notes on Log Entries of Left Players"] = true;
     GRM_L["Hard Reset"] = "Hard Reset"
     GRM_L["Hard reset of ALL GRM data, account-wide. Game will reload!"] = "Réinitialisation TOTALE de toutes les données GRM, pour tout le compte.\nLe jeu sera rechargé !"
     GRM_L["Reject\nAll"] = "Refuser\nTous"                     -- This is the same as "Reject All" it just forces the 2 words to be on 2 separate lines without me adjusting the text width

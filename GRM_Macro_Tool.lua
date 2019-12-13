@@ -441,10 +441,10 @@ GRM_UI.LoadToolFrames = function ( isManual )
         GRM_UI.GRM_ToolCoreFrame.GRM_ToolIgnoreListFrame.GRM_ToolCoreIgnoreCheckButtonText:SetPoint ( "LEFT" , GRM_UI.GRM_ToolCoreFrame.GRM_ToolIgnoreListFrame.GRM_ToolCoreIgnoreCheckButton , 27 , 0 );
         GRM_UI.GRM_ToolCoreFrame.GRM_ToolIgnoreListFrame.GRM_ToolCoreIgnoreCheckButton:SetScript ( "OnClick", function()
             if GRM_UI.GRM_ToolCoreFrame.GRM_ToolIgnoreListFrame.GRM_ToolCoreIgnoreCheckButton:GetChecked() then
-                GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][76] = true;
+                GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].ignoreFilter = true;
                 GRM.TriggerIgnoredQueuedWindowRefresh();
             else
-                GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][76] = false;
+                GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].ignoreFilter = false;
                 GRM.TriggerIgnoredQueuedWindowRefresh();
             end
             GRM.SyncSettings();
@@ -481,11 +481,11 @@ GRM_UI.LoadToolFrames = function ( isManual )
                     else
                         GRM.SetConfirmationWindow ( confirmFunction , GRM.L ( "Really remove the {num} selected players from the ignore list?" , nil , nil , count ) );
                     end
-
+                    
                 else
                     if #GRM_UI.GRM_ToolCoreFrame.GRM_ToolIgnoreListFrame.AllIgnoredEntries == 0 then
                         local c = #( select ( 2 , GRM.GetSafePlayers ( true ) ) );
-                        if c > 0 and GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][76] then
+                        if c > 0 and GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].ignoreFilter then
                             if c > 1 then
                                 msg = GRM.L ( "There are no names to select. {num} players are filtered" , nil , nil , c );
                             else
@@ -589,10 +589,10 @@ GRM_UI.LoadToolFrames = function ( isManual )
         GRM_UI.GRM_ToolCoreFrame.GRM_ToolKickRules.GRM_CustomRuleAddButton:SetScript ( "OnClick" , function ( _ , button )
             if button == "LeftButton" then
                 GRM_UI.GRM_ToolCoreFrame.GRM_ToolCustomRulesFrame:Show();
-                GRM_UI.ConfigureCustomRuleKickFrame ( false , #GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75] + 1 );  -- Creating a new rule
+                GRM_UI.ConfigureCustomRuleKickFrame ( false , #GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules + 1 );  -- Creating a new rule
             end
         end);
-
+        
         GRM_UI.GRM_ToolCoreFrame.GRM_ToolKickRules.GRM_ToolAltsOfflineTimed:SetPoint ( "TOPLEFT" , GRM_UI.GRM_ToolCoreFrame.GRM_ToolKickRules , "TOPLEFT" , 0 , -5 );
         GRM_UI.GRM_ToolCoreFrame.GRM_ToolKickRules.GRM_ToolAltsOfflineTimedText:SetPoint ( "LEFT" , GRM_UI.GRM_ToolCoreFrame.GRM_ToolKickRules.GRM_ToolAltsOfflineTimed , 27 , 0 );
         GRM_UI.GRM_ToolCoreFrame.GRM_ToolKickRules.GRM_ToolAltsOfflineTimedText:SetWordWrap ( true );
@@ -601,10 +601,10 @@ GRM_UI.LoadToolFrames = function ( isManual )
         GRM_UI.GRM_ToolCoreFrame.GRM_ToolKickRules.GRM_ToolAltsOfflineTimedText:SetWidth ( 275 );
         GRM_UI.GRM_ToolCoreFrame.GRM_ToolKickRules.GRM_ToolAltsOfflineTimed:SetScript ( "OnClick", function()
             if GRM_UI.GRM_ToolCoreFrame.GRM_ToolKickRules.GRM_ToolAltsOfflineTimed:GetChecked() then
-                GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][60] = true;
+                GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].allAltsApplyToKick = true;
                 GRM_UI.RefreshManagementTool();
             else
-                GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][60] = false;
+                GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].allAltsApplyToKick = false;
                 GRM_UI.RefreshManagementTool();
             end
             GRM.SyncSettings();
@@ -1132,9 +1132,9 @@ GRM_UI.LoadToolFrames = function ( isManual )
 
             GRM_UI.SetRankNamesToCustomRuleCheckButtons( "GRM_ToolCustomRulesRank" );
 
-            GRM_UI.GRM_ToolCoreFrame.GRM_ToolCustomRulesFrame.GRM_RosterKickOverlayNoteText:SetText ( GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][4] );
+            GRM_UI.GRM_ToolCoreFrame.GRM_ToolCustomRulesFrame.GRM_RosterKickOverlayNoteText:SetText ( GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[1][4] );
 
-            if GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][5] then
+            if GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[1][5] then
                 GRM_UI.GRM_ToolCoreFrame.GRM_ToolCustomRulesFrame.GRM_ToolRecommendKickCheckButton:SetChecked ( true );
             end
 
@@ -1144,7 +1144,7 @@ GRM_UI.LoadToolFrames = function ( isManual )
             end
 
             local names = { GRM.L ( "Months" ) , GRM.L ( "Days" ) };
-            GRM_UI.GRM_ToolCoreFrame.GRM_ToolCustomRulesFrame.GRM_TimeScaleSelected.GRM_TimeScaleSelectedText:SetText ( names[ GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][3] ] );
+            GRM_UI.GRM_ToolCoreFrame.GRM_ToolCustomRulesFrame.GRM_TimeScaleSelected.GRM_TimeScaleSelectedText:SetText ( names[ GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[1][3] ] );
 
         end
 
@@ -1155,9 +1155,9 @@ GRM_UI.LoadToolFrames = function ( isManual )
         GRM_UI.GRM_ToolCoreFrame.GRM_ToolCustomRulesFrame.GRM_ToolRecommendKickCheckButtonText:SetPoint ( "LEFT" , GRM_UI.GRM_ToolCoreFrame.GRM_ToolCustomRulesFrame.GRM_ToolRecommendKickCheckButton , "RIGHT" , 2 , 0 );
         GRM_UI.GRM_ToolCoreFrame.GRM_ToolCustomRulesFrame.GRM_ToolRecommendKickCheckButton:SetScript ( "OnClick", function()
             if GRM_UI.GRM_ToolCoreFrame.GRM_ToolCustomRulesFrame.GRM_ToolRecommendKickCheckButton:GetChecked() then
-                GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][5] = true;
+                GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[1][5] = true;
             else
-                GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][5] = false;
+                GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[1][5] = false;
             end
             GRM.SyncSettings();
         end);
@@ -1195,15 +1195,15 @@ GRM_UI.LoadToolFrames = function ( isManual )
         GRM_UI.GRM_ToolCoreFrame.GRM_ToolCustomRulesFrame.GRM_RosterKickRecommendEditBox:SetScript ( "OnEnterPressed" , function( self )
             local numMonths = tonumber ( self:GetText() );
             if numMonths > 0 and numMonths < 100 then
-                GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][4] = numMonths;
+                GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[1][4] = numMonths;
 
                 -- if by month
-                if GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][3] == 1 then
-                    GRM_G.NumberOfHoursTilRecommend = GRM.GetNumHoursTilRecommend ( GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][4] );
+                if GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[1][3] == 1 then
+                    GRM_G.NumberOfHoursTilRecommend = GRM.GetNumHoursTilRecommend ( GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[1][4] );
 
                 -- if by day
-                elseif GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][3] == 2 then
-                    GRM_G.NumberOfHoursTilRecommend = ( GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][4] * 24 );
+                elseif GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[1][3] == 2 then
+                    GRM_G.NumberOfHoursTilRecommend = ( GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[1][4] * 24 );
                 end
 
                 GRM_UI.GRM_ToolCoreFrame.GRM_ToolCustomRulesFrame.GRM_RosterKickOverlayNoteText:SetText ( numMonths );
@@ -1212,9 +1212,9 @@ GRM_UI.LoadToolFrames = function ( isManual )
                 GRM_UI.RefreshManagementTool();
                 GRM.SyncSettings();
             else
-                if GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][3] == 1 then
+                if GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[1][3] == 1 then
                     GRM.Report ( GRM.L ( "Please choose a month between 1 and 99" ) );
-                elseif GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][3] == 2 then
+                elseif GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[1][3] == 2 then
                     GRM.Report ( GRM.L ( "Please choose a day between 1 and 99" ) );
                 end
             end      
@@ -1313,34 +1313,34 @@ GRM_UI.LoadToolFrames = function ( isManual )
                         GRM_UI.GRM_ToolCoreFrame.GRM_ToolCustomRulesFrame.GRM_TimeScaleSelected:Show();
 
                         -- Days to months.
-                        if number == 1 and GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][3] ~= 1 then
+                        if number == 1 and GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[1][3] ~= 1 then
                             needsRefresh = true;
-                            GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][3] = 1;
+                            GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[1][3] = 1;
                             
-                            if GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][4] == 99 then
-                                GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][4] = 12;
+                            if GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[1][4] == 99 then
+                                GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[1][4] = 12;
                                 GRM.Report ( GRM.L ( "Time before recommending to kick has been set to the default period of 12 Months." ) );
                             else
-                                local num = math.floor ( GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][4] / 30 );
+                                local num = math.floor ( GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[1][4] / 30 );
                                 if num == 0 then
                                     num = 1;
                                 end
-                                GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][4] = ( num );
+                                GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[1][4] = ( num );
                                 GRM.Report ( GRM.L ( "Time before recommending to kick has been set to {num} Months." , nil , nil , num ) );
                             end
                             
                         -- Going from months to days
-                        elseif number == 2 and GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][3] ~= 2 then
+                        elseif number == 2 and GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[1][3] ~= 2 then
                             needsRefresh = true;
-                            GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][3] = 2;
+                            GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[1][3] = 2;
 
-                            if GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][4] > 3 then
-                                GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][4] = 99;
+                            if GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[1][4] > 3 then
+                                GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[1][4] = 99;
                                 GRM.Report ( GRM.L ( "Time before recommending to kick has been set to 99 Days. For a longer time period, use the months instead." ) );
                                 
                             else
-                                local num = 30 * GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][4];
-                                GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][4] = ( num );
+                                local num = 30 * GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[1][4];
+                                GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[1][4] = ( num );
                                 GRM.Report ( GRM.L ( "Time before recommending to kick has been set to {num} Days." , nil , nil , num ) );
                             end
 
@@ -1361,14 +1361,36 @@ GRM_UI.LoadToolFrames = function ( isManual )
         -- CUSTOM RANK RULES
         --------------------
 
+        -- What it Does:            Disables all Custom Rule Rank Checkboxes and greys them out.
+        GRM_UI.DisableAllRankCheckboxes = function()
+            local checkbox;
+            for i = 1 , 9 do
+                checkbox = GetClickFrame ( "GRM_ToolCustomRulesRank" .. i );
+                checkbox:SetChecked ( true );
+                checkbox:Disable();
+                checkbox.text:SetTextColor ( 0.5 , 0.5 , 0.5 );
+            end
+        end
+
+        -- What it Does:            Enables all Custom Rule Rank Checkboxes and greys them out.
+        GRM_UI.EnableAllRankCheckBoxes = function()
+            local checkbox;
+            for i = 1 , 9 do
+                checkbox = GetClickFrame ( "GRM_ToolCustomRulesRank" .. i );
+                checkbox:Enable();
+                checkbox.text:SetTextColor ( 1 , 0.82 , 0 );
+            end
+        end
         
         GRM_UI.GRM_ToolCoreFrame.GRM_ToolCustomRulesFrame.GRM_ToolCustomRulesRankCheckBox:SetPoint ( "TOPLEFT" , GRM_UI.GRM_ToolCoreFrame.GRM_ToolCustomRulesFrame.GRM_ToolRecommendKickCheckButton , "BOTTOMLEFT" , 0 , -15 );
         GRM_UI.GRM_ToolCoreFrame.GRM_ToolCustomRulesFrame.GRM_ToolCustomRulesRankCheckBoxText:SetPoint ( "LEFT" , GRM_UI.GRM_ToolCoreFrame.GRM_ToolCustomRulesFrame.GRM_ToolCustomRulesRankCheckBox , "RIGHT" , 2 , 0 );
-        GRM_UI.GRM_ToolCoreFrame.GRM_ToolCustomRulesFrame.GRM_ToolRecommendKickCheckButton:SetScript ( "OnClick", function()
+        GRM_UI.GRM_ToolCoreFrame.GRM_ToolCustomRulesFrame.GRM_ToolCustomRulesRankCheckBox:SetScript ( "OnClick", function()
             if GRM_UI.GRM_ToolCoreFrame.GRM_ToolCustomRulesFrame.GRM_ToolCustomRulesRankCheckBox:GetChecked() then
-                -- GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][5] = true;
+                GRM_UI.EnableAllRankCheckBoxes();
+                
             else
-                -- GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][5] = false;
+                GRM_UI.DisableAllRankCheckboxes();
+
             end
         end);
 
@@ -1394,10 +1416,16 @@ GRM_UI.LoadToolFrames = function ( isManual )
             end
         end
 
+        local SelectRankCheckBoxes = function ( index )
+
+        end
+        
+        
+
         BuildRankCheckBoxes();
        
         -- Method:          GRM_UI.SetRankNamesToCustomRuleCheckButtons()
-        -- What it Does:    Sets all the custom rules checkboex to the rank names
+        -- What it Does:    Sets all the custom rules checkbox to the rank names
         GRM_UI.SetRankNamesToCustomRuleCheckButtons = function( checkBoxName )
             local numRanks = GuildControlGetNumRanks(); -- minus 1 because we are not including the guild leader
             local checkbox;
@@ -1430,7 +1458,7 @@ GRM_UI.LoadToolFrames = function ( isManual )
     GRM_UI.GRM_ToolCoreFrame.GRM_ToolCustomRulesFrame.GRM_RosterKickOverlayNoteText:SetFont ( GRM_G.FontChoice , GRM_G.FontModifier + 12 );
     GRM_UI.GRM_ToolCoreFrame.GRM_ToolCustomRulesFrame.GRM_RosterKickRecommendEditBox:SetFont ( GRM_G.FontChoice , GRM_G.FontModifier + 10 );
     GRM_UI.GRM_ToolCoreFrame.GRM_ToolCustomRulesFrame.GRM_ToolCustomRulesRankCheckBoxText:SetFont ( GRM_G.FontChoice , GRM_G.FontModifier + 12 );
-    GRM_UI.GRM_ToolCoreFrame.GRM_ToolCustomRulesFrame.GRM_ToolCustomRulesRankCheckBoxText:SetText ( GRM.L ( "Select Applicable Ranks:" ) );
+    GRM_UI.GRM_ToolCoreFrame.GRM_ToolCustomRulesFrame.GRM_ToolCustomRulesRankCheckBoxText:SetText ( GRM.L ( "Apply Only to Selected Ranks:" ) );
 
 end
 
@@ -2353,7 +2381,7 @@ GRM.SetIgnoredButtonText = function()
         if #GRM_UI.GRM_ToolCoreFrame.GRM_ToolIgnoreListFrame.AllIgnoredEntries == 0 then
             -- there ARE players on the safe list, but they are currently being filtered out to only show those with active actions being filtered.
             local c = #( select ( 2 , GRM.GetSafePlayers ( true ) ) );
-            if c > 0 and GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][76] then
+            if c > 0 and GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].ignoreFilter then
                 if c > 1 then
                     GRM_UI.GRM_ToolCoreFrame.GRM_ToolIgnoreListFrame.GRM_ToolIgnoreClearSelectionButton.GRM_ToolIgnoreClearSelectionButtonText:SetText ( GRM.L ( "No players to select. {num} players filtered" , nil , nil , c ) );
                 else
@@ -2391,7 +2419,7 @@ end
 -- Purpose:         Proper sorting of players in the guild to be added to the GRM Tool
 GRM.GetIgnoredEntries = function ()
     local result = {};
-    if GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][76] then
+    if GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].ignoreFilter then
         result = GRM.GetOnlySafePlayersWithIgnoredAction();
     else
         result = select ( 2 , GRM.GetSafePlayers ( true ) );
@@ -2720,7 +2748,7 @@ GRM.TriggerIgnoredQueuedWindowRefresh = function()
     GRM_UI.RestoreTooltipScale();
     GameTooltip:Hide();
     
-    if GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][76] then
+    if GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].ignoreFilter then
         GRM_UI.GRM_ToolCoreFrame.GRM_ToolIgnoreListFrame.GRM_ToolCoreIgnoreCheckButton:SetChecked( true );
     end        
 
@@ -2933,7 +2961,7 @@ end
 --     if isAnEdit then
 
 --     else
---         for i = 1 , #GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75] do
+--         for i = 1 , #GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules do
 
 --         end
 --     end
@@ -2987,7 +3015,7 @@ end
 -- GRM.CanRuleBeAdded = function( rule )
 --     local result = true;
 
---     for i = 1 , #GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75] do
+--     for i = 1 , #GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules do
 --         -- First, determine if rule 1 matches up.
 --     end
 
@@ -3014,7 +3042,7 @@ GRM.GetNamesByFilterRules = function()
     end
     -- Ok, scan through every member of the guild and scan the rules.
 
-    if #GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75] > 0 then             -- No Need to do all the work if no rule
+    if #GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules > 0 then             -- No Need to do all the work if no rule
 
         for i = 2 , #guildData do
             -- No need to check the rules on the player if they are ranked higher than you...
@@ -3024,16 +3052,16 @@ GRM.GetNamesByFilterRules = function()
             -- notAllKickRulesMet , notAllPromoRulesMet, notAllDemoteRulesMet = false , false , false;
             local currentRule = 1;
 
-            for j = 1 , #GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75] do
+            for j = 1 , #GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules do
             
                 -- Kick rules
-                if CanGuildRemove() and GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][j][1] == 1 and GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][j][5] and not notAllKickRulesMet  then
+                if CanGuildRemove() and GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][1] == 1 and GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][5] and not notAllKickRulesMet  then
                     saveControlCheck = false;
 
                     needsToSave , saveControlCheck , notAllKickRulesMet , tempDetails = GRM.GetNamesFromKickRules ( j , guildData[i] , needsToSave , saveControlCheck , notAllKickRulesMet , tempDetails );
 
                 -- Promote Rules
-                elseif CanGuildPromote() and GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][j][1] == 2 and GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][j][4] then
+                elseif CanGuildPromote() and GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][1] == 2 and GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][4] then
                     saveControlCheck = false;
 
 
@@ -3042,7 +3070,7 @@ GRM.GetNamesByFilterRules = function()
                         needsToSave = false;
                     end
                 -- Demote Rules
-                elseif CanGuildDemote() and GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][j][1] == 3 and GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][j][4] then
+                elseif CanGuildDemote() and GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][1] == 3 and GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][4] then
                     saveControlCheck = false;
 
 
@@ -3053,14 +3081,14 @@ GRM.GetNamesByFilterRules = function()
                 end
 
                 -- Only add the name if necessary.
-                if needsToSave and ( j == #GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75] or GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][j+1][1] > currentRule ) then
+                if needsToSave and ( j == #GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules or GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j+1][1] > currentRule ) then
                     table.insert ( tempDetails , false );
                     table.insert ( result , tempDetails );        -- I need to do a clean copy
                 end
                 
                 -- If the rule changes this should be logged.
-                if  j + 1 <= #GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75] and GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][j+1][1] > currentRule then
-                    currentRule = GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][j+1][1];
+                if  j + 1 <= #GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules and GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j+1][1] > currentRule then
+                    currentRule = GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j+1][1];
                 end
             end            
         end
@@ -3117,15 +3145,15 @@ GRM.GetNamesFromKickRules = function( j , player , needsToSave , saveControlChec
     end
 
     -- By Time
-    if GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][j][2] == 1 then
+    if GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][2] == 1 then
            
-        if not GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][60] or ( GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][60] and not GRM.IsAnyAltActiveForRecommendKicks ( player[11] ) ) then
+        if not GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].allAltsApplyToKick or ( GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].allAltsApplyToKick and not GRM.IsAnyAltActiveForRecommendKicks ( player[11] ) ) then
             -- if by Month
-            if GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][j][3] == 1 then
+            if GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][3] == 1 then
 
                 -- No need to do extra processing if not necessary.
                 if GRM_G.NumberOfHoursTilRecommend == 0 then
-                    GRM_G.NumberOfHoursTilRecommend = GRM.GetNumHoursTilRecommend ( GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][4] );
+                    GRM_G.NumberOfHoursTilRecommend = GRM.GetNumHoursTilRecommend ( GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[1][4] );
                 end
 
                 -- Error protection if it returns nil, meaning the server is not providing dates at this time.
@@ -3138,7 +3166,7 @@ GRM.GetNamesFromKickRules = function( j , player , needsToSave , saveControlChec
                         if not player[45] then      -- Ignore for scanning... but I still want a count of the ignored.
                             needsToSave = true;
                             saveControlCheck = true;
-                            tempDetails = { player[1] , GRM.GetClassColorRGB ( player[9] ) , "/gremove " .. name , GRM.L ( "Kick" ) , player[24] , GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][j][1] , GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][j][2] , GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][j][3] , GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][j][4] , false };
+                            tempDetails = { player[1] , GRM.GetClassColorRGB ( player[9] ) , "/gremove " .. name , GRM.L ( "Kick" ) , player[24] , GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][1] , GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][2] , GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][3] , GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][4] , false };
                             -- { name , kickRule , ByTimeOffline , MonthCheck , MonthNumber }
                         else
                             isFound , ind = isPlayerAlreadyInList ( player[1] );
@@ -3153,13 +3181,13 @@ GRM.GetNamesFromKickRules = function( j , player , needsToSave , saveControlChec
                 end
 
                 -- if by Day
-            elseif GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][j][3] == 2 then
+            elseif GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][3] == 2 then
                 if player[24] >= GRM_G.NumberOfHoursTilRecommend then
                     if GRM_G.playerRankID < player[5] then
                         if not player[45] then
                             needsToSave = true;
                             saveControlCheck = true;
-                            tempDetails = { player[1] , GRM.GetClassColorRGB ( player[9] ) , "/gremove " .. name , GRM.L ( "Kick" ) , player[24] , GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][j][1] , GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][j][2] , GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][j][3] , GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][j][4] , false };
+                            tempDetails = { player[1] , GRM.GetClassColorRGB ( player[9] ) , "/gremove " .. name , GRM.L ( "Kick" ) , player[24] , GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][1] , GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][2] , GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][3] , GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][4] , false };
                             -- { name , kickRule , ByTimeOffline , DayCheck , DayNumber }
                         else
                             isFound , ind = isPlayerAlreadyInList ( player[1] );
@@ -3176,12 +3204,12 @@ GRM.GetNamesFromKickRules = function( j , player , needsToSave , saveControlChec
         end
 
     -- If by Level
-    elseif GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][j][2] == 2 then
+    elseif GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][2] == 2 then
 
 
 
     -- If by Rank
-    elseif GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][j][2] == 3 then
+    elseif GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][2] == 3 then
 
 
     end
@@ -3212,9 +3240,9 @@ GRM_UI.GRM_ToolCoreFrame.CustomRulesDemoteFrames = {};
 GRM.GetKickRules = function()
     local kickRules = {};
 
-    for i = 2 , #GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75] do
-        if GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][i][1] == 1 then
-            table.insert ( kickRules , GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][i] );
+    for i = 2 , #GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules do
+        if GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[i][1] == 1 then
+            table.insert ( kickRules , GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[i] );
         end
     end
 
@@ -3227,9 +3255,9 @@ end
 GRM.GetPromoteRules = function()
     local promoteRules = {};
 
-    for i = 2 , #GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75] do
-        if GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][i][1] == 2 then
-            table.insert ( promoteRules , GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][i] );
+    for i = 2 , #GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules do
+        if GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[i][1] == 2 then
+            table.insert ( promoteRules , GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[i] );
         end
     end
 
@@ -3242,9 +3270,9 @@ end
 GRM.GetDemoteRules = function()
     local demoteRules = {};
 
-    for i = 2 , #GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75] do
-        if GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][i][1] == 3 then
-            table.insert ( demoteRules , GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][i] );
+    for i = 2 , #GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules do
+        if GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[i][1] == 3 then
+            table.insert ( demoteRules , GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[i] );
         end
     end
 
@@ -3332,11 +3360,11 @@ end
 -- Purpose:         UX
 GRM.SetNumHoursToKickValue = function()
     -- General one-time configurations
-    if GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][3] == 1 then
-        GRM_G.NumberOfHoursTilRecommend = GRM.GetNumHoursTilRecommend ( GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][4] );
+    if GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[1][3] == 1 then
+        GRM_G.NumberOfHoursTilRecommend = GRM.GetNumHoursTilRecommend ( GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[1][4] );
     -- if by day
-    elseif GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][3] == 2 then
-        GRM_G.NumberOfHoursTilRecommend = ( GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][75][1][4] * 24 );
+    elseif GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[1][3] == 2 then
+        GRM_G.NumberOfHoursTilRecommend = ( GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[1][4] * 24 );
     end
 end
 
@@ -3402,7 +3430,7 @@ end
 -- Purpose:         UX easily on call, can be recalled with a rank change too.
 GRM_UI.LoadRulesUI = function()
 
-    if GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID][2][60] then
+    if GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].allAltsApplyToKick then
         GRM_UI.GRM_ToolCoreFrame.GRM_ToolKickRules.GRM_ToolAltsOfflineTimed:SetChecked ( true );
     end
     

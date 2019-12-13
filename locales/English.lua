@@ -576,12 +576,10 @@ GRML.English = function()
     -- Update 1.130
     GRM_L["|CFFE6CC7FCtrl-Shift-Click|r to Hide this Button."] = true
     GRM_L["Invited By:"] = true
-    GRM_L["To avoid storage bloat, a maximum of 2 save points is currently possible. Please remove one before Continuing."] = true
     GRM_L["Error: Guild Not Found..."] = true
     GRM_L["Debugger Start"] = true;
 
     -- Update 1.136
-    GRM_L["To avoid storage bloat, a maximum of 2 guild save points is currently possible. Please remove one before continuing"] = true
     GRM_L["Backup Point Removed for Guild \"{name}\""] = true
     GRM_L["Backup Point Restored for Guild \"{name}\""] = true
     GRM_L["Backup Point Set for Guild \"{name}\""] = true
@@ -814,7 +812,7 @@ GRML.English = function()
     GRM_L["Officer Note:"] = true
     GRM_L["Public Note"] = true
     GRM_L["Officer Note"] = true
-    GRM_L["Show Public and Officer Note of Left Player in the Log"] = true
+    GRM_L["Show Public, Officer, and Custom Notes on Log Entries of Left Players"] = true
     GRM_L["Hard Reset"] = true
     GRM_L["Hard reset of ALL GRM data, account-wide. Game will reload!"] = true
     GRM_L["Reject\nAll"] = true                     -- This is the same as "Reject All" it just forces the 2 words to be on 2 separate lines without me adjusting the text width
@@ -1336,8 +1334,8 @@ GRML.English = function()
     GRM_L["The note is too long. Only the first {num} characters will be set."] = true
     GRM_L["Edit {name} Rule {num}"] = true          -- "Edit Kick Rule 1" or "Edit Promotion Rule 5" 
     GRM_L["{name} Rule {num}"] = true
-    GRM_L["t Applicable Ranks:"] = true
-
+    GRM_L["Apply Only to Selected Ranks:"] = true
+    GRM_L["Unable to create hotkey macro. Player is currently in combat and action is restricted. It will auto-build once out of combat."] = true
 
     
 end
