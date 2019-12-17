@@ -3989,7 +3989,12 @@ GRM_Patch.ConvertPlayerMetaDataDB = function( database )
                 if type ( tempUI[i][j][1] ) ~= "string" and string.find ( tempUI[i][j][1][1] , "-" ) ~= nil then
 
                     gName = tempUI[i][j][1][1];
-                    newUI[f][ gName ] = tempUI[i][j][1];    -- (name , creationDate , numGuildRanks , clubID , epochTimeAdded )
+                    newUI[f][ gName ] = {};
+                    newUI[f][ gName ]["grmName"] = tempUI[i][j][1][1];
+                    newUI[f][ gName ]["grmCreationDate"] = tempUI[i][j][1][2];
+                    newUI[f][ gName ]["grmNumRanks"] = tempUI[i][j][1][3];
+                    newUI[f][ gName ]["grmClubID"] = tempUI[i][j][1][4];
+                    newUI[f][ gName ]["grmTimeCreated"] = tempUI[i][j][1][5];
 
                     for s = 2 , #tempUI[i][j] do
                         newUI[f][ gName ][ tempUI[i][j][s][1] ] = {};           -- Established the player in new DB format as a key

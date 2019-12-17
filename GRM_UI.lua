@@ -1435,7 +1435,7 @@ GRM_UI.GR_MetaDataInitializeUIFirst = function( isManualUpdate )
                 GRM_G.selectedAlt = GRM.GetCoreFontStringClicked(); -- Setting to global the alt name chosen.
                 if GRM_G.selectedAlt[1] ~= nil then
                     local height = 108;  -- Height of the window
-                    if GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailDateJoinedTitleTxt:IsMouseOver ( 2 , -2 , -2 , 2 ) and not ( GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][GRM_G.currentNameIndex][10] or #GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][GRM_G.currentNameIndex][11] > 0 ) then
+                    if GRM_UI.GRM_MemberDetailMetaData.GRM_MemberDetailDateJoinedTitleTxt:IsMouseOver ( 2 , -2 , -2 , 2 ) and not ( GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][GRM_G.currentName][10] or #GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][GRM_G.currentName][11] > 0 ) then
                         -- DO nothing... as no alts are register.
                     else
                         GRM_G.pause = true;
@@ -1495,13 +1495,13 @@ GRM_UI.GR_MetaDataInitializeUIFirst = function( isManualUpdate )
                                 GRM_UI.GRM_altRemoveButton:Hide();
                                 GRM_UI.DisableVerifyButton();
                             else
-                                if ( GRM_G.editJoinDate and not GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][GRM_G.currentNameIndex][40] and 
-                                        #GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][GRM_G.currentNameIndex][20] ~= 0 and 
-                                        GRM.DateUntrustedTag ( GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][GRM_G.currentNameIndex][35] ) == "|cffff0000!!|r" ) or
+                                if ( GRM_G.editJoinDate and not GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][GRM_G.currentName][40] and 
+                                        #GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][GRM_G.currentName][20] ~= 0 and 
+                                        GRM.DateUntrustedTag ( GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][GRM_G.currentName][35] ) == "|cffff0000!!|r" ) or
                                         
-                                        ( GRM_G.editPromoDate and not GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][GRM_G.currentNameIndex][41] and
-                                        GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][GRM_G.currentNameIndex][12] ~= nil and 
-                                        GRM.DateUntrustedTag ( GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][GRM_G.currentNameIndex][36] ) == "|cffff0000!!|r" ) then
+                                        ( GRM_G.editPromoDate and not GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][GRM_G.currentName][41] and
+                                        GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][GRM_G.currentName][12] ~= nil and 
+                                        GRM.DateUntrustedTag ( GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][GRM_G.currentName][36] ) == "|cffff0000!!|r" ) then
 
                                     GRM_UI.GRM_ConfirmDropdownButtonText:SetText ( GRM.L ( "Confirm Date" ) );
                                     GRM_UI.GRM_ConfirmDropdownButtonText:SetPoint ( "LEFT" , GRM_UI.GRM_ConfirmDropdownButton , "LEFT" , -0.5 , 0 );
@@ -2457,14 +2457,14 @@ GRM_UI.GR_MetaDataInitializeUIFirst = function( isManualUpdate )
     GRM_UI.GRM_MemberDetailMetaData.GRM_SafeFromRulesCheckButton:SetScript ( "OnClick", function ( self , button )
         if button == "LeftButton" then
             if self:GetChecked() then
-                GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][GRM_G.currentNameIndex][45] = true;
+                GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][GRM_G.currentName][45] = true;
                 if IsControlKeyDown() then
-                    GRM_UI.SetAllAltsToIgnore ( GRM_G.currentNameIndex , true );
+                    GRM_UI.SetAllAltsToIgnore ( true );
                 end
             else
-                GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][GRM_G.currentNameIndex][45] = false;
+                GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][GRM_G.currentName][45] = false;
                 if IsControlKeyDown() then
-                    GRM_UI.SetAllAltsToIgnore ( GRM_G.currentNameIndex , false );
+                    GRM_UI.SetAllAltsToIgnore ( false );
                 end
             end
             GRM_UI.SetIgnoreCheckButtonTooltip();
@@ -2475,7 +2475,7 @@ GRM_UI.GR_MetaDataInitializeUIFirst = function( isManualUpdate )
     GRM_UI.SetIgnoreCheckButtonTooltip = function()
         GRM_UI.SetTooltipScale();
         GameTooltip:SetOwner ( GRM_UI.GRM_MemberDetailMetaData.GRM_SafeFromRulesCheckButton , "ANCHOR_CURSOR" );
-        if #GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][GRM_G.currentNameIndex][11] > 0 then
+        if #GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][GRM_G.currentName][11] > 0 then
             if GRM_UI.GRM_MemberDetailMetaData.GRM_SafeFromRulesCheckButton:GetChecked() then 
                 GameTooltip:AddLine ( GRM.L ( "|CFFE6CC7FCtrl-Click|r to also REMOVE all alts from the ignore list" ) );
             else
@@ -2487,14 +2487,18 @@ GRM_UI.GR_MetaDataInitializeUIFirst = function( isManualUpdate )
     end
 
     -- To enable or disable the ignore list for all alts...
-    GRM_UI.SetAllAltsToIgnore = function( ind , enable )
-        if #GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][ind][11] > 0 then                     -- Number of alts, if > 0 then do something.
-            for i = 1 , #GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][ind][11] do              -- Loop through all alts
-                local j = GRM.PlayerQuery ( GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][ind][11][i][1] );
-                if j ~= nil then
+    GRM_UI.SetAllAltsToIgnore = function( enable )
+        local player = GRM_GuildMemberHistory_Save[ GRM_G.F ][ GRM_G.guildName ][GRM_G.currentName];
+
+        if #player.alts > 0 then                     -- Number of alts, if > 0 then do something.
+            local tempAlt;
+
+            for i = 1 , #player.alts do              -- Loop through all alts
+                tempAlt = GRM_GuildMemberHistory_Save[ GRM_G.F ][ GRM_G.guildName ][player.alts[i][1]];
+                if tempAlt ~= nil then
                     -- No point in adding yourself.
-                    if GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][j][1] ~= GRM_G.addonUser then
-                        GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][j][45] = enable;          -- Set the setting
+                    if tempAlt.name ~= GRM_G.addonUser then
+                        tempAlt.safeList = enable;          -- Set the setting
                     end
                 end
             end
@@ -7226,7 +7230,7 @@ GRM_UI.MetaDataInitializeUIrosterLog1 = function( isManualUpdate )
             if self:GetChecked() then
                 GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].viewGuildRep = true;
                 if GRM_UI.GRM_MemberDetailMetaData:IsVisible() then
-                    GRM_UI.GRM_MemberDetailMetaData.GRM_ReputationLevelText:SetText ( GRM.GetReputationTextLevel ( GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][GRM_G.currentNameIndex][31] ) );
+                    GRM_UI.GRM_MemberDetailMetaData.GRM_ReputationLevelText:SetText ( GRM.GetReputationTextLevel ( GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][GRM_G.currentName][31] ) );
                     GRM_UI.GRM_MemberDetailMetaData.GRM_ReputationLevelText:Show();
                 end
             else
