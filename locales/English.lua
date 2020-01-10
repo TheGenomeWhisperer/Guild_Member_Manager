@@ -1336,6 +1336,6 @@ GRML.English = function()
     GRM_L["{name} Rule {num}"] = true
     GRM_L["Apply Only to Selected Ranks:"] = true
     GRM_L["Unable to create hotkey macro. Player is currently in combat and action is restricted. It will auto-build once out of combat."] = true
-
+    GRM_L["No player data found, recommend full removal."] = true
     
 end

@@ -17,11 +17,13 @@ end
 GRM.ClassicCheckForNewMember = function ( name )
     local rosterName , rank , rankInd , level , zone , note , oNote , online , classFile , pts , rep , guid;
     local isFound = false;
+    local rosterIndex = 0;
 
     for i = 1 , GRM.GetNumGuildies() do
         rosterName , rank , rankInd , level , _ , zone , note , oNote , online , _ , classFile , pts , _ , _ , _ , rep , guid = GetGuildRosterInfo ( i );
         if name == rosterName then
             isFound = true;
+            rosterIndex = i;
             break;
         end
     end
@@ -39,30 +41,33 @@ GRM.ClassicCheckForNewMember = function ( name )
             end
         end
 
-        local info = {
+        local memberInfoToAdd = {};
 
-        rosterName,
-        rank, 
-        rankInd,
-        level,
-        note,
-        oNote,
-        classFile,
-        0,
-        zone,
-        pts,
-        false,
-        rep,
-        true,
-        0,              -- status is ZERO as in ONLINE
-        guid,
-        race,
-        sex
-
-        }
+        memberInfoToAdd.name = rosterName                                           -- 1
+        memberInfoToAdd.rankName = rank;                                            -- 2
+        memberInfoToAdd.rankIndex = rankInd;                                        -- 3 (It needs to be 1 less to match when compared to the guildRosterInfo call )
+        memberInfoToAdd.level = level;                                              -- 4
+        memberInfoToAdd.note = note;                                                -- 5
+        if CanViewOfficerNote() then
+            memberInfoToAdd.officerNote = oNote;                                    -- 6
+        else
+            memberInfoToAdd.officerNote = nil; 
+        end
+        memberInfoToAdd.class = classFile;                                          -- 7
+        memberInfoToAdd.lastOnline = 0;                                             -- 8 Time since they last logged in in hours.
+        memberInfoToAdd.zone = zone;                                                -- 9
+        memberInfoToAdd.achievementPoints = pts;                                    -- 10    
+        memberInfoToAdd.isMobile = false;                                           -- 11
+        memberInfoToAdd.rep = rep;                                                  -- 12
+        memberInfoToAdd.isOnline = true;                                            -- 13
+        memberInfoToAdd.status = 0;                                                 -- 14
+        memberInfoToAdd.GUID = guid;                                                -- 15
+        memberInfoToAdd.race = "";                                                  -- 16
+        memberInfoToAdd.sex = 1;                                                    -- 17
+        memberInfoToAdd.rosterSelection = rosterIndex;                                        -- 18
 
         GRM_G.changeHappenedExitScan = true;
-        GRM.RecordJoinChanges ( info , GRM.GetClassColorRGB ( classFile , true ) .. GRM.SlimName ( name ) .. "|r" , true , select ( 2 , GRM.GetTimestamp() ) , true );
+        GRM.RecordJoinChanges ( memberInfoToAdd , GRM.GetClassColorRGB ( classFile , true ) .. GRM.SlimName ( name ) .. "|r" , true , select ( 2 , GRM.GetTimestamp() ) , true );
 
         -- Check Main Auto tagging...
         GRM.SetGuildInfoDetails();

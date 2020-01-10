@@ -1334,7 +1334,6 @@ GRML.Korean = function()
     -- 1.82
     GRM_L["Disabled While Player is Grouped"] = true
     GRM_L["SYNC is currently disabled while you are grouped. Due to server restricted addon to addon talk data caps, and in an effort to avoid clogging up the shared global comm space of all addons, sync will be temporarily restricted while grouped."] = true
-
 end
 
 -- BuildLog() - might have some extra work, conditionally based on localization as it will now have a mix of languages saved to the log, since log is not retroactively changed.

@@ -2442,7 +2442,8 @@ end
 -- What it Does:    Removes the highlights from the selected names, and sets them to no longer be ignored, and then rebuilds teh frames with that data.
 -- Purpose:         Ability to manage ignore list in mass.
 GRM.RemoveHighlightedPlayersFromIgnoredList = function ()
-    local guildData = GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ];
+    local guildData = GRM_GuildMemberHistory_Save[ GRM_G.F ][ GRM_G.guildName ];
+    local player;
 
     -- We need to scan and find all the entries, then find them in the guild
     for i = #GRM_UI.GRM_ToolCoreFrame.GRM_ToolIgnoreListFrame.AllIgnoredEntries , 1 , -1 do
@@ -2451,13 +2452,13 @@ GRM.RemoveHighlightedPlayersFromIgnoredList = function ()
         if GRM_UI.GRM_ToolCoreFrame.GRM_ToolIgnoreListFrame.AllIgnoredEntries[i][3] then
 
             -- Now scan through the roster and update.
-            local j = GRM.PlayerQuery ( GRM_UI.GRM_ToolCoreFrame.GRM_ToolIgnoreListFrame.AllIgnoredEntries[i][1] );
-            if j ~= nil then
-                guildData[j][45] = false;
+            player = guildData[ GRM_UI.GRM_ToolCoreFrame.GRM_ToolIgnoreListFrame.AllIgnoredEntries[i][1] ];
+            if player ~= nil then
+                player.safeList = false;
                 table.remove ( GRM_UI.GRM_ToolCoreFrame.GRM_ToolIgnoreListFrame.AllIgnoredEntries , i );
 
                 -- Rebuild the mouseover frame in case it is open
-                if GRM_G.currentName == guildData[j][1] and GRM_UI.GRM_MemberDetailMetaData:IsVisible() then
+                if GRM_G.currentName == player.name and GRM_UI.GRM_MemberDetailMetaData:IsVisible() then
                     GRM.PopulateMemberDetails ( GRM_G.currentName );
                 end
             end
@@ -2480,13 +2481,15 @@ end
 -- What it Does:    Removes all players from the ignore list
 -- Purpose:         Ease of allowing the player to easily remove all from the ignore list.
 GRM.ClearAllPlayersFromIgnoreList = function()
-    local guildData = GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ];
+    local guildData = GRM_GuildMemberHistory_Save[ GRM_G.F ][ GRM_G.guildName ];
     local count = 0;
 
-    for i = 2 , #guildData do
-        if guildData[i][45] then
-            guildData[i][45] = false;
-            count = count + 1;
+    for _ , player in pairs ( guildData ) do
+        if type ( player ) == "table" then
+            if player.safeList then
+                player.safeList = false;
+                count = count + 1;
+            end
         end
     end
 
@@ -2517,11 +2520,14 @@ end
 -- What it Does:    Returns the count of total ignored people
 -- Purpose:         To determine the number ignored for UI purposes.
 GRM.GetNumIgnored = function()
+    local guildData = GRM_GuildMemberHistory_Save[ GRM_G.F ][ GRM_G.guildName ];
     local count = 0;
 
-    for i = 2 , #GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ] do
-        if GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][i][45] then
-            count = count + 1;
+    for _ , player in pairs ( guildData ) do
+        if type ( player ) == "table" then
+            if player.safeList then
+                count = count + 1;
+            end
         end
     end
 
@@ -2532,12 +2538,15 @@ end
 -- What it Does:    Returns true if at least one can be ignored - easy check rather than relying on a full count
 -- Purpose:         UX
 GRM.IsAnyIgnored = function()
+    local guildData = GRM_GuildMemberHistory_Save[ GRM_G.F ][ GRM_G.guildName ];
     local result = false;
 
-    for i = 2 , #GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ] do
-        if GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][i][45] then
-            result = true;
-            break;
+    for _ , player in pairs ( guildData ) do
+        if type ( player ) == "table" then
+            if player.safeList then
+                result = true;
+                break;
+            end
         end
     end
 
@@ -2943,13 +2952,14 @@ end
 GRM.GetSafePlayers = function( getCountAndPlayers )
     local count = 0;
     local names = {};
+    local guildData = GRM_GuildMemberHistory_Save[ GRM_G.F ][ GRM_G.guildName ];
 
-        for i = 2 , #GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ] do
-            if GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][i][45] then
+        for _ , player in pairs ( guildData ) do
+            if type ( player ) == "table" then
                 count = count + 1;
                 -- Default just gets the count - otherwise it returns the list of players as well.
                 if getCountAndPlayers then
-                    table.insert ( names , { GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][i][1] , GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][i][9] , false , "" , GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][i][24] , GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ][i][5] } ); -- name,class,isHighlighted,Reason
+                    table.insert ( names , { player.name , player.class , false , "" , player.lastOnline , player.rankIndex } ); -- name,class,isHighlighted,Reason
                 end
             end
         end
@@ -3028,7 +3038,7 @@ end
 -- Purpose:         Give the ability a way to apply the rules.
 GRM.GetNamesByFilterRules = function()
     local result = {};
-    local guildData = GRM_GuildMemberHistory_Save[ GRM_G.FID ][ GRM_G.saveGID ];
+    local guildData = GRM_GuildMemberHistory_Save[ GRM_G.F ][ GRM_G.guildName ];
     local tempDetails = {};
     local needsToSave = false;
     local saveControlCheck = false;
@@ -3043,59 +3053,61 @@ GRM.GetNamesByFilterRules = function()
     -- Ok, scan through every member of the guild and scan the rules.
 
     if #GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules > 0 then             -- No Need to do all the work if no rule
+        for _ , player in pairs ( guildData ) do
+            if type ( player ) == "table" then
+                -- No need to check the rules on the player if they are ranked higher than you...
+                tempDetails = {};
+                needsToSave = false;
+                notAllKickRulesMet = false;
+                -- notAllKickRulesMet , notAllPromoRulesMet, notAllDemoteRulesMet = false , false , false;
+                local currentRule = 1;
 
-        for i = 2 , #guildData do
-            -- No need to check the rules on the player if they are ranked higher than you...
-            tempDetails = {};
-            needsToSave = false;
-            notAllKickRulesMet = false;
-            -- notAllKickRulesMet , notAllPromoRulesMet, notAllDemoteRulesMet = false , false , false;
-            local currentRule = 1;
-
-            for j = 1 , #GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules do
-            
-                -- Kick rules
-                if CanGuildRemove() and GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][1] == 1 and GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][5] and not notAllKickRulesMet  then
-                    saveControlCheck = false;
-
-                    needsToSave , saveControlCheck , notAllKickRulesMet , tempDetails = GRM.GetNamesFromKickRules ( j , guildData[i] , needsToSave , saveControlCheck , notAllKickRulesMet , tempDetails );
-
-                -- Promote Rules
-                elseif CanGuildPromote() and GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][1] == 2 and GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][4] then
-                    saveControlCheck = false;
-
-
-
-                    if needsToSave and not saveControlCheck then
-                        needsToSave = false;
-                    end
-                -- Demote Rules
-                elseif CanGuildDemote() and GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][1] == 3 and GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][4] then
-                    saveControlCheck = false;
-
-
-
-                    if needsToSave and not saveControlCheck then
-                        needsToSave = false;
-                    end
-                end
-
-                -- Only add the name if necessary.
-                if needsToSave and ( j == #GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules or GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j+1][1] > currentRule ) then
-                    table.insert ( tempDetails , false );
-                    table.insert ( result , tempDetails );        -- I need to do a clean copy
-                end
+                for j = 1 , #GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules do
                 
-                -- If the rule changes this should be logged.
-                if  j + 1 <= #GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules and GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j+1][1] > currentRule then
-                    currentRule = GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j+1][1];
+                    -- Kick rules
+                    if CanGuildRemove() and GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][1] == 1 and GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][5] and not notAllKickRulesMet  then
+                        saveControlCheck = false;
+
+                        needsToSave , saveControlCheck , notAllKickRulesMet , tempDetails = GRM.GetNamesFromKickRules ( j , player , needsToSave , saveControlCheck , notAllKickRulesMet , tempDetails );
+
+                    -- Promote Rules
+                    elseif CanGuildPromote() and GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][1] == 2 and GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][4] then
+                        saveControlCheck = false;
+
+
+
+                        if needsToSave and not saveControlCheck then
+                            needsToSave = false;
+                        end
+                    -- Demote Rules
+                    elseif CanGuildDemote() and GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][1] == 3 and GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][4] then
+                        saveControlCheck = false;
+
+
+
+                        if needsToSave and not saveControlCheck then
+                            needsToSave = false;
+                        end
+                    end
+
+                    -- Only add the name if necessary.
+                    if needsToSave and ( j == #GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules or GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j+1][1] > currentRule ) then
+                        table.insert ( tempDetails , false );
+                        table.insert ( result , tempDetails );        -- I need to do a clean copy
+                    end
+                    
+                    -- If the rule changes this should be logged.
+                    if  j + 1 <= #GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules and GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j+1][1] > currentRule then
+                        currentRule = GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j+1][1];
+                    end
                 end
-            end            
+            end
         end
     end
 
     return result;
 end
+
 
 -- Method:          GRM.GetReasonIgnoredMsg ( int , int , int )
 -- What it Does:    Returns the string reason an action cannot occur on the ignore list
@@ -3138,16 +3150,16 @@ GRM.GetNamesFromKickRules = function( j , player , needsToSave , saveControlChec
 
     -- The name formatting is purely to be used for the macro to be added.
     local name = "";
-    if string.find ( player[1] , GetRealmName() , 1 , true ) ~= nil then
-        name = GRM.SlimName ( player[1] );
+    if string.find ( player.name , GetRealmName() , 1 , true ) ~= nil then
+        name = GRM.SlimName ( player.name );
     else
-        name = player[1];
+        name = player.name;
     end
 
     -- By Time
     if GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][2] == 1 then
            
-        if not GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].allAltsApplyToKick or ( GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].allAltsApplyToKick and not GRM.IsAnyAltActiveForRecommendKicks ( player[11] ) ) then
+        if not GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].allAltsApplyToKick or ( GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].allAltsApplyToKick and not GRM.IsAnyAltActiveForRecommendKicks ( player.alts ) ) then
             -- if by Month
             if GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][3] == 1 then
 
@@ -3161,18 +3173,18 @@ GRM.GetNamesFromKickRules = function( j , player , needsToSave , saveControlChec
                     return nil;
                 end
 
-                if player[24] >= GRM_G.NumberOfHoursTilRecommend then
-                    if GRM_G.playerRankID < player[5] then
-                        if not player[45] then      -- Ignore for scanning... but I still want a count of the ignored.
+                if player.lastOnline >= GRM_G.NumberOfHoursTilRecommend then
+                    if GRM_G.playerRankID < player.rankIndex then
+                        if not player.safeList then      -- Ignore for scanning... but I still want a count of the ignored.
                             needsToSave = true;
                             saveControlCheck = true;
-                            tempDetails = { player[1] , GRM.GetClassColorRGB ( player[9] ) , "/gremove " .. name , GRM.L ( "Kick" ) , player[24] , GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][1] , GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][2] , GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][3] , GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][4] , false };
+                            tempDetails = { player.name , GRM.GetClassColorRGB ( player.class ) , "/gremove " .. name , GRM.L ( "Kick" ) , player.lastOnline , GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][1] , GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][2] , GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][3] , GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][4] , false };
                             -- { name , kickRule , ByTimeOffline , MonthCheck , MonthNumber }
                         else
-                            isFound , ind = isPlayerAlreadyInList ( player[1] );
+                            isFound , ind = isPlayerAlreadyInList ( player.name );
 
                             if not isFound then
-                                table.insert ( GRM_UI.GRM_ToolCoreFrame.Safe , { player[1] , player[5] , player[9] , GRM.L ( "Kick" ) } ); -- Player { name , rankIndex , class , action }
+                                table.insert ( GRM_UI.GRM_ToolCoreFrame.Safe , { player.name , player.rankIndex , player.class , GRM.L ( "Kick" ) } );
                             else
                                 GRM_UI.GRM_ToolCoreFrame.Safe[ind][4] = GRM_UI.GRM_ToolCoreFrame.Safe[ind][4] .. ", " .. GRM.L ( "Kick" );
                             end
@@ -3182,18 +3194,18 @@ GRM.GetNamesFromKickRules = function( j , player , needsToSave , saveControlChec
 
                 -- if by Day
             elseif GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][3] == 2 then
-                if player[24] >= GRM_G.NumberOfHoursTilRecommend then
-                    if GRM_G.playerRankID < player[5] then
-                        if not player[45] then
+                if player.lastOnline >= GRM_G.NumberOfHoursTilRecommend then
+                    if GRM_G.playerRankID < player.rankIndex then
+                        if not player.safeList then
                             needsToSave = true;
                             saveControlCheck = true;
-                            tempDetails = { player[1] , GRM.GetClassColorRGB ( player[9] ) , "/gremove " .. name , GRM.L ( "Kick" ) , player[24] , GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][1] , GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][2] , GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][3] , GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][4] , false };
+                            tempDetails = { player.name , GRM.GetClassColorRGB ( player.class ) , "/gremove " .. name , GRM.L ( "Kick" ) , player.lastOnline , GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][1] , GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][2] , GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][3] , GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][4] , false };
                             -- { name , kickRule , ByTimeOffline , DayCheck , DayNumber }
                         else
-                            isFound , ind = isPlayerAlreadyInList ( player[1] );
+                            isFound , ind = isPlayerAlreadyInList ( player.name );
 
                             if not isFound then
-                                table.insert ( GRM_UI.GRM_ToolCoreFrame.Safe , { player[1] , player[5] , player[9] , GRM.L ( "Kick" ) } ); -- Player { name , rankIndex , class , action }
+                                table.insert ( GRM_UI.GRM_ToolCoreFrame.Safe , { player.name , player.rankIndex , player.class , GRM.L ( "Kick" ) } );
                             else
                                 GRM_UI.GRM_ToolCoreFrame.Safe[ind][4] = GRM_UI.GRM_ToolCoreFrame.Safe[ind][4] .. ", " .. GRM.L ( "Kick" );
                             end
@@ -3203,13 +3215,12 @@ GRM.GetNamesFromKickRules = function( j , player , needsToSave , saveControlChec
             end
         end
 
-    -- If by Level
-    elseif GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][2] == 2 then
+    -- -- If by Level
+    -- elseif GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][2] == 2 then
 
 
-
-    -- If by Rank
-    elseif GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][2] == 3 then
+    -- -- If by Rank
+    -- elseif GRM_AddonSettings_Save[GRM_G.F][GRM_G.addonUser].kickRules[j][2] == 3 then
 
 
     end

@@ -27,6 +27,8 @@ _______________________
 
 * Backup data originally included the pending Calendar invites, which was essentially unnecessary to be included in backup data as it will scan and add/remove things dynamically.
 
+* Backup info will now recommend a data purge in the tooltip to some guilds whose data was so old and players had not logged into those guilds for so long that they were in such an outdated format and they maybe just were old traces of guilds never properly cleared out... so now it recommends kicking them. Of course, the power remains in your control.
+
 
 
 ***BUG FIXES***
@@ -39,15 +41,23 @@ _______________________
 
 * Fixed a major bug that plagued *SOME* users who experienced a crash in the middle of loading the addon when updating from an older version that caused the version to be saved *before* the new settings were implemented, causing an issue where it believed the version was updated but no patches were applied.
 
-
-**BOTH**
-
 * Found a bug that could exist if you had not updated GRM in a while, created a new toon, then the first time you updated GRM was also the first time you logged on to a new toon, it could faily to load properly. This likely got missed because a reload/relog would self resolve it. But now this will prevent that from happening.
 
 * On resetting defaults, it was not resetting the UI beyond the core GRM frame. It should now be properly set, as well as 
 
 * Addressed an issue in regards to the hotkey macro being tried to be created whilst in combat, which is restricted. The addon will now delay the creation of the macro while in combat and enable it when combat ends.
 
+* Fixed an issue where on sync the Custom Notes were not always syncing in all cases when they should have been.
+
+* Fixed a Lua error if you tried to export "former guildies" but there were none that had yet left the guild since GRM was installed.
+
+* Fixed an issue where the Guild Creation date is not stored properly in the backup information when looking at the backup window.
+
+* A translation error warning was triggering with the Korean version in regards to the "SYNC USERS" phrase. This is now resolved.
+
+* Fixed an issue where a guild data backup cannot be loaded if you are trying to load an "Auto" backup, whilst you have no Manual configured. You had to have both saved to load the auto for some reason. It now works properly.
+
+* Fixed an issue that could prevent the addon from loading due to a certain Dropdown Logic function not being loaded yet by Blizz. The addon now does a logic take to see if the function has been initialized yet by the client before loading the rest of the addon. This prevents GRM from trying to hook a Blizz frame that doesn't yet exist. this affects very very few people and I only ever got 1 report of it. Might be system loading speed issue that the addon will now compensate for.
 
 **RETAIL**
 
@@ -55,8 +65,9 @@ _______________________
 
 * Fixed a lua error that could occur when opening the old /groster - it was mostly inconsequential and didn't break anything, but bugs are a defect. This is now resolved.
 
+* Promotions and Demotions should now properly report *WHEN* they occurred in retail
 
-
+* Fixed an issue where the addon wouldn't initialize for "esMX" Spanish Clients in retail
 
 
 

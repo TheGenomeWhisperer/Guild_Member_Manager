@@ -3,6 +3,7 @@
 
 GRM_Patch = {};
 local patchNeeded = false;
+local DBGuildNames;
 
 -- Method:          GRM_Patch.SettingsCheck ( float )
 -- What it Does:    Holds the patch logic for when people upgrade the addon
@@ -728,8 +729,8 @@ GRM_Patch.SettingsCheck = function ( numericV , count , patch )
     -- Additional DB Rebuilding
     -- Additional Database Rebuilding!
     if numericV < 1.835 and baseValue < 1.835 then
-        GRM_GuildMemberHistory_Save = GRM_Patch.ConvertPlayerMetaDataDB ( GRM_GuildMemberHistory_Save );
-        GRM_PlayersThatLeftHistory_Save = GRM_Patch.ConvertPlayerMetaDataDB ( GRM_PlayersThatLeftHistory_Save );
+        GRM_Patch.ConvertPlayerMetaDataDB ( GRM_GuildMemberHistory_Save , true );
+        GRM_Patch.ConvertPlayerMetaDataDB ( GRM_PlayersThatLeftHistory_Save );
 
         if loopCheck ( 1.835 ) then
             return;
@@ -3698,10 +3699,32 @@ GRM_Patch.ConvertAddonSettings = function()
     end
 end
 
+GRM_Patch.CollectAllGuildNames = function()
+    local result = {};
+    local F = "H";
+
+    for i = 1 , #GRM_PlayerListOfAlts_Save do
+        if i == 2 then
+            F = "A";
+        end
+        result[ F ] = {};
+
+        for j = 2 , #GRM_PlayerListOfAlts_Save[i] do
+            if type ( GRM_PlayerListOfAlts_Save[i][j][1] ) ~= "string" and string.find ( GRM_PlayerListOfAlts_Save[i][j][1][1] , "-" ) ~= nil then
+                result[ F ][ GRM_PlayerListOfAlts_Save[i][j][1][1] ] = {};
+            end
+        end
+    end
+    
+    return result;
+end
+
 -- Method:          GRM_Patch.ConvertListOfAddonAlts()
 -- What it Does:    Converts the old database array into a keyed dictionary
 -- Purpose:         Faster efficiency in accessing player info.
 GRM_Patch.ConvertListOfAddonAlts = function()
+
+    DBGuildNames = GRM_Patch.CollectAllGuildNames();
 
     if GRM_PlayerListOfAlts_Save["H"] == nil then
         local tempUI = GRM.DeepCopyArray ( GRM_PlayerListOfAlts_Save );
@@ -3722,7 +3745,7 @@ GRM_Patch.ConvertListOfAddonAlts = function()
 
             for j = 2 , #tempUI[i] do
 
-                if type ( tempUI[i][j][1] ) ~= "string" and string.find ( tempUI[i][j][1][1] , "-" ) ~= nil then
+                if type ( tempUI[i][j][1] ) ~= "string" and string.find ( tempUI[i][j][1][1] , "-" ) ~= nil and newUI[f][ tempUI[i][j][1][1] ] == nil then
 
                     gName = tempUI[i][j][1][1];
                     newUI[f][ gName ] = {};                                 -- Set the guild Name
@@ -3763,8 +3786,11 @@ GRM_Patch.ConvertBackupDB = function()
 
             for j = 2 , #tempUI[i] do
 
-                if type ( tempUI[i][j][1] ) ~= "string" and string.find ( tempUI[i][j][1][1] , "-" ) ~= nil then            -- Purge old broken database
+                if type ( tempUI[i][j][1] ) ~= "string" and string.find ( tempUI[i][j][1][1] , "-" ) ~= nil and newUI[f][ tempUI[i][j][1][1] ] == nil then            -- Purge old broken database
                     gName = tempUI[i][j][1][1];
+                    if tempUI[i][j][1][2] == "0-0-1999" then
+                        tempUI[i][j][1][2] = "";
+                    end
                     newUI[f][ gName ] = { tempUI[i][j][1][2] };                             -- Set the guild Name
 
                     local v = "Auto";
@@ -3782,25 +3808,47 @@ GRM_Patch.ConvertBackupDB = function()
                         
                     end
       
-                    -- Copy over the backupData
-                    if #tempUI[i][j][2] > 0 then
-                        newUI[f][ gName ]["Auto"] = { 1 };
-                        newUI[f][ gName ]["Auto"]["date"] = tempUI[i][j][2][1];
-                        newUI[f][ gName ]["Auto"]["epochDate"] = tempUI[i][j][2][2];
-                        newUI[f][ gName ]["Auto"]["members"] = GRM.DeepCopyArray ( tempUI[i][j][2][3] );
-                        newUI[f][ gName ]["Auto"]["formerMembers"] = GRM.DeepCopyArray ( tempUI[i][j][2][4] );
-                        newUI[f][ gName ]["Auto"]["log"] = GRM.DeepCopyArray ( tempUI[i][j][2][5] );
-                    end
-                    if tempUI[i][j][3] ~= nil and #tempUI[i][j][3] > 0 then
-                        newUI[f][ gName ]["Manual"] = { 1 };
-                        newUI[f][ gName ]["Manual"]["date"] = tempUI[i][j][3][1];
-                        newUI[f][ gName ]["Manual"]["epochDate"] = tempUI[i][j][3][2];
-                        newUI[f][ gName ]["Manual"]["members"] = GRM.DeepCopyArray ( tempUI[i][j][3][3] );
-                        newUI[f][ gName ]["Manual"]["formerMembers"] = GRM.DeepCopyArray ( tempUI[i][j][3][4] );
-                        newUI[f][ gName ]["Manual"]["log"] = GRM.DeepCopyArray ( tempUI[i][j][3][5] );
+                    if tempUI[i][j][1][2] ~= "" then
+                        -- Copy over the backupData
+                        if #tempUI[i][j][2] > 0 then
+                            newUI[f][ gName ]["Auto"] = { 1 };
+                            newUI[f][ gName ]["Auto"]["date"] = tempUI[i][j][2][1];
+                            newUI[f][ gName ]["Auto"]["epochDate"] = tempUI[i][j][2][2];
+                            newUI[f][ gName ]["Auto"]["members"] = GRM.DeepCopyArray ( tempUI[i][j][2][3] );
+                            newUI[f][ gName ]["Auto"]["formerMembers"] = GRM.DeepCopyArray ( tempUI[i][j][2][4] );
+                            newUI[f][ gName ]["Auto"]["log"] = GRM.DeepCopyArray ( tempUI[i][j][2][5] );
+                        end
+                        if tempUI[i][j][3] ~= nil and #tempUI[i][j][3] > 0 then
+                            newUI[f][ gName ]["Manual"] = { 1 };
+                            newUI[f][ gName ]["Manual"]["date"] = tempUI[i][j][3][1];
+                            newUI[f][ gName ]["Manual"]["epochDate"] = tempUI[i][j][3][2];
+                            newUI[f][ gName ]["Manual"]["members"] = GRM.DeepCopyArray ( tempUI[i][j][3][3] );
+                            newUI[f][ gName ]["Manual"]["formerMembers"] = GRM.DeepCopyArray ( tempUI[i][j][3][4] );
+                            newUI[f][ gName ]["Manual"]["log"] = GRM.DeepCopyArray ( tempUI[i][j][3][5] );
+                        end
                     end
                 end
             end
+
+            -- Due to dealing with an old bug of a database being converted and normalizing database properly.
+            for names in pairs ( DBGuildNames[f] ) do
+                if newUI[f][ names ] == nil then
+                    newUI[f][ names ] = { "" };
+                    local type = "Auto";
+                    for k = 1 , 2 do
+                        if k == 2 then
+                            type = "Manual";
+                        end
+                        newUI[f][ names ][type] = {};
+                        newUI[f][ names ][type]["date"] = "";
+                        newUI[f][ names ][type]["epochDate"] = 0;
+                        newUI[f][ names ][type]["members"] = {};
+                        newUI[f][ names ][type]["formerMembers"] = {};
+                        newUI[f][ names ][type]["log"] = {};
+                    end
+                end
+            end
+
         end
 
         GRM_GuildDataBackup_Save = newUI;
@@ -3876,7 +3924,7 @@ GRM_Patch.ConvertLogDB = function()
 
             for j = 2 , #tempUI[i] do
 
-                if type ( tempUI[i][j][1] ) ~= "string" and string.find ( tempUI[i][j][1][1] , "-" ) ~= nil then            -- Purge old broken database
+                if type ( tempUI[i][j][1] ) ~= "string" and string.find ( tempUI[i][j][1][1] , "-" ) ~= nil and newUI[f][ tempUI[i][j][1][1] ] == nil then            -- Purge old broken database
                     gName = tempUI[i][j][1][1];
                     newUI[f][ gName ] , tempUI[i][j] = adaptLogDB ( newUI , tempUI[i][j] , f );
 
@@ -3890,6 +3938,13 @@ GRM_Patch.ConvertLogDB = function()
                     end
                 end
             end
+
+            for names in pairs ( DBGuildNames[f] ) do
+                if newUI[f][ names ] == nil then
+                    newUI[f][ names ] = {};
+                end
+            end
+            
         end
 
         GRM_LogReport_Save = newUI;
@@ -3943,7 +3998,7 @@ GRM_Patch.ConvertCalenderDB = function()
 
             for j = 2 , #tempUI[i] do
 
-                if type ( tempUI[i][j][1] ) ~= "string" and string.find ( tempUI[i][j][1][1] , "-" ) ~= nil then
+                if type ( tempUI[i][j][1] ) ~= "string" and string.find ( tempUI[i][j][1][1] , "-" ) ~= nil and newUI[f][ tempUI[i][j][1][1] ] == nil then
 
                     gName = tempUI[i][j][1][1];
                     newUI[f][ gName ] = {};                                 -- Set the guild Name
@@ -3951,6 +4006,12 @@ GRM_Patch.ConvertCalenderDB = function()
                     for s = 2 , #tempUI[i][j] do                            -- Each Calendar Entry
                         newUI[f][ gName ][s - 1] = tempUI[i][j][s];
                     end
+                end
+            end
+
+            for names in pairs ( DBGuildNames[f] ) do
+                if newUI[f][ names ] == nil then
+                    newUI[f][ names ] = {};
                 end
             end
         end
@@ -3964,8 +4025,7 @@ end
 -- Method:          GRM_Patch.ConvertPlayerMetaDataDB( table )
 -- What it Does:    Converts the old database array into a keyed dictionary
 -- Purpose:         Faster efficiency in accessing player info.
-GRM_Patch.ConvertPlayerMetaDataDB = function( database )
-
+GRM_Patch.ConvertPlayerMetaDataDB = function( database , needsAllData )
     if database["H"] == nil then
         local tempUI = GRM.DeepCopyArray ( database );
         local newUI = {};
@@ -3986,22 +4046,38 @@ GRM_Patch.ConvertPlayerMetaDataDB = function( database )
 
             for j = 2 , #tempUI[i] do
 
-                if type ( tempUI[i][j][1] ) ~= "string" and string.find ( tempUI[i][j][1][1] , "-" ) ~= nil then
+                if type ( tempUI[i][j][1] ) ~= "string"  and string.find ( tempUI[i][j][1][1] , "-" ) ~= nil and newUI[f][ tempUI[i][j][1][1] ] == nil then
 
                     gName = tempUI[i][j][1][1];
+                    if tempUI[i][j][1][2] == "0-0-1999" then
+                        tempUI[i][j][1][2] = "";
+                    end
                     newUI[f][ gName ] = {};
                     newUI[f][ gName ]["grmName"] = tempUI[i][j][1][1];
                     newUI[f][ gName ]["grmCreationDate"] = tempUI[i][j][1][2];
-                    newUI[f][ gName ]["grmNumRanks"] = tempUI[i][j][1][3];
-                    newUI[f][ gName ]["grmClubID"] = tempUI[i][j][1][4];
-                    newUI[f][ gName ]["grmTimeCreated"] = tempUI[i][j][1][5];
+                    
+                    if needsAllData then
+                        if tempUI[i][j][1][3] == nil then
+                            newUI[f][ gName ]["grmNumRanks"] = 0;       -- might not be accurate, but chances are it will be.
+                        else
+                            newUI[f][ gName ]["grmNumRanks"] = tempUI[i][j][1][3];
+                        end
+                        if tempUI[i][j][1][4] == nil then
+                            newUI[f][ gName ]["grmClubID"] = 0;
+                        else
+                            newUI[f][ gName ]["grmClubID"] = tempUI[i][j][1][4];
+                        end
+                    end
 
                     for s = 2 , #tempUI[i][j] do
+                        -- if gName == "Is a Subatomic Particle-Zul'jin" then
+                        --     print("Number: " .. #tempUI[i][j]);
+                        -- end
                         newUI[f][ gName ][ tempUI[i][j][s][1] ] = {};           -- Established the player in new DB format as a key
                         member = newUI[f][ gName ][ tempUI[i][j][s][1] ];
 
                         -- Now, convert the player's metaData over;
-                        -- Removed indexes: 2 , 3 , 12 , 13 , 26 , 38 , 43
+                        -- Removed indexes: 2 , 3 , 12 , 13 , 26, 38
                         member["name"] = tempUI[i][j][s][1];
                         member["rankName"] = tempUI[i][j][s][4]
                         member["rankIndex"] = tempUI[i][j][s][5];
@@ -4033,8 +4109,12 @@ GRM_Patch.ConvertPlayerMetaDataDB = function( database )
                         member["status"] = tempUI[i][j][s][34];
                         member["verifiedJoinDate"] = tempUI[i][j][s][35];
                         member["verifiedPromoteDate"] = tempUI[i][j][s][36];
-                        member["removedAlts"] = tempUI[i][j][s][38];
-                        member["mainStatusChangeTime"] = tempUI[i][j][s][39];
+                        member["removedAlts"] = tempUI[i][j][s][37];
+                        if type ( tempUI[i][j][s][39] ) == "table" then             --  Eliminates an old bug
+                            member["mainStatusChangeTime"] = 0;
+                        else
+                            member["mainStatusChangeTime"] = tempUI[i][j][s][39];
+                        end
                         member["joinDateUnknown"] = tempUI[i][j][s][40];
                         member["promoteDateUnknown"] = tempUI[i][j][s][41];
                         member["GUID"] = tempUI[i][j][s][42];
@@ -4046,10 +4126,25 @@ GRM_Patch.ConvertPlayerMetaDataDB = function( database )
                     end
                 end
             end
+
+            for names in pairs ( DBGuildNames[f] ) do
+                if newUI[f][ names ] == nil then
+                    newUI[f][ names ] = {};
+                    newUI[f][ names ]["grmName"] = names;
+                    newUI[f][ names ]["grmCreationDate"] = "";
+
+                    if needsAllData then
+                        newUI[f][ names ]["grmNumRanks"] = 0;
+                        newUI[f][ names ]["grmClubID"] = 0;
+                    end
+                end
+            end
+
         end
-
-        database = newUI;
+        if database == GRM_GuildMemberHistory_Save then
+            GRM_GuildMemberHistory_Save = newUI;
+        else
+            GRM_PlayersThatLeftHistory_Save = newUI;
+        end
     end
-
-    return database
 end

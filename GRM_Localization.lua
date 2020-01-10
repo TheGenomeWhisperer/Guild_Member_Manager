@@ -243,7 +243,7 @@ if GRM_G.Region == "deDE" then
     GRM_L["Professions"] = "Berufe"
     GRM_L["Guild: "] = "Gilde: "
     
-    if GRM_G.BuildVersion < GRM_G.RetailBuild then
+    if GRM_G.BuildVersion < 80000 then
         GRM_L["Guild created "] = "Gilde erstellt "
     else
         GRM_L["Guild created "] = "Gilde am "
@@ -424,7 +424,11 @@ elseif GRM_G.Region == "esMX" then
     GRM_L["has demoted"] = "ha degradado"
     GRM_L["Professions"] = "Profesiones"
     GRM_L["Guild: "] = "Hermandad: "
-    GRM_L["Guild created "] = "Creación de hermandad"
+    if GRM_G.BuildVersion < 80000 then
+            GRM_L["Guild created "] = "Creación de hermandad"
+    else
+        GRM_L["Guild created "] = "Hermandad creada "
+    end
     GRM_L["added to friends"] = "añadido como amigo."
     GRM_L["is already your friend"] = "ya está en tu lista de amigos."
     GRM_L["Player not found."] = "No se ha encontrado al jugador."
