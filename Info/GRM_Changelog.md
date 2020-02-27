@@ -1,6 +1,308 @@
-*Note: Each update will be tagged with  **Classic/Retail/Both** for context*
+**Note: Each update will be tagged with  **Classic/Retail/Both** for context*
 
 _______________________
+
+**VERSION R1.84 DATE: November 24th, 2019**
+
+
+
+
+
+***QUALITY OF LIFE***
+
+**RETAIL**
+
+* The "Show Mouseover* button should now only appear when looking at the guild community window, not any other. It was previously there even if looking at other communities.
+
+
+**BOTH**
+
+* GRM will not automatically enable system messagess if they have been disabled. Be warned, any addon that silences system messages completely will break GRM functionality. Fast Guild Invite Classic currently has an issue, for example. See my discord channel for a "fan fix" to make FGI *not* do this and make it compatible.
+
+* The Option in the Scan tab now properly states that the "Left Player" will show the Custom note, in addition to the public and officer, on log entries
+
+* Resetting options is now significantly better! Each page the reset to Defaults will now only affect the page that they are on, with a new accompanying tooltip to explain, but also the option to still globally reset all defaults addon wide for that character by holding the CTRL key when clicking to reset defaults.
+
+* The Macro Tool position will now be saved unique to each player rather than be sync'd to all your alts, even if you have it set to sync between all alts. All other frames that are draggable, like the minimap, do this.
+
+* Backup data originally included the pending Calendar invites, which was essentially unnecessary to be included in backup data as it will scan and add/remove things dynamically.
+
+* Backup info will now recommend a data purge in the tooltip to some guilds whose data was so old and players had not logged into those guilds for so long that they were in such an outdated format and they maybe just were old traces of guilds never properly cleared out... so now it recommends kicking them. Of course, the power remains in your control.
+
+
+
+***BUG FIXES***
+
+**BOTH**
+
+* Cyrillic or Asian characters were not being counted properly when counting an edit box by taking length of string and failing to account for UTF8 values. This is now resolved
+
+* The !note should now properly allow a full 31 characters regardless of language. There is an additional message announcing if the !note is > than the 31 character cap.
+
+* Fixed a major bug that plagued *SOME* users who experienced a crash in the middle of loading the addon when updating from an older version that caused the version to be saved *before* the new settings were implemented, causing an issue where it believed the version was updated but no patches were applied.
+
+* Found a bug that could exist if you had not updated GRM in a while, created a new toon, then the first time you updated GRM was also the first time you logged on to a new toon, it could faily to load properly. This likely got missed because a reload/relog would self resolve it. But now this will prevent that from happening.
+
+* On resetting defaults, it was not resetting the UI beyond the core GRM frame. It should now be properly set, as well as 
+
+* Addressed an issue in regards to the hotkey macro being tried to be created whilst in combat, which is restricted. The addon will now delay the creation of the macro while in combat and enable it when combat ends.
+
+* Fixed an issue where on sync the Custom Notes were not always syncing in all cases when they should have been.
+
+* Fixed a Lua error if you tried to export "former guildies" but there were none that had yet left the guild since GRM was installed.
+
+* Fixed an issue where the Guild Creation date is not stored properly in the backup information when looking at the backup window.
+
+* A translation error warning was triggering with the Korean version in regards to the "SYNC USERS" phrase. This is now resolved.
+
+* Fixed an issue where a guild data backup cannot be loaded if you are trying to load an "Auto" backup, whilst you have no Manual configured. You had to have both saved to load the auto for some reason. It now works properly.
+
+* Fixed an issue that could prevent the addon from loading due to a certain Dropdown Logic function not being loaded yet by Blizz. The addon now does a logic take to see if the function has been initialized yet by the client before loading the rest of the addon. This prevents GRM from trying to hook a Blizz frame that doesn't yet exist. this affects very very few people and I only ever got 1 report of it. Might be system loading speed issue that the addon will now compensate for.
+
+**RETAIL**
+
+* With the inclusion of the new community guild recruitment feature, the reporting on guild joins modified slightly. Before I would look for the player that INVITED the player AND the time they joined. Well, now the recruitment through the new system only shows when they joined, but not who invited them. The addon has been modified to adapt to the new system and while it will still maintain and report *who* invited a player through traditional means, it will now state "Unknown" on who invited them... until a better system can be devised, if possible.
+
+* Fixed a lua error that could occur when opening the old /groster - it was mostly inconsequential and didn't break anything, but bugs are a defect. This is now resolved.
+
+* Promotions and Demotions should now properly report *WHEN* they occurred in retail
+
+* Fixed an issue where the addon wouldn't initialize for "esMX" Spanish Clients in retail
+
+
+
+**VERSION R1.831 DATE: November 12th, 2019**
+
+
+***BUG FIXES***
+
+**CLASSIC**
+
+* Fixed an issue where mouseover would not work for some people even though mouseover was enabled. Be warned, this had to reset everyone's setting in Classic on the mouseover tooltip being enabled/disabled as it was wrongly pointed at the communityFrame checkbox setting for the answer, which obviously doesn't apply in Classic. Just an accidental crossover mistake due to single codebase use.
+
+**BOTH**
+
+* Fixed an issue where when re-enabling the mosueover window it would appear over the player side/details window rather than the side of it.
+
+* Fixed a very complicated issue that had to do with mass joining to a guild spam. Oops!
+
+
+
+**VERSION R1.83 DATE: November 11th, 2019**
+
+***HAPPY VETERAN'S DAY IN THE US!***
+
+*Ok, MAJOR update for Classic users as I have finally addressed an annoying bug that plagues CLASSIC only. Basically, it could cause you to not only lock up, but super annoyingly lose keyboard focus when typing and also even close the player details side window on the roster automatically, making it impossible to keep open. Big thanks to @Dracaratos#2600 and @Denatherion#7293 for helping me trace a major bug here both through video recordings of the issue and for Dracratos letting me join his guild temporarily to see the bug for myself and trace the issue. It was SO unexpected how it was occurring. This update should now completely resolve that.*
+
+
+***QUALITY OF LIFE***
+
+**BOTH**
+
+* LIve promotion/demotion detection occurs by analyzing the system messages. While this was handled by scanning the event log in Retail, in Classic this is even more effective in that before it would only register LIVE rank changes you made yourself, not your guildies. Now, it will function for all events even made by other players with full compatibility to all 11 clients (10 in Classic).
+
+* Added a new right click dropdown menu for the Audit window as well as a mouseover highlight to the lines - The options will likely be expanded. For now you can now set as alt or set as main. My next step will likely be to bring the Add Alt autocomplete window over.
+
+* Noticed something that bugged me. I am surprised more have not complained over this. But, when editing something in the mouseover window, when finishing, it auto-unlocks the window. This is ok, but only if the side member details window is not open. It doesn't make sense to allow mouseover if the member details window is currently open to be able to mouseover everyone else. So, it is now properly locked and doesn't unlock until first closed. And ESC key will do the job or closing the X button.
+
+* Big efficiency boost in some of my On_Update checks for the frames and they are a bit more compartmentalized now in triggering only on the On_Show and disabling when hidden. Some key ones were not doing this. Probably not noticeable, but inefficient nonetheless.
+
+
+***ADDITIONAL BUG FIXES***
+
+**BOTH**
+
+* Fixed a spacing issue on the "Addon Users" tab which shows you information on all the players with GRM installed.
+
+
+**RETAIL**
+
+* On a player joining it was reporting the name incorrectly if a player was detected to be set as "main" automatically, and also not setting as main due to a typo on the variable.
+
+
+
+**VERSION R1.82 DATE: November 9th, 2019**
+
+*MAJOR BUG FIX FOR CLASSIC!*
+
+*There was an issue that seemed to be affecting people in Classic that could cause disconnects. First, there was a Lua error that could occur when syncing banned player data and it could end up messing up some of the throttles as it would crash in the middle of a loop before summing the amount of data sync'd for the throttle. Because it was just BAN information, other guilds who don't have an enormous amount of banned players maybe didn't even notice this. But those that did have some, it could happen. Also, to make it worse, the sync process was further flawed in Classic where a DC could more-likely occur while grouped. Here is the ultimate weird problem with this... I dual-boxed 2 accounts to test this more thoroughly and I would join a group with 2 of my accounts on 2 toons and then force some data transfers back and forth. With certain testing I could recreate and force the disconnect every single time. So, I swap back to retail and I place myself into the exact same situation and no matter how much I tried to break it, there was no issue. So, it made me realize that there was ultimately a problem on the backend comms across the server that only are affecting Classic.
+
+So, I now have the option, do I just disable the sync process completely when grouped, only disable when just in combat, or should I just throttle harder in these situations? Well, I decided to listen and collect addon to addon noise among the popular raid addons in Classic (and even retail), and I was blown away by how much constant back and forth chatter there really is, especially when in combat. The global throttle cap on addon to addon comms is not that high, and it is shared globally by all addons. Well, GRM is really the lowest of lowest priorities to take up some of that important and limited global data when you are in a raid and especially, when in combat. While technically I am tallying the total global info to account for the cap, I still find it better to avoid potential issues at critical times, like in a raid, that might prop out from something as simple as a bad lag spike in the middle of a sync.
+
+So, after thinking about it more and more, @Xulu#1278 (discord) really was right when it comes to the suggestion of just disabling sync when in a raid. This is why I have a compromise, and why I also agree. You see, a large guild a new sync might take a little bit of time to complete, so, it's not a great idea to initiate a sync because one is out of combat at that time, only to then have them enter combat... Ya, I could kill the sync immediately, but overall I hate that kind of user experience. So, I instead am going to throttle the retroactive sync process. The long synce that says it is beginning and ending. That is no longer going to be possible when grouped. However, the LIVE sync changes will be allowed. In other words, if you add a player as an alt, and you send that message out to the other GRM users in the guild, they will receive your update whether they are grouped or not. Only the bulk data sync will be restricted when grouped.*
+
+
+***QUALITY OF LIFE***
+
+**BOTH**
+
+* Custom note will now be added to the log reports when a player leaves the guild, if there was a custom note, and it will also be displayed if a player rejoins the guild.
+
+* I almost feel like this aversely affects QOL, but I have changed the minimum scan interval from 10 seconds to 20 seconds. While the default is 30, you could have manually set it to 10. I did a little testing this patch that I had never really done in the past in forcing lag on the system artificially. I wanted to see what would happen if I pushed the lag for 3 seconds then 5 then > 10 - just enough to lag long enough without getting kicked offline. Wow, I found witth a HUGE server lag spike you were really riding the line with the 10 second interval as a general scan I have it basically set to be spaced out a little, but push a sync cap, the addon doesn't know this and keeps running the numbers and sending server calls, and what happens is Warcraft quest them all up. With a hard lag, I could end up locking the game up for serveral seconds as it tries to triple scan changes to the guild due to que up queries. This just resolves that potential lag issue. 10 seconds per scan was a little overkill anyway and probably not necessary (it was originally set to 10 because the server refreshes the guild data every 10 seconds when the guild window is closed and every 1 second when guild window is opened).
+
+* The mouseover history on the Join Date, which gives detailed info on if they left and rejoined. The tooltip states the number of times they have been in the guild at the bottom. This has now been moved to the top. In theory, a player could leave/join a 100 times and the tooltip will end up off screen and be unable to read (recommend right click and clear lol), but if you want to keep the info for fun, the number is now at the top to see.
+
+* Massive improvement in reading and parsing the system messages.
+
+
+***ADDITIONAL BUG FIXES***
+
+**BOTH**
+
+* An issue with exporting the guild player data, if you unchecked many of the filters, since I added the sex/race info, it aligns the export info incorrectly.
+
+* Fixed an odd bug that could be related to updating an older version of the addon to the current ( Version 1.62 ). Thanks @Xulu for pointing this out.
+
+* Fixed an issue where the LIVE reporting on who kicked who was inaccurate at times. There was an initial sloppy adaptation to implement compatibility in Classic when in Retail this was unnecessary thanks to the built-in event log for guilds. Well, it ended up having ripple effects that messed up reporting on occasion for bother retail AND classic lol. This has been cleaned up now.
+
+* Fixed a lua error that could occur when a player is kicked or leaves a guild and they have GRM installed whilst looking at the mouseover window. In some instances, even though they are no longer in a guild, the built-in interface was not clearing the guild interface so the mouseover window stayed visible, expecting to be able to call the server for guild info when it obviously cannot. This will now add a check on if the player is in a guild or not in the On-Update for the mouseover info.
+
+* In some cases if the player that left the guild did not have their name listed properly and it was blank.
+
+
+**RETAIL**
+
+* Fixed an issue where the mouseover window was not pinned properly to the Old /groster frame if you opened that first or used it exclusively. It would only pin once you clicked on a name. It now should appropriately be attached.
+
+
+
+**VERSION R1.813 DATE: November 4th, 2019**
+
+***NEW FEATURE***
+
+*Relatively minor feature, but a great suggestion from @Vishal in Discord that I knew I wanted immediately!*
+
+![Right-Click and set as main or alt in the chat window](https://i.imgur.com/xdtzzgZ.jpg)
+
+* No need to open the roster when a player joins, and configure them. Once the addon detects they joined the guild you can just right-click their name in chat and set as main. You can also demote to alt the same way.
+
+
+***BUG FIXES***
+
+* Log button and macro tool button were floating and not hiding if you triggered the CommunitesFrame by the control panel click. This should now properly be hidden.
+
+* They should also obey their current frames global scaling - I notice people with super high rez and very low scale the buttons wo8uld appear huge. They are now set as CommunitiesFrame as parent to inherit their scaling.
+
+* Right click should now be properly pinned to their respective text on the mouseover window if you have differently scaled windows.
+
+* When you sync all alts to the same join date, it now should properly say "Joined" and not "Rejoined" when populating a note.
+
+
+
+
+**VERSION R1.81 DATE: November 2nd, 2019**
+
+*Minor update fixing a few things and adding some additional details about the player including race/sex.*
+
+![Race and Sex - Available both on Export and mouseover](https://i.imgur.com/Bkp0P6H.jpg)
+
+
+***QUALITY OF LIFE***
+
+**BOTH**
+
+* Added Race/Sex information of a player. this can be found as an export option. Be aware, this might mess up your column allignment so you will need to readjust. I just couldn't add these details to the end without it not feeling right.
+
+* Removed .toc CommunitiesFrame addon depencies. This is no longer necessary and also will prevent the addon from force loading Communities before your global C_Value settings configured, forcing them to be set to default, ignoring custom settings. 
+
+
+***BUG FIXES***
+
+**BOTH**
+
+* Fixed an issue that would crash the log and get it stuck in a loop on load
+
+* Fixed a bug that could cause Live Kick detection to error out in some cases.
+
+* Fixed a bug that would error out when trying to detect a LIVE kick or Left the guild change by parsing the system message.
+
+
+
+**VERSION R1.801 DATE: October 31st, 2019**
+
+*Quick bug fix that prevented the right-click drop down selection from working on most of the mouseover window items. Side-effect of something I missed when updating the alt list. Fixed*
+
+* Also, added the Race/Sex metadata to each toon. I am not entirely sure what I will do with it yet, but it can be parsed out in the save (position 46/47 of the metadata array), or I will likely include it as an export option as well as maybe in the mouseover info when mousing over a player's name.
+
+
+**VERSION R1.80 DATE: October 31st, 2019**
+
+*Happy Halloween!*
+
+***QUALITY OF LIFE***
+
+
+**BOTH**
+
+* Alt list cleaned up a bit with scroll slider only appearing if moused over. Placed better
+
+* Same with the custom note scroll slider for long custom notes.
+
+* Added scaling options for all the main GRM frames: The Core settings/Log frame, mouseover, Export, Macro Tool, and even the Advanced Join Date Audit Tool
+
+![Scaling Options](https://i.imgur.com/toVo01b.jpg)
+![Example Scale](https://i.imgur.com/RthqyZX.jpg)
+
+
+***BUG FIXES***
+
+**BOTH**
+
+* Scaling issue fixed
+
+* Buttons were appearing and are now disappearing.
+
+* On some language clients the options slider on tooltip scale wasn't pinned right.
+
+* Fixed a bug that caused a Lua error when changing languages
+
+* Fixed a bug that could cause potential disconnects, particularly in Classic when in a group. Very old code that was somewhat inactive in Retail and irrelevant I forgot about that got reactivated again thanks to old frames existing again.
+
+* A few other misc. things I won't mention here.
+
+
+**VERSION 8.2.5R1.791 DATE: October 28th, 2019**
+
+*Dumb Typo on the loading the log fix*
+
+
+**VERSION 8.2.5R1.79 DATE: October 28th, 2019**
+
+*Minor updates to smooth things out a bit in terms of pressing bugs people are encountering as my next release is larger and at least a week or two off. I want to get these parts out asap at least*
+
+
+***QUALITY OF LIFE***
+
+**BOTH**
+
+* Change the tooltip over the guild Info to now just show the full guildInfo page - This is especially helpful in Classic, but overall just removes the spamminess that is now the globals. It wasn't so bad when there was only a couple.
+
+
+***FIXED BUGS***
+
+**BOTH**
+
+* Fixed an issue where it is crashing on load for some people, particularly in Classic, as it is trying to pull the hotkey info for player push-to-talk to ensure GRM doesn't overwrite the Roster window call with the default "J" or ";" keybinds. - Well, it was calling the API to check the push-to-talk key before the interface had been loaded by Blizzard.
+
+* Fixed an issue to prevent compatibility issues with other addons that call the dependency CommunitiesFrame to load immediately.
+
+* Fixed an issue where mouseover frame was not working properly for some people (This resolves it for some people, need to hear if there are still some it does not resolve it for)
+
+* Fixed an issue where some log entries for players leveling up did not show properly in the log
+
+
+**RETAIL**
+
+* Fixed an issue that could occur when trying to verify if a player just joined the guild and if they are a main or not.
+
+
+**CLASSIC**
+
+* Issue where GRM can lockup your game if 2 people in the guild promote/demote a player at the same time. It should uncheck itself from the circumstance in less than a second now.
+
+* Fixed an issue where the addon will detect the wrong person as being promoted/demote as well.
+
+
 
 **VERSION 8.2.5R1.78 DATE: October 23rd, 2019**
 

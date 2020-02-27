@@ -3,13 +3,13 @@
 
 **JOIN-UP ON DISCORD**
 
-[Join Here](https://discord.gg/TaYcGHB) or Copy This Link: https://discord.gg/TaYcGHB
+[Join Discord Here](https://discord.gg/TaYcGHB) or Copy This Link: https://discord.gg/TaYcGHB
 
-*Join up to chat about the addon, offer suggestions, report bugs, or even just chat about guild management related things. All help in this regard is greatly appreciated! I respond much faster to Discord posts than I do anywhere else and am more likely to respond to any issues you might be encountering faster.*
+*Join up to chat about the addon, offer suggestions, report bugs, or even just chat about guild management related things. All help in this regard is greatly appreciated! I respond much faster to Discord posts than I do anywhere else and am more likely to respond faster to any issues you might be encountering.*
 
 **FOREWORD**
 
-As a long-time guild leader, having managed the same guild since the days of *The Burning Crusade*, I always felt like the in-game interface was somewhat lacking. Like most people, I waited patiently for the trickle of improvements that happened every few years. Ultimately, I grew impatient. I wanted more. I was getting tired of the monotony of the grind that came with active leadership. So, while there were other options out there that were pretty good, I was still not truly satisfied. I wanted something cleaner, something with an interface that was easier to use when setting up alts and mains. I wanted something that could grow and expand in scope, as needed. I wanted something that would give me *more knowledge*, more information, more control. I wanted something that would help me make more informed decisions with the guild; or, at the very least, help cut the time it took me to decipher all of the busy work that needed to get done. Unfortunately, the default guild interface was lacking and so this addon idea was born.
+As a long-time guild leader, having managed the same guild since the days of *The Burning Crusade*, I always felt like the in-game interface was somewhat lacking. Like most people, I waited patiently for the trickle of improvements that happened every few years. Ultimately, I grew impatient. I wanted more. I was getting tired of the monotony of the grind that came with active leadership. So, while there were other options out there that were pretty good, I was still not truly satisfied. I wanted something cleaner, something with an interface that was easier to use when setting up alts and mains. I wanted something that could grow and expand in scope, as needed. I wanted something that would give me *more knowledge*, more information, more control. I wanted something that would help me make more informed decisions with the guild; or, at the very least, help cut the time it took me to decipher all of the busy work that needed to get done. This is where this addon was born from.
 
 With the original work, added to with many great suggestions from people in this community, this addon has become something far more than I ever envisioned. However, at the core of GRM the purpose remains the same. My passion and my motivation remain the same, cenetered around one question, "Will this make managing some aspect of the guild better?" I do not wish to ever deviate from this original core goal.
 
@@ -17,7 +17,7 @@ With the original work, added to with many great suggestions from people in this
 
 **GRM FEATURES**
 
-*Snapshot of features before going into details on each one*
+*Snapshot of features before going into details on each one further down*
 
 * Automatically syncing data! That's right! The data we are about to go over will be shared with other GRM addon users in your guild to help keep all players on the same page, especially the leadership. The editing privileges can also be controlled so only trusted ranks will have the power to share their edits with others.
 
@@ -79,6 +79,29 @@ With the original work, added to with many great suggestions from people in this
     * Bans
     * Custom Note
     * Birthday
+
+*It is worth mentioning that all frames are fully programmed to also update LIVE as changes are received. No need to close a window and re-open. Your audit window will update on the fly, as well as the mouseover window, as information is received.*
+
+
+**ALT/MAIN MANAGEMENT AND TAGGING**
+
+![Add an alt to a grouping easily](https://i.imgur.com/MJI75L7.jpg)
+![Chat tag of alt/main information](https://i.imgur.com/Ou9AyqA.jpg)
+![Alt information shown on calendar window as well](https://i.imgur.com/bRipiep.jpg)
+
+* The main tag can be customized to whatever color you like, or even to a different format (it can be disabled)
+
+* These will show on all guildies in guild chat, whispers, party, raid, instance chat.
+
+
+**ROSTER MOUSEOVER WINDOW**
+
+![Mouseover Window!](https://i.imgur.com/cCbKn7H.gif)
+
+* Clicking a player will LOCK the window in place. Either closing the window or pressing the ESC key will release the lock to continue mouseover action.
+
+* Customizable. Within the core GRM window (/grm) you can go to the OPTIONS > UI and change features, like disabling the borders around the notes, hiding Birthday info because your guild doesn't use it. Hiding Guild Rep.
+
 
 
 * Mouseover the guild roster names for all player info, some unique to addon.

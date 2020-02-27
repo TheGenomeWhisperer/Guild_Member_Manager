@@ -273,8 +273,7 @@ GRML.Italian = function()
 
 	GRM_L["Reactivating SCAN for Guild Member Changes..."] = "Analisi dei cambiamenti nell'elenco di gilda riattivata"
 	GRM_L["Deactivating SCAN of Guild Member Changes..."] = "Analisi dei cambiamenti nell'elenco di gilda disattivata"
-	GRM_L["Due to server data restrictions, a scan interval must be at least 10 seconds or more!"] = "A causa di restrizioni del server, l'intervallo di scannerizzazione deve essere almeno 10 secondi!"
-	GRM_L["Please choose an scan interval 10 seconds or higher!"] = "Per favore, scegli un intervallo di 10 secondi o più!"
+	GRM_L["Please choose a scan interval {num} seconds or higher!"] = "Per favore, scegli un intervallo di {num} secondi o più!"
 	GRM_L["{num} is too Low!"] = "{num} è troppo basso!"
 	GRM_L["The Current Lvl Cap is {num}."] = "L'attuale livello massimo è {num}"
 	GRM_L["Kick Inactive Player Reminder at"] = "Promemoria rimozione giocatori inattivi dopo"        -- Context: "Kick Inactive Player Reminder at X Months" - Again, allignment will need to be adjusted for options UI, so please post
@@ -577,12 +576,10 @@ GRML.Italian = function()
 	-- Update 1.130
 	GRM_L["|CFFE6CC7FCtrl-Shift-Click|r to Hide this Button."] = "|CFFE6CC7FCtrl-Shift-Clicca|r per nascondere questo bottone."
 	GRM_L["Invited By:"] = "Invitato da:"
-	GRM_L["To avoid storage bloat, a maximum of 2 save points is currently possible. Please remove one before Continuing."] = "Per evitare di sprecare troppa memoria, è consentito un massimo di 2 punti di salvataggio. Per favore cancellane uno prima di continuare."
 	GRM_L["Error: Guild Not Found..."] = "Errore: Gilda non trovata..."
 	GRM_L["Debugger Start"] = "Inizio Debug";
 
 	-- Update 1.136
-	GRM_L["To avoid storage bloat, a maximum of 2 guild save points is currently possible. Please remove one before continuing"] = "Per evitare di sprecare troppa memoria, è consentito un massimo di 2 punti di salvataggio. Per favore cancellane uno prima di continuare."
 	GRM_L["Backup Point Removed for Guild \"{name}\""] = "Punto di ripristino per la gilda \"{name}\" rimosso"
 	GRM_L["Backup Point Restored for Guild \"{name}\""] = "Ripristino effettuato per la gilda \"{name}\""
 	GRM_L["Backup Point Set for Guild \"{name}\""] = "Punto di ripristino per la gilda \"{name}\" creato"
@@ -817,7 +814,7 @@ GRML.Italian = function()
 	GRM_L["Officer Note:"] = "Nota Ufficiali:"
 	GRM_L["Public Note"] = "Nota Pubblica"
 	GRM_L["Officer Note"] = "Nota Ufficiali"
-	GRM_L["Show Public and Officer Note of Left Player in the Log"] = "Mostra nel Registro la Nota Pubblica e la Nota Ufficiali dei player che lasciano la gilda"
+	GRM_L["Show Public, Officer, and Custom Notes on Log Entries of Left Players"] = true
 	GRM_L["Hard Reset"] = "Reset Totale"
 	GRM_L["Hard reset of ALL GRM data, account-wide. Game will reload!"] = "Reset TOTALE dei dati di GRM, per tutto l'account.\n Il gioco verrà ricaricato!"
 	GRM_L["Reject\nAll"] = "Rifiuta\nTutti"                     -- This is the same as "Reject All" it just forces the 2 words to be on 2 separate lines without me adjusting the text width
@@ -1250,9 +1247,9 @@ GRML.Italian = function()
     GRM_L["This only affects settings for your current guild: {name}"] = true                   -- Tooltip for Options > General > Sync settings to all alts in same guild
     GRM_L["GC"] = true                                                                          -- Options window, acronym for "Global Controls" and will be adjacent to all settings that have global controls
     GRM_L["*GC = Global Control - Use Guild Info to Force Setting For All"] = true              -- Top left Options window
-    GRM_L["Export Global Controls"] = true                                                      -- Options > Officer Tab > Bottom left export button
+    GRM_L["Set Global Controls"] = true                                                      -- Options > Officer Tab > Bottom left export button
     GRM_L["Global Control Values Set in Guild Info"] = true                                     -- Export GuildInfo tool tooltip
-    GRM_L["Configure your settings. Click to export"] = true                                    -- Tooltip line 2- same as above
+    GRM_L["Configure your settings. Click to set in Guild Info"] = true                                    -- Tooltip line 2- same as above
     GRM_L["Unable to add globals controls to GuildInfo. There is not enough room."] = true      -- If export of globals is not able to complete
     GRM_L["Global controls exported to the guild info note. Updating..."] = true                -- Success in exporting
     GRM_L["Your rank cannot edit the Guild Info"] = true                                              -- Mouseover tooltip helper for people without MOTD edit access
@@ -1307,6 +1304,36 @@ GRML.Italian = function()
     GRM_L["Hurray!"] = true                                                              -- A short cheer! Like "Yay!" except "Hurray!"
 	GRM_L["{name} has Reached the {num} Level Cap! {custom1}"] = true                  -- Arkaan has Reached the 120 Level Cap! Hurray!
 	
+	-- 1.80
+	GRM_L["Core Window:"] = true
+	GRM_L["Mouseover Player Details:"] = true
+	GRM_L["Macro Tool:"] = true
+	GRM_L["Export Tool:"] = true
+	GRM_L["Audit Join Date Tool:"] = true
+	GRM_L["GRM UI Scale"] = true
+	GRM_L["Right-Click to Reset"] = true
+	GRM_L["Open the Mouseover Window to see immediate scaling changes"] = true
+	GRM_L["Open the Macro Tool Window to see immediate scaling changes"] = true
+	GRM_L["The Export Tool is connected to the Core window scaling"] = true
+	GRM_L["This provides additional scaling controls on just this window"] = true
+	GRM_L["Open the Export Tool Window to see immediate scaling changes"] = true
+	GRM_L["WARNING: Clear the text box before re-scaling or you may lock up your system"] = true
+	GRM_L["Resets ALL settings, not just the ones on this page"] = true
+	GRM_L["Open MouseOver"] = true
+	GRM_L["Open Macro Tool"] = true
+	GRM_L["Open Export Tool"] = true
+	GRM_L["Open Join Date Tool"] = true
+	
+	-- 1.81
+    GRM_L["Race"] = true
+    GRM_L["Sex"] = true
+    GRM_L["Male"] = true
+	GRM_L["Female"] = true
+	GRM_L["{name} {name2}"] = true          -- This might seem weird, but the format is "Race Sex" In other words, "Orc Male" or "Nightborne Female" and so on. Adjust how you see fit, it appears in the mouseover tooltip on the player name
+	
+	-- 1.82
+    GRM_L["Disabled While Player is Grouped"] = true
+    GRM_L["SYNC is currently disabled while you are grouped. Due to server restricted addon to addon talk data caps, and in an effort to avoid clogging up the shared global comm space of all addons, sync will be temporarily restricted while grouped."] = true
 
 	
 end

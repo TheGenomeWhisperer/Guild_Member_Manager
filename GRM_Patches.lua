@@ -3,6 +3,7 @@
 
 GRM_Patch = {};
 local patchNeeded = false;
+local DBGuildNames;
 
 -- Method:          GRM_Patch.SettingsCheck ( float )
 -- What it Does:    Holds the patch logic for when people upgrade the addon
@@ -109,7 +110,7 @@ GRM_Patch.SettingsCheck = function ( numericV , count , patch )
     -- Introduced R1.129
     -- Some erroneous promo date formats occurred due to a faulty previous update. These cleans them up.
     if numericV < 1.129 and baseValue < 1.129 then
-        GRM_Patch.CleanupPromoDates();
+        GRM_Patch.CleanupPromoDatesOrig();
         if loopCheck ( 1.129 ) then
             return;
         end
@@ -489,6 +490,7 @@ GRM_Patch.SettingsCheck = function ( numericV , count , patch )
             return;
         end
     end
+    
 
     if numericV < 1.53 and baseValue < 1.53 then
         GRM_Patch.GuildDataDatabaseWideEdit ( GRM_Patch.CleanupJoinDateError );
@@ -632,9 +634,114 @@ GRM_Patch.SettingsCheck = function ( numericV , count , patch )
         end
     end
 
+    if numericV < 1.80 and baseValue < 1.80 then
+        GRM_Patch.ExpandOptionsType ( 3 , 1 , 81 );
+        GRM_Patch.ModifyNewDefaultSetting ( 82 , { 1.0 , 1.33 , 1.0 , 1.0 , 1.0 } );     -- Adding Scaler controls to the addon settings.
+        if loopCheck ( 1.80 ) then
+            return;
+        end
+    end
+
+    if numericV < 1.801 and baseValue < 1.801 then
+        GRM_Patch.AddPlayerMetaDataSlot ( 45 , "" );                         -- Adding the position to have an "unknown" option in regards to bdays
+        GRM_Patch.AddPlayerMetaDataSlot ( 46 , 1 );
+        if loopCheck ( 1.801 ) then
+            return;
+        end
+    end
+
+    if numericV < 1.81 and baseValue < 1.81 then
+        GRM_Patch.FixOptionsSetting ( 82 , { 1.0 , 1.33 , 1.0 , 1.0 , 1.0 } , GRM_Patch.FixScalingOption );
+        if loopCheck ( 1.81 ) then
+            return;
+        end
+    end
+
+    if numericV < 1.812 and baseValue < 1.812 then
+        if GRM_G.BuildVersion < 40000 then
+            GRM_Patch.FixOptionsSetting ( 80 , { true , true , true , true , true , true , true , true , true , false , true , true , true , true , true , true } , GRM_Patch.ExpandExportFilters );
+        else
+            GRM_Patch.FixOptionsSetting ( 80 , { true , true , true , true , true , true , true , true , true , true , true , true , true , true , true , true } , GRM_Patch.ExpandExportFilters );
+        end
+        
+        if loopCheck ( 1.812 ) then
+            return;
+        end
+    end
+
+    if numericV < 1.82 and baseValue < 1.82 then
+        GRM_Patch.FixOptionsSetting ( 6 , 20 , GRM_Patch.UpdateMinimumScanTime );       -- New default setting to max 20 seconds
+        if loopCheck ( 1.82 ) then
+            return;
+        end
+    end
+    
+    if numericV < 1.831 and baseValue < 1.831 then
+        GRM_Patch.FixDoubleCopiesInCurrentGuilds(); -- Due to an error reported... this was likely due to a bug that existed for a couple of hours before I noticed, but a couple hundred people had downloaded it... it was still somewhat edge case but it opened the door. Well, someone won the lottery!
+        GRM_Patch.FixDoubleCopiesInLeftPLayers();   -- Prob not necessary, but need to cover all my bases here on this one...
+        GRM_Patch.FixDoubleCopiesInBackup();        -- Same as above.
+        GRM_Patch.RealignDatabaseDueToMisSort();    -- Due to a faulty insert that I created in 1.82 /sigh
+        
+        if GRM_G.BuildVersion < 80000 then
+            GRM_Patch.ModifyNewDefaultSetting ( 71 , true );        -- needs to fix mouseover In Classic. Might have been forced disabled on accident.
+        end
+        
+        if loopCheck ( 1.831 ) then
+            return;
+        end
+    end
+
+    -- Not an actual patch, but I want to force this rebuild to be split up
+    if numericV < 1.832 and baseValue < 1.832 then
+        if GRM_Patch.IsAnySettingsTooLow() then
+            for i = 1 , #GRM_AddonSettings_Save do
+                for j = 2 , #GRM_AddonSettings_Save[i] do
+                    GRM_AddonSettings_Save[i][j][2][1] = "8.2.5R1.76";  -- Trigger the setting to reload for all.
+                end
+            end;
+
+            numericV = 1.76;
+            loopCheck ( 1.76 );
+            return;
+        end
+
+        -- Update the database now!!!
+        GRM_Patch.ConvertAddonSettings();
+        GRM_Patch.ConvertListOfAddonAlts();
+        GRM_Patch.ConvertMiscToNewDB();
+        GRM_Patch.ConvertBackupDB();
+
+        if loopCheck ( 1.832 ) then
+            return;
+        end
+    end
+
+    -- Additional Database Rebuilding!
+    if numericV < 1.834 and baseValue < 1.834 then
+        GRM_Patch.ConvertLogDB();
+        GRM_Patch.ConvertCalenderDB();
+
+        if loopCheck ( 1.834 ) then
+            return;
+        end
+    end
+
+    -- Additional DB Rebuilding
+    -- Additional Database Rebuilding!
+    if numericV < 1.835 and baseValue < 1.835 then
+        GRM_Patch.ConvertPlayerMetaDataDB ( GRM_GuildMemberHistory_Save , true );
+        GRM_Patch.ConvertPlayerMetaDataDB ( GRM_PlayersThatLeftHistory_Save );
+
+        if loopCheck ( 1.835 ) then
+            return;
+        end
+    end
+
+    
     GRM_Patch.FinalizeReportPatches( patchNeeded , numActions );
 end
 
+-- Final report is good to go!
 GRM_Patch.FinalizeReportPatches = function ( patchNeeded , numActions )
     if patchNeeded then
         if numActions > 1 then
@@ -648,13 +755,38 @@ GRM_Patch.FinalizeReportPatches = function ( patchNeeded , numActions )
     GRM.Report ( GRM.L ( "GRM Updated:" ) .. " v" .. string.sub ( GRM_G.Version , string.find ( GRM_G.Version , "R" ) + 1 ) );
 
     -- Updating the version for ALL saved accoutns.
-    for i = 1 , #GRM_AddonSettings_Save do
-        for j = 2 , #GRM_AddonSettings_Save[i] do
-            GRM_AddonSettings_Save[i][j][2][1] = GRM_G.Version;      -- Changing version for all indexes of all toons on this account
+    for f in pairs ( GRM_AddonSettings_Save ) do
+        for p in pairs ( GRM_AddonSettings_Save[f] ) do
+            GRM_AddonSettings_Save[f][p].version = GRM_G.Version;
         end
     end
 
     GRM.FinalSettingsConfigurations();
+end
+
+---------------------
+-- INTEGRITY CHECK --
+---------------------
+
+-- Only applies to updating much older databases so mostly deprecated, but if someone has a significantly old version they will need to run it through this on their update.
+-- Method:          GRM_Patch.PlayerSettingsIntegrityCheck()
+-- What it Does:    Checks for broken player addon settings in relation to some previous errors that could be introduced. Returns a boolean to determine if the player settings need to be rebuilt for that current player
+-- Purpose:         To fix any issues in regards to previous bug.
+GRM_Patch.PlayerSettingsIntegrityCheck = function()
+    local g = GRM_AddonSettings_Save;
+    local needsToKeep = true;
+    
+    for i = 1 , #g do
+        for j = #g[i] , 2 , -1 do
+            if g[i][j][2] == nil then 
+                if needsToKeep and g[i][j][1] == GRM_G.addonUser then
+                    needsToKeep = false;
+                end
+                table.remove ( g[i] , j );
+            end
+        end
+    end
+    return needsToKeep;
 end
 
 ------------------------
@@ -686,9 +818,9 @@ GRM_Patch.RemoveMacroInClassic = function()
 
 end
 
-        -------------------------------
-        --- START PATCH LOGIC ---------
-        -------------------------------
+-------------------------------
+--- START PATCH LOGIC ---------
+-------------------------------
 
 -- Introduced Patch R1.092
 -- Alt tracking of the player - so it can auto-add the player's own alts to the guild info on use.
@@ -760,7 +892,7 @@ end
 GRM_Patch.IntroduceUnknown = function()
     for i = 1 , #GRM_GuildMemberHistory_Save do                         -- Horde and Alliance
         for j = 2 , #GRM_GuildMemberHistory_Save[i] do                  -- The guilds in each faction
-            for r = 2 , #GRM_GuildMemberHistory_Save[i][j] do           -- The players in each guild (starts at 2 as position 1 is the name of the guild).
+            for r = 2 , #GRM_GuildMebmerHistory_Save[i][j] do           -- The players in each guild (starts at 2 as position 1 is the name of the guild).
                 if #GRM_GuildMemberHistory_Save[i][j][r] == 39 then
                     table.insert ( GRM_GuildMemberHistory_Save[i][j][r] , false );      -- isUnknown join
                     table.insert ( GRM_GuildMemberHistory_Save[i][j][r] , false );      -- isUnknown promo
@@ -867,7 +999,7 @@ end
 
 -- Some Promo dates were erroneously added with a ": 14 Jan '18" format. This fixes that.
 -- Introduced Patch R1.129
-GRM_Patch.CleanupPromoDates = function()
+GRM_Patch.CleanupPromoDatesOrig = function()
     local t = GRM_GuildMemberHistory_Save;
     for i = 1 , #t do                         -- Horde and Alliance
         for j = 2 , #t[i] do                  -- The guilds in each faction
@@ -920,53 +1052,6 @@ GRM_Patch.ResetSyncThrottle = function()
     for i = 1 , #GRM_AddonSettings_Save do
         for j = 2 , #GRM_AddonSettings_Save[i] do
             GRM_AddonSettings_Save[i][j][2][24] = 40;
-        end
-    end
-end
-
--- R1.130
--- Need to update for backup saves as well...
--- Added as it appears to be an issue for guilds with the same name, same faction, but different servers...
-GRM_Patch.AddGuildCreationDate = function( index )
-    if GRM_G.guildCreationDate ~= "" then
-        if GRM_GuildMemberHistory_Save[GRM_G.FID][index][1] == GRM.SlimName ( GRM_G.guildName ) then
-            GRM_GuildMemberHistory_Save[GRM_G.FID][index][1] = { GRM_G.guildName , GRM_G.guildCreationDate };
-            
-            -- now need to do the same thing for all the rest...
-            for j = 2 , #GRM_CalendarAddQue_Save[GRM_G.FID] do
-                if GRM_CalendarAddQue_Save[GRM_G.FID][j][1] == GRM.SlimName ( GRM_G.guildName ) then
-                    GRM_CalendarAddQue_Save[GRM_G.FID][j][1] = { GRM_G.guildName , GRM_G.guildCreationDate };
-                    break;
-                end
-            end
-
-            for j = 2 , #GRM_PlayersThatLeftHistory_Save[GRM_G.FID] do
-                if GRM_PlayersThatLeftHistory_Save[GRM_G.FID][j][1] == GRM.SlimName ( GRM_G.guildName ) then
-                    GRM_PlayersThatLeftHistory_Save[GRM_G.FID][j][1] = { GRM_G.guildName , GRM_G.guildCreationDate };
-                    break;
-                end
-            end
-
-            for j = 2 , #GRM_LogReport_Save[GRM_G.FID] do
-                if GRM_LogReport_Save[GRM_G.FID][j][1] == GRM.SlimName ( GRM_G.guildName ) then
-                    GRM_LogReport_Save[GRM_G.FID][j][1] = { GRM_G.guildName , GRM_G.guildCreationDate };
-                    break;
-                end
-            end
-
-            for j = 2 , #GRM_PlayerListOfAlts_Save[GRM_G.FID] do
-                if GRM_PlayerListOfAlts_Save[GRM_G.FID][j][1] == GRM.SlimName ( GRM_G.guildName ) then
-                    GRM_PlayerListOfAlts_Save[GRM_G.FID][j][1] = { GRM_G.guildName , GRM_G.guildCreationDate };
-                    break;
-                end
-            end
-        end
-        -- Now need to update the backup info...
-        for i = 2 , #GRM_GuildDataBackup_Save[GRM_G.FID] do
-            if type ( GRM_GuildDataBackup_Save[GRM_G.FID][i][1] ) == "string" and GRM_GuildDataBackup_Save[GRM_G.FID][i][1] == GRM.SlimName ( GRM_G.guildName ) then
-                GRM_GuildDataBackup_Save[GRM_G.FID][i][1] = { GRM_G.guildName , GRM_G.guildCreationDate };
-                break;
-            end
         end
     end
 end
@@ -1054,7 +1139,7 @@ GRM.CleanupGuildNames = function()
                 -- Let's scan through the guild to see if it has my name!
                 local isFound = false;
                 for j = 2 , #GRM_GuildMemberHistory_Save[i][s] do
-                    if GRM_GuildMemberHistory_Save[i][s][j][1] == GRM_G.addonPlayerName then
+                    if GRM_GuildMemberHistory_Save[i][s][j][1] == GRM_G.addonUser then
                         GRM_GuildMemberHistory_Save[i][s][1] = GRM_G.guildName;
                         isFound = true;
                         break;
@@ -1073,7 +1158,7 @@ GRM.CleanupGuildNames = function()
                 -- Let's scan through the guild to see if it has my name!
                 local isFound = false;
                 for j = 2 , #GRM_PlayersThatLeftHistory_Save[i][s] do
-                    if GRM_PlayersThatLeftHistory_Save[i][s][j][1] == GRM_G.addonPlayerName then
+                    if GRM_PlayersThatLeftHistory_Save[i][s][j][1] == GRM_G.addonUser then
                         GRM_PlayersThatLeftHistory_Save[i][s][1] = GRM_G.guildName;
                         isFound = true;
                         break;
@@ -1083,47 +1168,6 @@ GRM.CleanupGuildNames = function()
                     GRM_PlayersThatLeftHistory_Save[i][s][1] = "";
                 end
             end
-        end
-    end
-end
-
--- R 1.135
--- Cleaning up the broken log
-GRM_Patch.FixLogGuildInfo = function()
-    for i = 1 , #GRM_LogReport_Save do                  -- Scan the factions
-        for j = 2 , #GRM_LogReport_Save[i] do           -- Scan the guilds 
-            if type ( GRM_LogReport_Save[i][j][1] ) == "string" then
-                -- Needs to be updated!!!
-                GRM_LogReport_Save[i][j][1] = { GRM_LogReport_Save[i][j][1] , GRM_LogReport_Save[i][j][2] };
-                table.remove ( GRM_LogReport_Save[i][j] , 2 );
-            end
-        end
-    end
-end
-
--- R 1.137
--- Just a tool to use, will not be auto-called...
-GRM_Patch.RepairAndMergeGuildLogs = function( newName , oldName , factionID )
-    for i = 2 , #GRM_LogReport_Save[factionID] do
-        -- First, let's identify the index of the new guild, so we can save over it.
-        if type ( GRM_LogReport_Save[factionID][i][1] ) == "table" and GRM_LogReport_Save[factionID][i][1][1] == newName then
-            for j = 2 , #GRM_LogReport_Save[factionID] do
-                if type ( GRM_LogReport_Save[factionID][j][1] ) == "string" and GRM_LogReport_Save[factionID][j][1] == oldName then
-                    GRM.Report ( "Old Guild Name Data Found... Attempting Recovery." );
-                    GRM_LogReport_Save[factionID][j][1] = GRM_LogReport_Save[factionID][i][1];      -- Saving new guild info properly...
-                    -- Add the log entries...
-                    GRM.Report ( "Merging Both Logs..." );
-                    for s = 2 , #GRM_LogReport_Save[factionID][i] do
-                        table.insert ( GRM_LogReport_Save[factionID][j] , GRM_LogReport_Save[factionID][i][s] );
-                    end
-                    GRM_LogReport_Save[factionID][i] = GRM_LogReport_Save[factionID][j];            -- Adding the log...
-                    -- Removing the old log...
-                    GRM.Report ( "Guild Log Recovery Complete!" );
-                    table.remove ( GRM_LogReport_Save[factionID] , j );
-                    break;
-                end
-            end
-            break;
         end
     end
 end
@@ -1182,20 +1226,24 @@ GRM_Patch.CleanupPromoDates = function()
 end
 
 -- Introduced patch R1.142
--- Method:          GRM_Patch.ExpandOptionsType(int,int,int)
+-- Method:          GRM_Patch.ExpandOptionsType(int,int,int,object)
 -- What it Does:    Expands the number of options settings, and initializes the type
 -- Purpose:         Reusuable for future flexibility on updates.
 -- 1 = number, 2=boolean, 3 = array , 4 = string
-GRM_Patch.ExpandOptionsType = function( typeToAdd , numberSlots , referenceCheck )
+GRM_Patch.ExpandOptionsType = function( typeToAdd , numberSlots , referenceCheck , saveOption )
     local expansionType;
-    if typeToAdd == 1 then          -- Int
-        expansionType = 1;
-    elseif typeToAdd == 2 then      -- Boolean
-        expansionType = true;
-    elseif typeToAdd == 3 then      -- Array/Table
-        expansionType = {};
-    elseif typeToAdd == 4 then      -- String
-        expansionType = "";
+    if saveOption then
+        expansionType = saveOption;
+    else
+        if typeToAdd == 1 then          -- Int
+            expansionType = 1;
+        elseif typeToAdd == 2 then      -- Boolean
+            expansionType = true;
+        elseif typeToAdd == 3 then      -- Array/Table
+            expansionType = {};
+        elseif typeToAdd == 4 then      -- String
+            expansionType = "";
+        end
     end
     -- Updating settings for all
     for i = 1 , #GRM_AddonSettings_Save do
@@ -1232,13 +1280,13 @@ GRM_Patch.ModifyNewDefaultSetting = function ( index , newSetting )
                 -- Double check if it is current player still is found
                 local isFound = false;
                 for k = 2 , #GRM_AddonSettings_Save[GRM_G.FID] do
-                    if GRM_AddonSettings_Save[GRM_G.FID][k][1] == GRM_G.addonPlayerName then
+                    if GRM_AddonSettings_Save[GRM_G.FID][k][1] == GRM_G.addonUser then
                         isFound = true;
                         break;
                     end
                 end
                 if not isFound then -- Edge case scenario of addon settings being lost thus are replaced with defaults.
-                    table.insert ( GRM_AddonSettings_Save[GRM_G.FID] , { GRM_G.addonPlayerName } );
+                    table.insert ( GRM_AddonSettings_Save[GRM_G.FID] , { GRM_G.addonUser } );
                     GRM_G.setPID = #GRM_AddonSettings_Save[GRM_G.FID];
                     table.insert ( GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID] , GRM.GetDefaultAddonSettings() );
                     GRM_G.IsNewToon = true;
@@ -1284,100 +1332,6 @@ GRM_Patch.FixBrokenLanguageIndex = function()
                     GRM_AddonSettings_Save[i][j][2][43] = 1;        -- To default back to...
                 end
             end
-        end
-    end
-end
-
-
--- Method:          GRM_Patch.DoubleGuildFix ( string , string , string )
--- What it Does:    If there are 2 copies of the guild, but one of them is broken because the creation date was incorrect, this fixes it
--- Purpose:         To save people's data!
-GRM_Patch.DoubleGuildFix = function ( guildName , creationDate , faction )
-
-    if guildName == GRM_G.guildName then
-        GRM.Report ( "\n" .. GRM.L ( "Player Cannot Purge the Guild Data they are Currently In!!!" ) .. "\n" .. GRM.L( "To reset your current guild data type '/grm clearguild'" ) );
-    else
-        local factionIndex = 1;
-        if string.lower ( faction ) == "alliance" then
-            factionIndex = 2;
-        end
-        local badCreationDate = "";
-        local guildIndex = -1;
-        local purgeGuildIndex = -1;
-        local logIndex = -1;
-        local purgeLogIndex = -1;
-
-        for i = 2 , #GRM_GuildMemberHistory_Save[factionIndex] do
-            if string.lower ( GRM_GuildMemberHistory_Save[factionIndex][i][1][1] ) == string.lower ( guildName ) then   -- String.lower for typos on case sensitivity can be avoided.
-                -- Guild Found!!!
-                if GRM_GuildMemberHistory_Save[factionIndex][i][1][2] ~= creationDate then      -- Bad Creation date found!
-                    badCreationDate = GRM_GuildMemberHistory_Save[factionIndex][i][1][2];
-                    guildIndex = i
-                elseif GRM_GuildMemberHistory_Save[factionIndex][i][1][2] == creationDate then     -- Ok, correct creation date, but it has overriden the old log data, need to restore...
-                    purgeGuildIndex = i;
-                end
-                if guildIndex ~= -1 and purgeGuildIndex ~= -1 then
-                    break;
-                end
-            end
-        end
-
-        -- Determine log indexes since it is possible they are not static.
-        for i = 2 , #GRM_LogReport_Save[factionIndex] do
-            if string.lower ( GRM_LogReport_Save[factionIndex][i][1][1] ) == string.lower ( guildName ) then
-                if GRM_LogReport_Save[factionIndex][i][1][2] == badCreationDate then
-                    logIndex = i;
-                elseif GRM_LogReport_Save[factionIndex][i][1][2] == creationDate then
-                    purgeLogIndex = i;
-                end
-                if logIndex ~= -1 and purgeLogIndex ~= -1 then
-                    break;
-                end
-            end
-        end
-
-        if guildIndex ~= -1 and purgeGuildIndex ~= -1 then
-
-            -- Before we purge, let's merge the logs...
-            for i = 2 , #GRM_LogReport_Save[factionIndex][purgeLogIndex] do
-                table.insert ( GRM_LogReport_Save[factionIndex][guildIndex] , GRM_LogReport_Save[factionIndex][purgeLogIndex][i] );
-            end
-
-            if guildIndex > purgeGuildIndex then
-                guildIndex = guildIndex - 1;        -- Need to increment down because we are about to remove an index with the purge
-            end
-            -- Need to reset these values...
-            if GRM_G.FID == factionIndex and purgeGuildIndex < GRM_G.saveGID then
-                GRM_G.saveGID = GRM_G.saveGID - 1;
-            end
-            if GRM_G.FID == factionIndex and purgeLogIndex < GRM_G.logGID then
-                GRM_G.logGID = GRM_G.logGID - 1;
-            end
-
-            GRM.PurgeGuildFromDatabase ( guildName , creationDate , factionIndex );
-                
-            -- Now, let's purge the old guild
-            
-            GRM_GuildMemberHistory_Save[factionIndex][guildIndex][1][2] = creationDate;
-            GRM_PlayersThatLeftHistory_Save[factionIndex][guildIndex][1][2] = creationDate;
-            GRM_CalendarAddQue_Save[factionIndex][guildIndex][1][2] = creationDate;
-            GRM_GuildDataBackup_Save[factionIndex][guildIndex][1][2] = creationDate;
-            GRM_LogReport_Save[factionIndex][logIndex][1][2] = creationDate;
-
-            -- Now the backups
-            for i = 2 , #GRM_GuildDataBackup_Save[factionIndex][guildIndex] do
-                if #GRM_GuildDataBackup_Save[factionIndex][guildIndex][i] > 0 then
-                    GRM_GuildDataBackup_Save[factionIndex][guildIndex][i][3][1][2] = creationDate;
-                    GRM_GuildDataBackup_Save[factionIndex][guildIndex][i][4][1][2] = creationDate;
-                    GRM_GuildDataBackup_Save[factionIndex][guildIndex][i][5][1][2] = creationDate;
-                    GRM_GuildDataBackup_Save[factionIndex][guildIndex][i][6][1][2] = creationDate;
-                    GRM_GuildDataBackup_Save[factionIndex][guildIndex][i][7][1][2] = creationDate;
-                end
-            end 
-
-            GRM.Report ( guildName .. "'s Database has been Fixed!" );
-        else
-            GRM.Report ( guildName .. "'s Database was not fixed... no duplicate copies of the guild were found!" );
         end
     end
 end
@@ -1490,20 +1444,35 @@ GRM_Patch.AddPlayerMetaDataSlot = function ( previousMaxIndex , newValue )
     end
 
     -- Need backup info to be modified as well...
+    local needsToBreak = false;
     if GRM_GuildDataBackup_Save ~= nil then
         for i = 1 , #GRM_GuildDataBackup_Save do
             for j = 2 , #GRM_GuildDataBackup_Save[i] do
                 for s = 2 , #GRM_GuildDataBackup_Save[i][j] do
+
+                    needsToBreak = false;
+
                     if #GRM_GuildDataBackup_Save[i][j][s] > 0 then
                         -- 3 and 4 = history and leftHistory
                         for m = 3 , 4 do
-                            for n = 2 , #GRM_GuildDataBackup_Save[i][j][s][m] do
-                                if #GRM_GuildDataBackup_Save[i][j][s][m][n] == previousMaxIndex then
-                                    table.insert ( GRM_GuildDataBackup_Save[i][j][s][m][n] , newValue );
+                            if GRM_GuildDataBackup_Save[i][j][s][m] ~= nil then
+                                for n = 2 , #GRM_GuildDataBackup_Save[i][j][s][m] do
+                                    if #GRM_GuildDataBackup_Save[i][j][s][m][n] == previousMaxIndex then
+                                        table.insert ( GRM_GuildDataBackup_Save[i][j][s][m][n] , newValue );
+                                    end
                                 end
+                            else
+                                -- Uh oh... backup corrupted?
+                                GRM_GuildDataBackup_Save[i][j] = { GRM_GuildDataBackup_Save[i][j][1] , {} };
+                                needsToBreak = true;
+                                break;
                             end
                         end
                     end
+                    if needsToBreak then
+                        break;
+                    end
+
                 end
             end
         end
@@ -1729,31 +1698,91 @@ GRM_Patch.FixBanListNameGrammar = function()
     end
 end
 
+-- Method:          GRM_Patch.RemoveDouble ( table )
+-- What it Does:    Iterates through the roster and finds all copies and removes them
+-- Purpose:         Fixing a coding flaw
+GRM_Patch.RemoveDouble = function ( finalStepTable )
+    local t = finalStepTable;
+    local i , c , r = 2;
+    while i <= #t do
+        c = 0;
+        local n = t[i][1];
+        for j = 2 , #t do
+            if t[j][1] == n then
+                c = c + 1;
+                if c > 1 then
+                    r = j;
+                    break;
+                end;
+            end;
+        end;
+        if c > 1 then 
+            table.remove ( t , r );
+        else
+            i = i + 1;
+        end;
+    end
+end
+
+-- Methhod:         GRM_Patch.FixDoubleCopiesOfData ( array )
+-- What it Does:    Fixes the database given to it of left or joined players
+-- Purpose:         Reusuable logic depending on the selected database of choice.
+GRM_Patch.FixDoubleCopiesOfData = function ( dataTable )
+    for j = 1 , #dataTable do
+        for s = 2 , #dataTable[j] do
+
+            GRM_Patch.RemoveDouble ( dataTable[j][s] );
+
+        end
+    end
+end
+
 -- Method:          GRM_Patch.FixDoubleCopiesInLeftPLayers()
 -- What it Does:    Cleans up the left players for double copies which could have happened with the ban list.
 -- Purpose:         Fix an error in the code from patch 1.1530 in the ban list modification updates.
 GRM_Patch.FixDoubleCopiesInLeftPLayers = function()
-    for j = 1 , #GRM_PlayersThatLeftHistory_Save do
-        for s = 2 , #GRM_PlayersThatLeftHistory_Save[j] do
-            local t = GRM_PlayersThatLeftHistory_Save[j][s];
-            local i , c , r = 2;
-            while i <= #t do
-                c = 0;
-                local n = t[i][1];
-                for j = 2 , #t do
-                    if t[j][1] == n then
-                        c = c + 1;
-                        if c > 1 then
-                            r = j;
-                            break;
-                        end;
-                    end;
-                end;
-                if c > 1 then 
-                    table.remove ( t , r );
-                else
-                    i = i + 1;
-                end;
+    GRM_Patch.FixDoubleCopiesOfData ( GRM_PlayersThatLeftHistory_Save );
+end
+
+-- Method:          GRM_Patch.FixDoubleCopiesInCurrentGuilds()
+-- What it Does:    Cleans up the current players for double copies which could have happened with a previous flaw in a recent update.
+-- Purpose:         Fix database error.
+GRM_Patch.FixDoubleCopiesInCurrentGuilds = function()
+    GRM_Patch.FixDoubleCopiesOfData ( GRM_GuildMemberHistory_Save );
+end
+
+-- Method:          GRM_Patch.FixDoubleCopiesInBackup()
+-- What it Does:    Fixes the lingering issue in the backups as well
+-- Purpose:         Fixes coding flaw that allowed a double entry
+GRM_Patch.FixDoubleCopiesInBackup = function()
+    local needsToBreak = false;
+    if GRM_GuildDataBackup_Save ~= nil then
+        for i = 1 , #GRM_GuildDataBackup_Save do
+            for j = 2 , #GRM_GuildDataBackup_Save[i] do
+                for s = 2 , #GRM_GuildDataBackup_Save[i][j] do
+
+                    needsToBreak = false;
+
+                    if #GRM_GuildDataBackup_Save[i][j][s] > 0 then
+                        -- 3 and 4 = history and leftHistory
+                        for m = 3 , 4 do
+                            if GRM_GuildDataBackup_Save[i][j][s][m] ~= nil then
+                                -- Logic to remove the doubles in a whie loop
+                                GRM_Patch.RemoveDouble ( GRM_GuildDataBackup_Save[i][j][s][m] );
+
+                            else
+                                -- Uh oh... backup corrupted?
+                                GRM_GuildDataBackup_Save[i][j] = { GRM_GuildDataBackup_Save[i][j][1] , {} };
+                                needsToBreak = true;
+                                break;
+                            end
+                        end
+                    end
+                    if needsToBreak then
+                        break;
+                    end
+
+                end
             end
         end
     end
@@ -3185,26 +3214,6 @@ GRM_Patch.RemoveOneAutoAndOneManualBackup = function()
     end
 end
 
--- Method:          GRM_Patch.PlayerSettingsIntegrityCheck()
--- What it Does:    Checks for broken player addon settings in relation to some previous errors that could be introduced. Returns a boolean to determine if the player settings need to be rebuilt for that current player
--- Purpose:         To fix any issues in regards to previous bug.
-GRM_Patch.PlayerSettingsIntegrityCheck = function()
-    local g = GRM_AddonSettings_Save;
-    local needsToKeep = true;
-    
-    for i = 1 , #g do
-        for j = #g[i] , 2 , -1 do
-            if g[i][j][2] == nil then 
-                if needsToKeep and g[i][j][1] == GRM_G.addonPlayerName then
-                    needsToKeep = false;
-                end
-                table.remove ( g[i] , j );
-            end
-        end
-    end
-    return needsToKeep;
-end
-
 -- Method:          GRM_Patch.ConvertRecommendedKickDateToRule ( int )
 -- What it Does:    It converts the old setting to the new format.
 -- Purpose:         Integration into the GRM tool.
@@ -3221,13 +3230,13 @@ GRM_Patch.ConvertRecommendedKickDateToRule = function( index )
                 -- Double check if it is current player still is found
                 local isFound = false;
                 for k = 2 , #GRM_AddonSettings_Save[GRM_G.FID] do
-                    if GRM_AddonSettings_Save[GRM_G.FID][k][1] == GRM_G.addonPlayerName then
+                    if GRM_AddonSettings_Save[GRM_G.FID][k][1] == GRM_G.addonUser then
                         isFound = true;
                         break;
                     end
                 end
                 if not isFound then -- Edge case scenario of addon settings being lost thus are replaced with defaults.
-                    table.insert ( GRM_AddonSettings_Save[GRM_G.FID] , { GRM_G.addonPlayerName } );
+                    table.insert ( GRM_AddonSettings_Save[GRM_G.FID] , { GRM_G.addonUser } );
                     GRM_G.setPID = #GRM_AddonSettings_Save[GRM_G.FID];
                     table.insert ( GRM_AddonSettings_Save[GRM_G.FID][GRM_G.setPID] , GRM.GetDefaultAddonSettings() );
                     GRM_G.IsNewToon = true;
@@ -3284,3 +3293,858 @@ GRM_Patch.ClearExtraBackups = function()
     end
 end
 
+-- 1.81
+-- Method:          GRM_Patch.FixOptionsSetting ( int , var , function )
+-- What it Does:    Determines if the setting exists. If it does not, is sets the correctSetting. If it does, then it modifies the setting based on the function logic
+-- Purpose:         It is possible in some cases when updating the addon the system crashes before a system updated takes, maybe in the middle of it. This verifies and fixes issues with the settings.
+GRM_Patch.FixOptionsSetting = function( index , correctSetting , settingsControlFunction )
+
+    for i = 1 , #GRM_AddonSettings_Save do
+        for j = #GRM_AddonSettings_Save[i] , 2 , -1 do
+            if #GRM_AddonSettings_Save[i][j] == nil then
+                table.remove ( GRM_AddonSettings_Save[i] , j );
+            else
+                if #GRM_AddonSettings_Save[i][j] == 1 then
+                    table.remove ( GRM_AddonSettings_Save[i] , j );                 -- Error protection in case bad settings profile build
+                else
+                    if GRM_AddonSettings_Save[i][j][2][index] ~= nil then
+                        GRM_AddonSettings_Save[i][j][2][index] = settingsControlFunction ( GRM_AddonSettings_Save[i][j][2][index] , correctSetting );
+                    else
+                        GRM_AddonSettings_Save[i][j][2][index] = correctSetting;
+                    end
+                end
+            end
+        end
+    end
+end
+
+-- 1.81
+-- Method:          GRM_Patch.FixScalingOption ( var , table )
+-- What it Does:    Checks if the format of the setting is correct and fixes each part of it properly to defauly correct setting, or keeps previous settings if ok.
+-- Purpose:         Integrity check of this due to a potential issue that caused crash when creating the setting.
+GRM_Patch.FixScalingOption = function ( setting , correctSetting )
+
+    if setting ~= nil and #setting == 5 then
+        for i = 1 , #setting do
+            if setting[i] == nil or type ( setting[i] ) ~= "number" then
+                setting[i] = correctSetting[i];
+            end
+        end
+    else
+        setting = correctSetting;
+    end
+
+    return setting;
+end
+
+-- 1.81
+-- Method:          GRM_Patch.ExpandExportFilters ( var , table )
+-- What it Does:    Addes 2 extra booleans to the table for export filter controls for sex/race
+-- Purpose:         So that the sex and race filters can be added to the settings.
+GRM_Patch.ExpandExportFilters = function ( setting , correctSetting )
+    if setting ~= nil and #setting == 14 then
+        setting[15] = true;
+        setting[16] = true;
+    else
+        setting = correctSetting;
+    end
+
+    return setting;
+end
+
+-- 1.82
+-- Method:          GRM_Patch.UpdateMinimumScanTime ( int , int )
+-- What it Does:    Checks if the minimum scan setting is below 20 seconds, and if it is, sets it to 20
+-- Purpose:         To set the minimum to only be at 20 seconds instead of the previous 10.
+GRM_Patch.UpdateMinimumScanTime = function ( setting , correctSetting )
+    if setting == nil or setting < 20 then
+        setting = correctSetting;
+    end
+    return setting;
+end
+
+-- 1.831
+-- Method:          GRM_Patch.RealignDatabaseDueToMisSort()
+-- What it Does:    Takes all guild saves and sorts them properly, including backups
+-- Purpose:         Fix a dump insert issue I created in 1.82
+GRM_Patch.RealignDatabaseDueToMisSort = function ()
+    for i = 1 , #GRM_GuildMemberHistory_Save do                         -- Horde and Alliance
+        for j = 2 , #GRM_GuildMemberHistory_Save[i] do                  -- The guilds in each faction
+            GRM_GuildMemberHistory_Save[i][j] =  GRM.SortDeepArrayInOrder ( GRM_GuildMemberHistory_Save[i][j] );
+        end
+    end
+
+    -- need to update the left player's database too...
+    for i = 1 , #GRM_PlayersThatLeftHistory_Save do                         -- Horde and Alliance
+        for j = 2 , #GRM_PlayersThatLeftHistory_Save[i] do                  -- The guilds in each faction
+            GRM_PlayersThatLeftHistory_Save[i][j] =  GRM.SortDeepArrayInOrder ( GRM_PlayersThatLeftHistory_Save[i][j] );
+        end
+    end
+
+    local needsToBreak = false;
+    -- Need backup info to be modified as well...
+    if GRM_GuildDataBackup_Save ~= nil then
+        for i = 1 , #GRM_GuildDataBackup_Save do
+            for j = 2 , #GRM_GuildDataBackup_Save[i] do
+                for s = 2 , #GRM_GuildDataBackup_Save[i][j] do
+
+                    needsToBreak = false;
+                    if #GRM_GuildDataBackup_Save[i][j][s] > 0 then
+                        -- 3 and 4 = history and leftHistory
+                        for m = 3 , 4 do
+                            if GRM_GuildDataBackup_Save[i][j][s][m] ~= nil then
+                                GRM_GuildDataBackup_Save[i][j][s][m] =  GRM.SortDeepArrayInOrder ( GRM_GuildDataBackup_Save[i][j][s][m] );
+                            else
+                                -- Uh oh... backup corrupted?
+                                GRM_GuildDataBackup_Save[i][j] = { GRM_GuildDataBackup_Save[i][j][1] , {} };
+                                needsToBreak = true;
+                                break;
+                            end
+                        end
+                    end
+
+                    if needsToBreak then
+                        break;
+                    end
+
+                end
+            end
+        end
+    end
+end
+
+-- 1.84
+-- Method:          GRM_Patch.IsAnySettingsTooLow()
+-- What it Does:    Returns true if the number of settings options is below 79
+-- Purpose:         Due to a previous bug some people might not have configured their setttings properly. This resolves it
+GRM_Patch.IsAnySettingsTooLow = function()
+    for i = 1 , #GRM_AddonSettings_Save do
+        for j = 2 , #GRM_AddonSettings_Save[i] do
+            if #GRM_AddonSettings_Save[i][j][2] <= 78 then  -- Trigger the setting to reload for all.
+                return true;
+            end
+        end
+    end;
+
+    return false;
+end
+-- /run GRM_Patch.AddNewSetting ( "kickRules" , {} );
+-- /dump GRM_AddonSettings_Save[1][2].kickRules
+
+-- 1.84
+-- Method:          GRM_Patch.AddNewSetting ( string , object )
+-- What it Does:    Adds a new dictionary settings value
+-- Purpose:         Be able to easily add new settings
+GRM_Patch.AddNewSetting = function ( settingName , value )
+    for i = 1 , #GRM_AddonSettings_Save do
+        for j = 2 , #GRM_AddonSettings_Save[i] do
+            GRM_AddonSettings_Save[i][j][settingName] = value;
+        end
+    end
+end
+
+-- 1.84
+-- Method:          GRM_Patch.ModifySetting ( string , object )
+-- What it Does:    Modifies a new dictionary settings value
+-- Purpose:         Be able to easily add new settings
+GRM_Patch.ModifySetting = function ( settingName , value )
+    for i = 1 , #GRM_AddonSettings_Save do
+        for j = 2 , #GRM_AddonSettings_Save[i] do
+            if GRM_AddonSettings_Save[i][j].settingName ~= nil then
+                GRM_AddonSettings_Save[i][j].settingName = value;
+            end
+        end
+    end
+end
+
+-- 1.84 - Shifted over - only needed as temporary placeholder to normalize creation of a new player before overwriting. This saves a lot of extra code just keeping it here.
+-- Method:          GRM_Patch.GetDefaultAddonSettings()
+-- What it Does:    Establishes the default addon setttings for all of the options and some other misc. stored variables, like minimap position
+-- Purpose:         Easy access to settings on a default reset.
+GRM_Patch.GetDefaultAddonSettings = function()
+    local defaults = {
+        GRM_G.Version,                                                                                          -- 1)  Version
+        true,                                                                                                   -- 2)  View on Load
+        { true , true , true , true , true , true , true , true , true , true , true , true , true , true },    -- 3)  All buttons are checked in the log window (14 so far)
+        336,                                                                                                    -- 4)  Report inactive return of player coming back (2 weeks is default value)
+        14,                                                                                                     -- 5)  Event Announce in Advance - Cannot be higher than 4 weeks ( 28 days ) ( 1 week is default);
+        30,                                                                                                     -- 6)  How often to check for changes ( in seconds )
+        false,                                                                                                  -- 7)  Add Timestamp on join to Officer Note
+        true,                                                                                                   -- 8)  Use Calendar Announcements
+        true,                                                                                                   -- 9)  Color Code names 
+        true,                                                                                                   -- 10) Show the mouseover window or not.
+        true,                                                                                                   -- 11) Report Inactive Returns
+        true,                                                                                                   -- 12) Announce Upcoming Events.
+        { true , true , true , true , true , true , true , true , true , true , true , true , true , true },    -- 13) Checkbox for message frame announcing. Disable 
+        true,                                                                                                   -- 14) Allow Data sharing between guildies
+        GRM.GetRankRestrictedDefaultRankIndex(),                                                                -- 15) Rank Player must be to accept sync updates from them.
+        true,                                                                                                   -- 16) Receive Notifications if others in the guild send updates!
+        true,                                                                                                   -- 17) Only announce the anniversary of players set as the "main"
+        true,                                                                                                   -- 18) Scan for changes
+        true,                                                                                                   -- 19) Sync only with players who have current version or higher.
+        1,                                                                                                      -- 20) Add Join Date to Officer Note = 1, Public Note = 2 , custom = 3
+        true,                                                                                                   -- 21) Sync Ban List
+        GRM.GetFirstOfficerRank(),                                                                              -- 22) Rank player must be to send or receive Ban List sync updates!
+        1,                                                                                                      -- 23) Only Report level increase greater than or equal to this.
+        1,                                                                                                      -- 24) 100 % speed
+        345,                                                                                                    -- 25) Minimap Position
+        78,                                                                                                     -- 26) Minimap Radius
+        true,                                                                                                   -- 27) Notify when player requests to join guild the recruitment window
+        true,                                                                                                   -- 28) Only View on Load if Changes were found
+        true,                                                                                                   -- 29) Show "main" name in guild/whispers if player speaking on their alt
+        false,                                                                                                  -- 30) Only show those needing to input data on the audit window.
+        true,                                                                                                   -- 31) Sync Settings of all alts in the same guild
+        true,                                                                                                   -- 32) Show Minimap Button
+        true,                                                                                                   -- 33) Audit Frame - Unknown Counts as complete
+        true,                                                                                                   -- 34) Allow Autobackups
+        true,                                                                                                   -- 35) Share data with ALL guildies, but only receive from your threshold rank
+        true,                                                                                                   -- 36) Show line numbers in log
+        true,                                                                                                   -- 37) Enable Shift-Click Line removal of the log...
+        true,                                                                                                   -- 38) Custom Note Sync allowed
+        GRM.Use24HrBasedOnDefaultLanguage(),                                                                    -- 39) Use 24hr Scale
+        true,                                                                                                   -- 40) Track Birthdays
+        7,                                                                                                      -- 41) Auto Backup Interval in Days
+        2,                                                                                                      -- 42) Main Tag format index
+        GRM_G.LocalizedIndex,                                                                                   -- 43) Selected Language ( 1 default is English)
+        1,                                                                                                      -- 44) Selected Font ( 1 is Default )
+        0,                                                                                                      -- 45) Font Modifier Size
+        { 1 , 0 , 0 },                                                                                          -- 46) RGB color selection on the "Main" tagging (Default is Red)
+        { true , true , true , true , true , true , true , true },                                              -- 47) Level Filter Options - 60 , 70 , 80 , 85 , 90 , 100 , 110 , 120
+        { "" , "" },                                                                                            -- 48) Custom Join and Rejoin tags
+        2,                                                                                                      -- 49) Default rank for syncing Custom Note
+        0.9,                                                                                                    -- 50) Default Tooltip Size
+        1,                                                                                                      -- 51) Date Format  -- 1 = default  "1 Mar '18"
+        false,                                                                                                  -- 52) Use "Fade" on tabbing
+        true,                                                                                                   -- 53) Disable Guild Reputation visual
+        true,                                                                                                   -- 54) Enable Auto-Popup of the recruitment window if a player comes online.
+        true,                                                                                                   -- 55) Only report returning from inactivity of ALL alts are past the threshold date.
+        true,                                                                                                   -- 56) Report Leveling Data to Log
+        true,                                                                                                   -- 57) Include "Joined:" in the officer/public note join date tag
+        true,                                                                                                   -- 58) Show Borders around public/officer/custom notes
+        true,                                                                                                   -- 59) Report notes to the log on leaving guild...
+        true,                                                                                                   -- 60) Only recommend player to kick if ALL alts are offline for the given time.
+        true,                                                                                                   -- 61) Use a custom message in the guild recruit window when inviting players
+        "",                                                                                                     -- 62) The custom message
+        false,                                                                                                  -- 63) Using a customized minimap position.
+        { "" , "" },                                                                                            -- 64) The setpoints of the custom minimap position
+        true,                                                                                                   -- 65) Main Tags...
+        false,                                                                                                  -- 66) Auto Focus the search bar when opening the log.
+        true,                                                                                                   -- 67) Show Birthday on the player detail window...
+        true,                                                                                                   -- 68) Allow Birthday Sync
+        false,                                                                                                  -- 69) Only show players with JD needing updating in JD Audit Tool
+        true,                                                                                                   -- 70) Disable or enable the log tooltip
+        true,                                                                                                   -- 71) Show GRM player window on old Guild Roster as well
+        { "" , "" , 0 , 0 },                                                                                    -- 72) Coordinates for core GRM window
+        "",                                                                                                     -- 73) GRM Report Destination Default (kept in string format so as not to waste data saving a whole frame)
+        { "" , "" , 0 , 0 },                                                                                    -- 74) Coordinates for core Mass Kick Tool Window
+        { { 1 , 1 , 1 , 12 , true } },                                                                          -- 75) Rules for Reminders and Promote/Demote/Kick Recommendations.
+        false,                                                                                                  -- 76) Safe List hybrid scrollframe checkbox - true to only show players where actions ignored
+        true,                                                                                                   -- 77) Allow !note for non-officers to set their own note
+        0,                                                                                                      -- 78) Log font modified size
+        { true , ";" },                                                                                         -- 79) Export Delimiter selection - it defaults ";"
+        { true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true},                     -- 80) Export filters for member and former members (16 items so far)
+        false,                                                                                                  -- 81) Auto-include export column headers
+        { 1.0 , 1.33 , 1.0 , 1.0 , 1.0 }                                                                        -- 82) Scale Controls for GRM frames (Core , mouseover , Macro , export , "" )
+
+    }
+
+    -- Classic Values adjusted
+    if GRM_G.BuildVersion < 40000 then  
+        defaults[53] = false;       -- Guild Rep not added until Cataclysm
+        defaults[80][10] = false;   -- Disabled Guild Rep Export
+    end
+    
+
+    return defaults;
+end
+
+-- Major Database Overhaul (1.84))
+-- Method:          GRM_Patch.ConvertAddonSettings()
+-- What it Does:    Converts the old array database into a dictionary lookup, which is faster
+-- purpose:         Speed and easier to read settings!
+GRM_Patch.ConvertAddonSettings = function()
+    if GRM_AddonSettings_Save["H"] == nil then
+        local tempUI = GRM.DeepCopyArray ( GRM_AddonSettings_Save );
+        local newUI = {};
+
+        newUI["H"] = {};
+        newUI["A"] = {};
+        
+
+        local faction = "H";
+        local name = "";
+
+        for i = 1 , 2 do
+
+            if i == 2 then
+                faction = "A";
+            end
+            
+            for j = 2 , #tempUI[i] do
+                name = tempUI[i][j][1];
+
+                newUI[faction][ name ] = {};     -- Set each player name to the settings properly
+                for i = 0 , 14 do
+                    GRM.SetDefaultAddonSettings ( newUI[faction][ name ] , i );
+                end
+
+                newUI[faction][name]["version"] = tempUI[i][j][2][1];
+                newUI[faction][name]["showMouseoverRetail"] = tempUI[i][j][2][10];
+                newUI[faction][name]["showMouseoverOld"] = tempUI[i][j][2][71];
+                newUI[faction][name]["minimapPos"] = tempUI[i][j][2][25];
+                newUI[faction][name]["minimapRad"] = tempUI[i][j][2][26];
+                newUI[faction][name]["customPos"] = tempUI[i][j][2][63];
+                newUI[faction][name]["minimapCustomPos"] = tempUI[i][j][2][64];
+                newUI[faction][name]["CoreWindowPos"] = tempUI[i][j][2][72];
+                newUI[faction][name]["macroToolCoordinates"] = tempUI[i][j][2][74];
+                newUI[faction][name]["JDAuditToolFilter"] = tempUI[i][j][2][69];
+                newUI[faction][name]["viewOnLoad"] = tempUI[i][j][2][2];
+                newUI[faction][name]["colorizeNames"] = tempUI[i][j][2][9];
+                newUI[faction][name]["showMainName"] = tempUI[i][j][2][29];
+                newUI[faction][name]["syncSettings"] = tempUI[i][j][2][31];
+                newUI[faction][name]["minimapEnabled"] = tempUI[i][j][2][32];
+                newUI[faction][name]["twentyFourHrScale"] = tempUI[i][j][2][39];
+                newUI[faction][name]["mainTagIndex"] = tempUI[i][j][2][42];
+                newUI[faction][name]["selectedLang"] = tempUI[i][j][2][43];
+                newUI[faction][name]["selectedFont"] = tempUI[i][j][2][44];
+                newUI[faction][name]["fontModifier"] = tempUI[i][j][2][45];
+                newUI[faction][name]["mainTagColor"] = {};
+                newUI[faction][name]["mainTagColor"]["r"] = tempUI[i][j][2][46][1];
+                newUI[faction][name]["mainTagColor"]["g"] = tempUI[i][j][2][46][2];
+                newUI[faction][name]["mainTagColor"]["b"] = tempUI[i][j][2][46][3];
+                newUI[faction][name]["tooltipSize"] = tempUI[i][j][2][50];
+                newUI[faction][name]["dateFormat"] = tempUI[i][j][2][51];
+                newUI[faction][name]["useMainTag"] = tempUI[i][j][2][65];
+                newUI[faction][name]["reportChannel"] = tempUI[i][j][2][73];
+                newUI[faction][name]["inactiveHours"] = tempUI[i][j][2][4];
+                newUI[faction][name]["eventAdvanceDays"] = tempUI[i][j][2][5];
+                newUI[faction][name]["scanDelay"] = tempUI[i][j][2][6];
+                newUI[faction][name]["calendarAnnouncements"] = tempUI[i][j][2][12];
+                newUI[faction][name]["reportInactiveReturn"] = tempUI[i][j][2][11];
+                newUI[faction][name]["onlyAnnounceForMain"] = tempUI[i][j][2][17];
+                newUI[faction][name]["scanEnabled"] = tempUI[i][j][2][18];
+                newUI[faction][name]["levelReportMin"] = tempUI[i][j][2][23];
+                newUI[faction][name]["onlyViewIfChanges"] = tempUI[i][j][2][28];
+                newUI[faction][name]["levelFilters"] = tempUI[i][j][2][47];
+                newUI[faction][name]["allAltRequirement"] = tempUI[i][j][2][55];
+                newUI[faction][name]["recordLevelUp"] = tempUI[i][j][2][56];
+                newUI[faction][name]["syncEnabled"] = tempUI[i][j][2][14];
+                newUI[faction][name]["syncRank"] = tempUI[i][j][2][15];
+                newUI[faction][name]["syncChatEnabled"] = tempUI[i][j][2][16];
+                newUI[faction][name]["syncSameVersion"] = tempUI[i][j][2][19];
+                newUI[faction][name]["syncBanList"] = tempUI[i][j][2][21];
+                newUI[faction][name]["syncRankBanList"] = tempUI[i][j][2][22];
+                newUI[faction][name]["syncSpeed"] = tempUI[i][j][2][24];
+                newUI[faction][name]["exportAllRanks"] = tempUI[i][j][2][35];
+                newUI[faction][name]["syncCustomNote"] = tempUI[i][j][2][38];
+                newUI[faction][name]["syncRankCustom"] = tempUI[i][j][2][49];
+                newUI[faction][name]["syncBDays"] = tempUI[i][j][2][68];
+                newUI[faction][name]["addTimestampToNote"] = tempUI[i][j][2][7];
+                newUI[faction][name]["allowEventsToCalendar"] = tempUI[i][j][2][8];
+                newUI[faction][name]["joinDateDestination"] = tempUI[i][j][2][20];
+                newUI[faction][name]["customTags"] = tempUI[i][j][2][48];
+                newUI[faction][name]["includeTag"] = tempUI[i][j][2][57];
+                newUI[faction][name]["addNotesToLeft"] = tempUI[i][j][2][59];
+                newUI[faction][name]["noteSetEnabled"] = tempUI[i][j][2][77];
+                newUI[faction][name]["useFade"] = tempUI[i][j][2][52];
+                newUI[faction][name]["viewGuildRep"] = tempUI[i][j][2][53];
+                newUI[faction][name]["showBorders"] = tempUI[i][j][2][58];
+                newUI[faction][name]["showBDay"] = tempUI[i][j][2][67];
+                newUI[faction][name]["UIScaling"] = tempUI[i][j][2][82];
+                newUI[faction][name]["toLog"] = {};
+                newUI[faction][name]["toChat"] = {};
+                newUI[faction][name]["showLineNumbers"] = tempUI[i][j][2][36];
+                newUI[faction][name]["shiftClickRemove"] = tempUI[i][j][2][37];
+                newUI[faction][name]["autoFocusSearch"] = tempUI[i][j][2][66];
+                newUI[faction][name]["showTooltip"] = tempUI[i][j][2][70];
+                newUI[faction][name]["logFontSize"] = tempUI[i][j][2][78];
+                newUI[faction][name]["exportDelimiter"] = tempUI[i][j][2][79];
+                newUI[faction][name]["exportFilters"] = tempUI[i][j][2][80];
+                newUI[faction][name]["columnHeaders"] = tempUI[i][j][2][81];
+                newUI[faction][name]["allAltsApplyToKick"] = tempUI[i][j][2][60];
+                newUI[faction][name]["kickRules"] = tempUI[i][j][2][75];
+                newUI[faction][name]["ignoreFilter"] = tempUI[i][j][2][76];
+                newUI[faction][name]["onlyShowIncomplete"] = tempUI[i][j][2][30];
+                newUI[faction][name]["unknownIsComplete"] = tempUI[i][j][2][33];
+                newUI[faction][name]["allowAutoBackups"] = tempUI[i][j][2][34];
+                newUI[faction][name]["autoIntervalDays"] = tempUI[i][j][2][41];
+                
+                local s = "toLog";
+                local int = 3;
+                for k = 1 , 2 do
+                    if k == 2 then
+                        s = "toChat";
+                        int = 13;
+                    end
+                    newUI[faction][name][s] = {};
+                    newUI[faction][name][s]["joined"] = tempUI[i][j][2][int][1];
+                    newUI[faction][name][s]["leveled"] = tempUI[i][j][2][int][2];
+                    newUI[faction][name][s]["inactiveReturn"] = tempUI[i][j][2][int][3];
+                    newUI[faction][name][s]["promotion"] = tempUI[i][j][2][int][4];
+                    newUI[faction][name][s]["demotion"] = tempUI[i][j][2][int][5];
+                    newUI[faction][name][s]["note"] = tempUI[i][j][2][int][6];
+                    newUI[faction][name][s]["officerNote"] = tempUI[i][j][2][int][7];
+                    newUI[faction][name][s]["customNote"] = tempUI[i][j][2][int][14];
+                    newUI[faction][name][s]["nameChange"] = tempUI[i][j][2][int][8];
+                    newUI[faction][name][s]["rankRename"] = tempUI[i][j][2][int][9];
+                    newUI[faction][name][s]["eventAnnounce"] = tempUI[i][j][2][int][10];
+                    newUI[faction][name][s]["left"] = tempUI[i][j][2][int][11];
+                    newUI[faction][name][s]["recommend"] = tempUI[i][j][2][int][12];
+                    newUI[faction][name][s]["banned"] = tempUI[i][j][2][int][13];
+                end
+            end
+
+        end
+        GRM_AddonSettings_Save = newUI;
+    end
+end
+
+GRM_Patch.CollectAllGuildNames = function()
+    local result = {};
+    local F = "H";
+
+    for i = 1 , #GRM_PlayerListOfAlts_Save do
+        if i == 2 then
+            F = "A";
+        end
+        result[ F ] = {};
+
+        for j = 2 , #GRM_PlayerListOfAlts_Save[i] do
+            if type ( GRM_PlayerListOfAlts_Save[i][j][1] ) ~= "string" and string.find ( GRM_PlayerListOfAlts_Save[i][j][1][1] , "-" ) ~= nil then
+                result[ F ][ GRM_PlayerListOfAlts_Save[i][j][1][1] ] = {};
+            end
+        end
+    end
+    
+    return result;
+end
+
+-- Method:          GRM_Patch.ConvertListOfAddonAlts()
+-- What it Does:    Converts the old database array into a keyed dictionary
+-- Purpose:         Faster efficiency in accessing player info.
+GRM_Patch.ConvertListOfAddonAlts = function()
+
+    DBGuildNames = GRM_Patch.CollectAllGuildNames();
+
+    if GRM_PlayerListOfAlts_Save["H"] == nil then
+        local tempUI = GRM.DeepCopyArray ( GRM_PlayerListOfAlts_Save );
+        local newUI = {};
+
+        newUI["H"] = {};
+        newUI["A"] = {};
+        
+        local f = "H";
+        local gName;
+
+        for i = 1 , 2 do
+            gName = "";
+
+            if i == 2 then
+                f = "A";
+            end
+
+            for j = 2 , #tempUI[i] do
+
+                if type ( tempUI[i][j][1] ) ~= "string" and string.find ( tempUI[i][j][1][1] , "-" ) ~= nil and newUI[f][ tempUI[i][j][1][1] ] == nil then
+
+                    gName = tempUI[i][j][1][1];
+                    newUI[f][ gName ] = {};                                 -- Set the guild Name
+
+                    for s = 2 , #tempUI[i][j] do                            -- Each player in a guild
+                        newUI[f][ gName ][ tempUI[i][j][s][1] ] = {};
+                    end
+                end
+            end
+        end
+
+        GRM_PlayerListOfAlts_Save = newUI;
+    end
+end
+
+-- 1.84 (DB Overhaul)
+-- Method:          GRM_Patch.ConvertBackupDB()
+-- What it Does:    Converts the old database array into a keyed dictionary
+-- Purpose:         Faster efficiency in accessing player info.
+GRM_Patch.ConvertBackupDB = function()
+    
+    if GRM_GuildDataBackup_Save["H"] == nil then
+        local tempUI = GRM.DeepCopyArray ( GRM_GuildDataBackup_Save );
+        local newUI = {};
+
+        newUI["H"] = {};
+        newUI["A"] = {};
+
+        local f = "H";
+        local gName;
+
+        for i = 1 , 2 do
+            gName = "";
+
+            if i == 2 then
+                f = "A";
+            end
+
+            for j = 2 , #tempUI[i] do
+
+                if type ( tempUI[i][j][1] ) ~= "string" and string.find ( tempUI[i][j][1][1] , "-" ) ~= nil and newUI[f][ tempUI[i][j][1][1] ] == nil then            -- Purge old broken database
+                    gName = tempUI[i][j][1][1];
+                    if tempUI[i][j][1][2] == "0-0-1999" then
+                        tempUI[i][j][1][2] = "";
+                    end
+                    newUI[f][ gName ] = { tempUI[i][j][1][2] };                             -- Set the guild Name
+
+                    local v = "Auto";
+                    for k = 1 , 2 do
+                        if k == 2 then
+                            v = "Manual";
+                        end
+
+                        newUI[f][ gName ][v] = {};                                         -- Now setting each backup to their own entry
+                        newUI[f][ gName ][v]["date"] = "";
+                        newUI[f][ gName ][v]["epochDate"] = 0;
+                        newUI[f][ gName ][v]["members"] = {};
+                        newUI[f][ gName ][v]["formerMembers"] = {};
+                        newUI[f][ gName ][v]["log"] = {};
+                        
+                    end
+      
+                    if tempUI[i][j][1][2] ~= "" then
+                        -- Copy over the backupData
+                        if #tempUI[i][j][2] > 0 then
+                            newUI[f][ gName ]["Auto"] = { 1 };
+                            newUI[f][ gName ]["Auto"]["date"] = tempUI[i][j][2][1];
+                            newUI[f][ gName ]["Auto"]["epochDate"] = tempUI[i][j][2][2];
+                            newUI[f][ gName ]["Auto"]["members"] = GRM.DeepCopyArray ( tempUI[i][j][2][3] );
+                            newUI[f][ gName ]["Auto"]["formerMembers"] = GRM.DeepCopyArray ( tempUI[i][j][2][4] );
+                            newUI[f][ gName ]["Auto"]["log"] = GRM.DeepCopyArray ( tempUI[i][j][2][5] );
+                        end
+                        if tempUI[i][j][3] ~= nil and #tempUI[i][j][3] > 0 then
+                            newUI[f][ gName ]["Manual"] = { 1 };
+                            newUI[f][ gName ]["Manual"]["date"] = tempUI[i][j][3][1];
+                            newUI[f][ gName ]["Manual"]["epochDate"] = tempUI[i][j][3][2];
+                            newUI[f][ gName ]["Manual"]["members"] = GRM.DeepCopyArray ( tempUI[i][j][3][3] );
+                            newUI[f][ gName ]["Manual"]["formerMembers"] = GRM.DeepCopyArray ( tempUI[i][j][3][4] );
+                            newUI[f][ gName ]["Manual"]["log"] = GRM.DeepCopyArray ( tempUI[i][j][3][5] );
+                        end
+                    end
+                end
+            end
+
+            -- Due to dealing with an old bug of a database being converted and normalizing database properly.
+            for names in pairs ( DBGuildNames[f] ) do
+                if newUI[f][ names ] == nil then
+                    newUI[f][ names ] = { "" };
+                    local type = "Auto";
+                    for k = 1 , 2 do
+                        if k == 2 then
+                            type = "Manual";
+                        end
+                        newUI[f][ names ][type] = {};
+                        newUI[f][ names ][type]["date"] = "";
+                        newUI[f][ names ][type]["epochDate"] = 0;
+                        newUI[f][ names ][type]["members"] = {};
+                        newUI[f][ names ][type]["formerMembers"] = {};
+                        newUI[f][ names ][type]["log"] = {};
+                    end
+                end
+            end
+
+        end
+
+        GRM_GuildDataBackup_Save = newUI;
+    end
+end
+
+-- 1.84 (DB Overhaul)
+-- Method:          adaptLogDB ( table , table , string , string )
+-- What it Does:    Adapts the old DB to the new 
+-- Purpose:         Resolve a lingering issue that could occur if the log ever grows > 30,000 lines.
+local adaptLogDB = function ( newUI , tempUI , f )
+
+    local gName = tempUI[1][1];
+    local c = 1;
+    local loop = 1;
+
+    newUI[f][ gName ] = {};                         -- Set the guild Name
+    table.remove ( tempUI , 1 );                    -- No need to keep the name/creation date index. Irrelevant position and info now.
+    
+    -- Copy over the Log Entries
+    for s = 1 , #tempUI do
+                                
+        newUI[f][ gName ][s] = tempUI[s];
+
+    end
+
+    return newUI[f][gName] , tempUI;
+end
+
+-- 1.84 (DB Overhaul)
+-- What it Does:    Adapts the old DB to the new and also splits up the log into tables of 15,000.
+-- Purpose:         Resolve a lingering issue that could occur if the log ever grows > 30,000 lines, and now sets no limit.
+local convertBackLogDB = function ( backupLog )
+    local newUI = {};
+    local c = 1;
+    local loop = 1;
+
+    table.remove ( backupLog , 1 );
+
+    -- Copy over the Log Entries
+    for s = 1 , #backupLog do
+       
+        newUI[ s ] = backupLog[ s ];
+    end
+
+    return newUI;
+end
+
+-- 1.84 (DB Overhaul)
+-- Method:          GRM_Patch.ConvertLogDB()
+-- What it Does:    Converts the old database array into a keyed dictionary
+-- Purpose:         Faster efficiency in accessing player info.
+GRM_Patch.ConvertLogDB = function()
+    
+    if GRM_LogReport_Save["H"] == nil then
+        local tempUI = GRM.DeepCopyArray ( GRM_LogReport_Save );
+        local newUI = {};
+
+        newUI["H"] = {};
+        newUI["A"] = {};
+        
+        local f = "H";
+        local gName;
+        local numTables;
+
+        for i = 1 , 2 do
+            gName = "";
+            numTables = 0;
+
+            if i == 2 then
+                f = "A";
+            end
+
+            for j = 2 , #tempUI[i] do
+
+                if type ( tempUI[i][j][1] ) ~= "string" and string.find ( tempUI[i][j][1][1] , "-" ) ~= nil and newUI[f][ tempUI[i][j][1][1] ] == nil then            -- Purge old broken database
+                    gName = tempUI[i][j][1][1];
+                    newUI[f][ gName ] , tempUI[i][j] = adaptLogDB ( newUI , tempUI[i][j] , f );
+
+                    -- Now, need to update the backup logReports if they exist as well.
+                    if #GRM_GuildDataBackup_Save[f][gName].Auto > 0 then
+                        GRM_GuildDataBackup_Save[f][gName]["Auto"]["log"] = convertBackLogDB ( GRM_GuildDataBackup_Save[f][gName]["Auto"]["log"] );
+                    end
+
+                    if #GRM_GuildDataBackup_Save[f][gName].Manual > 0 then
+                        GRM_GuildDataBackup_Save[f][gName]["Manual"]["log"] = convertBackLogDB ( GRM_GuildDataBackup_Save[f][gName]["Manual"]["log"] );
+                    end
+                end
+            end
+
+            for names in pairs ( DBGuildNames[f] ) do
+                if newUI[f][ names ] == nil then
+                    newUI[f][ names ] = {};
+                end
+            end
+            
+        end
+
+        GRM_LogReport_Save = newUI;
+    end
+end
+
+-- 1.84 (DB overhaul)
+-- Method:          GRM_Patch.ConvertMiscToNewDB()
+-- what it Does:    Converts the old array format of the database of looking up players to the new
+-- Purpose:         Overhaul of database to take advantage of Lua key hashmapping that is built-in.
+GRM_Patch.ConvertMiscToNewDB = function()
+    if #GRM_Misc > 0 and #GRM_Misc[1] == 7 then
+        local tempUI = GRM.DeepCopyArray ( GRM_Misc );
+        local newUI = {};
+
+        for i = 1 , #tempUI do
+            newUI[tempUI[i][1]] = {
+                tempUI[i][2],
+                tempUI[i][3],
+                tempUI[i][4],
+            };
+        end
+
+        GRM_Misc = newUI;
+    end
+end
+
+
+-- 1.84 DB overhaul
+-- Method:          GRM_Patch.ConvertCalenderDB()
+-- What it Does:    Converts the old database array into a keyed dictionary
+-- Purpose:         Faster efficiency in accessing player info.
+GRM_Patch.ConvertCalenderDB = function()
+
+    if GRM_CalendarAddQue_Save["H"] == nil then
+        local tempUI = GRM.DeepCopyArray ( GRM_CalendarAddQue_Save );
+        local newUI = {};
+
+        newUI["H"] = {};
+        newUI["A"] = {};
+        
+        local f = "H";
+        local gName;
+
+        for i = 1 , 2 do
+            gName = "";
+
+            if i == 2 then
+                f = "A";
+            end
+
+            for j = 2 , #tempUI[i] do
+
+                if type ( tempUI[i][j][1] ) ~= "string" and string.find ( tempUI[i][j][1][1] , "-" ) ~= nil and newUI[f][ tempUI[i][j][1][1] ] == nil then
+
+                    gName = tempUI[i][j][1][1];
+                    newUI[f][ gName ] = {};                                 -- Set the guild Name
+
+                    for s = 2 , #tempUI[i][j] do                            -- Each Calendar Entry
+                        newUI[f][ gName ][s - 1] = tempUI[i][j][s];
+                    end
+                end
+            end
+
+            for names in pairs ( DBGuildNames[f] ) do
+                if newUI[f][ names ] == nil then
+                    newUI[f][ names ] = {};
+                end
+            end
+        end
+
+        GRM_CalendarAddQue_Save = newUI;
+    end
+end
+
+
+-- 1.84 DB overhaul
+-- Method:          GRM_Patch.ConvertPlayerMetaDataDB( table )
+-- What it Does:    Converts the old database array into a keyed dictionary
+-- Purpose:         Faster efficiency in accessing player info.
+GRM_Patch.ConvertPlayerMetaDataDB = function( database , needsAllData )
+    if database["H"] == nil then
+        local tempUI = GRM.DeepCopyArray ( database );
+        local newUI = {};
+
+        newUI["H"] = {};
+        newUI["A"] = {};
+        
+        local f = "H";
+        local gName;
+        local member;
+
+        for i = 1 , 2 do
+            gName = "";
+
+            if i == 2 then
+                f = "A";
+            end
+
+            for j = 2 , #tempUI[i] do
+
+                if type ( tempUI[i][j][1] ) ~= "string"  and string.find ( tempUI[i][j][1][1] , "-" ) ~= nil and newUI[f][ tempUI[i][j][1][1] ] == nil then
+
+                    gName = tempUI[i][j][1][1];
+                    if tempUI[i][j][1][2] == "0-0-1999" then
+                        tempUI[i][j][1][2] = "";
+                    end
+                    newUI[f][ gName ] = {};
+                    newUI[f][ gName ]["grmName"] = tempUI[i][j][1][1];
+                    newUI[f][ gName ]["grmCreationDate"] = tempUI[i][j][1][2];
+                    
+                    if needsAllData then
+                        if tempUI[i][j][1][3] == nil then
+                            newUI[f][ gName ]["grmNumRanks"] = 0;       -- might not be accurate, but chances are it will be.
+                        else
+                            newUI[f][ gName ]["grmNumRanks"] = tempUI[i][j][1][3];
+                        end
+                        if tempUI[i][j][1][4] == nil then
+                            newUI[f][ gName ]["grmClubID"] = 0;
+                        else
+                            newUI[f][ gName ]["grmClubID"] = tempUI[i][j][1][4];
+                        end
+                    end
+
+                    for s = 2 , #tempUI[i][j] do
+                        -- if gName == "Is a Subatomic Particle-Zul'jin" then
+                        --     print("Number: " .. #tempUI[i][j]);
+                        -- end
+                        newUI[f][ gName ][ tempUI[i][j][s][1] ] = {};           -- Established the player in new DB format as a key
+                        member = newUI[f][ gName ][ tempUI[i][j][s][1] ];
+
+                        -- Now, convert the player's metaData over;
+                        -- Removed indexes: 2 , 3 , 12 , 13 , 26, 38
+                        member["name"] = tempUI[i][j][s][1];
+                        member["rankName"] = tempUI[i][j][s][4]
+                        member["rankIndex"] = tempUI[i][j][s][5];
+                        member["level"] = tempUI[i][j][s][6];
+                        member["note"] = tempUI[i][j][s][7];
+                        member["officerNote"] = tempUI[i][j][s][8];
+                        member["class"] = tempUI[i][j][s][9];
+                        member["isMain"] = tempUI[i][j][s][10];
+                        member["alts"] = tempUI[i][j][s][11];
+                        member["birthday"] = tempUI[i][j][s][14];
+                        member["leftGuildDate"] = tempUI[i][j][s][15];
+                        member["leftGuildEpoch"] = tempUI[i][j][s][16];
+                        member["bannedInfo"] = tempUI[i][j][s][17];
+                        member["reasonBanned"] = tempUI[i][j][s][18];
+                        member["oldRank"] = tempUI[i][j][s][19];
+                        member["joinDate"] = tempUI[i][j][s][20];
+                        member["joinDateEpoch"] = tempUI[i][j][s][21];
+                        member["events"] = tempUI[i][j][s][22];
+                        member["customNote"] = tempUI[i][j][s][23];
+                        member["lastOnline"] = tempUI[i][j][s][24];
+                        member["rankHistory"] = tempUI[i][j][s][25];
+                        member["recommendToKick"] = tempUI[i][j][s][27];
+                        member["zone"] = tempUI[i][j][s][28];
+                        member["achievementPoints"] = tempUI[i][j][s][29];
+                        member["isMobile"] = tempUI[i][j][s][30];
+                        member["guildRep"] = tempUI[i][j][s][31];
+                        member["timeEnteredZone"] = tempUI[i][j][s][32];
+                        member["isOnline"] = tempUI[i][j][s][33];
+                        member["status"] = tempUI[i][j][s][34];
+                        member["verifiedJoinDate"] = tempUI[i][j][s][35];
+                        member["verifiedPromoteDate"] = tempUI[i][j][s][36];
+                        member["removedAlts"] = tempUI[i][j][s][37];
+                        if type ( tempUI[i][j][s][39] ) == "table" then             --  Eliminates an old bug
+                            member["mainStatusChangeTime"] = 0;
+                        else
+                            member["mainStatusChangeTime"] = tempUI[i][j][s][39];
+                        end
+                        member["joinDateUnknown"] = tempUI[i][j][s][40];
+                        member["promoteDateUnknown"] = tempUI[i][j][s][41];
+                        member["GUID"] = tempUI[i][j][s][42];
+                        member["isUnknown"] = tempUI[i][j][s][43];
+                        member["birthdayUnknown"] = tempUI[i][j][s][44];
+                        member["safeList"] = tempUI[i][j][s][45];
+                        member["race"] = tempUI[i][j][s][46];
+                        member["sex"] = tempUI[i][j][s][47];
+                    end
+                end
+            end
+
+            for names in pairs ( DBGuildNames[f] ) do
+                if newUI[f][ names ] == nil then
+                    newUI[f][ names ] = {};
+                    newUI[f][ names ]["grmName"] = names;
+                    newUI[f][ names ]["grmCreationDate"] = "";
+
+                    if needsAllData then
+                        newUI[f][ names ]["grmNumRanks"] = 0;
+                        newUI[f][ names ]["grmClubID"] = 0;
+                    end
+                end
+            end
+
+        end
+        if database == GRM_GuildMemberHistory_Save then
+            GRM_GuildMemberHistory_Save = newUI;
+        else
+            GRM_PlayersThatLeftHistory_Save = newUI;
+        end
+    end
+end
